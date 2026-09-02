@@ -37,11 +37,7 @@ askName();
 // ====== NAV ======
 document.querySelectorAll('.nav-item').forEach(b=>{
   b.addEventListener('click',()=>{
-    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    document.getElementById('view-'+b.dataset.view).classList.add('active');
-    renderAll();
+    switchView(b.dataset.view);
   });
 });
 
@@ -151,13 +147,18 @@ document.getElementById('exModal').addEventListener('click',e=>{ if(e.target===e
   const btn = document.getElementById('rtn'+k);
   if(btn) btn.addEventListener('click',()=>{
     fillWorkoutFromRoutine(k);
-    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
-    document.querySelector('[data-view="workout"]').classList.add('active');
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    document.getElementById('view-workout').classList.add('active');
-    renderAll();
+    switchView('workout');
   });
 });
+
+function switchView(name){
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.querySelector('[data-view="'+name+'"]').classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  window.scrollTo(0,0);
+  renderAll();
+}
 
 function fillWorkoutFromRoutine(key){
   document.getElementById('wDate').value = today();
