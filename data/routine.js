@@ -26,7 +26,7 @@ const ROUTINE = {
       { name: 'One-Arm Cable Lat Pulldown',icon: '↘️',  muscle: 'Xô sâu',          sets: 3, reps: '10–12', tip: 'Từng tay, kéo chéo xuống, siết lưng dưới',                 img: 'One_Arm_Lat_Pulldown' },
       { name: 'Straight-Arm Pulldown',     icon: '⬇️',  muscle: 'Lưng dưới',       sets: 3, reps: '12–15', tip: 'Tay thẳng, cáp từ trên, đẩy xuống đùi',                    img: 'Straight-Arm_Pulldown' },
       { name: 'Preacher Curl',             icon: '💪',  muscle: 'Tay trước (dài)',  sets: 3, reps: '10–12', tip: 'Ghế preacher, khuỷu cố định, cuộn lên',                    img: 'Preacher_Curl', alt: 'Machine_Preacher_Curls' },
-      { name: 'Hammer Curl',               icon: '🔨',  muscle: 'Tay trước (cánh)', sets: 3, reps: '10–12', tip: 'Tạ đơn, lòng bàn tay hướng vào, cuộn lên',                  img: 'Alternate_Hammer_Curl' },
+      { name: 'Hammer Curl',               icon: '🔨',  muscle: 'Tay trước (cánh)', sets: 3, reps: '10–12', tip: 'Tạ đơn, lòng bàn tay hướng vào, cuộn lên',                  img: 'Alternate_Hammer_Curl', alt: 'Machine_Bicep_Curl' },
     ]
   },
   Legs: {
@@ -37,7 +37,7 @@ const ROUTINE = {
     exs: [
       { name: 'Squat',                    icon: '🦵',  muscle: 'Đùi trước',        sets: 4, reps: '8–10',  tip: 'Tạ đòn sau cổ, hông xuống gối, lưng thẳng',                img: 'Barbell_Full_Squat', alt: 'Smith_Machine_Squat' },
       { name: 'Leg Press',                icon: '🦿',  muscle: 'Đùi trước',        sets: 3, reps: '10–12', tip: 'Máy, đẩy bằng gót, không khoá gối',                        img: 'Leg_Press' },
-      { name: 'Bulgarian Split Squat',    icon: '🦵',  muscle: 'Đùi sau',          sets: 3, reps: '8–12',  tip: 'Một chân sau ghế, squats 1 chân, tạ tay',                   img: 'Split_Squat_with_Dumbbells' },
+      { name: 'Bulgarian Split Squat',    icon: '🦵',  muscle: 'Đùi sau',          sets: 3, reps: '8–12',  tip: 'Một chân sau ghế, squats 1 chân, tạ tay',                   img: 'Split_Squat_with_Dumbbells', alt: 'Smith_Single-Leg_Split_Squat' },
       { name: 'Leg Extension',            icon: '⬆️',  muscle: 'Đùi trước cô lập', sets: 3, reps: '12–15', tip: 'Máy, duỗi thẳng chân, siết đỉnh',                            img: 'Leg_Extensions' },
       { name: 'Leg Curl',                 icon: '⬇️',  muscle: 'Đùi sau',          sets: 3, reps: '10–15', tip: 'Máy, cuộn chân về mông, siết đùi sau',                     img: 'Ball_Leg_Curl' },
       { name: 'Abductor',                 icon: '🦵',  muscle: 'Đùi ngoài',        sets: 3, reps: '12–15', tip: 'Máy, đẩy hai chân ra ngoài',                                 img: 'Thigh_Abductor' },
