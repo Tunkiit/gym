@@ -146,18 +146,39 @@ document.getElementById('exModal').addEventListener('click',e=>{ if(e.target===e
 ['Push','Pull','Legs'].forEach(k=>{
   const btn = document.getElementById('rtn'+k);
   if(btn) btn.addEventListener('click',()=>{
-    fillWorkoutFromRoutine(k);
-    switchView('workout');
+    try{
+      fillWorkoutFromRoutine(k);
+      switchView('workout');
+    }catch(err){
+      showErr('Lỗi khi chuyển: '+err.message);
+    }
   });
 });
 
+// hiện lỗi đỏ lên đầu trang để debug nhanh
+function showErr(msg){
+  let b=document.getElementById('errBanner');
+  if(!b){
+    b=document.createElement('div');
+    b.id='errBanner';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:8px 16px;font:13px/1.4 monospace';
+    document.body.prepend(b);
+  }
+  b.textContent='⚠ '+msg;
+}
+window.addEventListener('error',e=>{ showErr(e.message); });
+
 function switchView(name){
+  // 1) bỏ active toàn bộ nav + view
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-view="'+name+'"]').classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
+  // 2) bật view đích — ép cả class lẫn style cho chắc
+  const v=document.getElementById('view-'+name);
+  if(v){ v.classList.add('active'); v.style.display='block'; }
+  const nav=document.querySelector('[data-view="'+name+'"]');
+  if(nav) nav.classList.add('active');
   window.scrollTo(0,0);
-  renderAll();
+  try{ renderAll(); }catch(err){ showErr('renderAll: '+err.message); }
 }
 
 function fillWorkoutFromRoutine(key){
