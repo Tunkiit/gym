@@ -39,7 +39,7 @@ const ROUTINE = {
       { name: 'Leg Press',                icon: '🦿',  muscle: 'Đùi trước',        sets: 3, reps: '10–12', tip: 'Máy, đẩy bằng gót, không khoá gối',                        img: 'Leg_Press' },
       { name: 'Bulgarian Split Squat',    icon: '🦵',  muscle: 'Đùi sau',          sets: 3, reps: '8–12',  tip: 'Một chân sau ghế, squats 1 chân, tạ tay',                   img: 'Split_Squat_with_Dumbbells', alt: 'Smith_Single-Leg_Split_Squat' },
       { name: 'Leg Extension',            icon: '⬆️',  muscle: 'Đùi trước cô lập', sets: 3, reps: '12–15', tip: 'Máy, duỗi thẳng chân, siết đỉnh',                            img: 'Leg_Extensions' },
-      { name: 'Leg Curl',                 icon: '⬇️',  muscle: 'Đùi sau',          sets: 3, reps: '10–15', tip: 'Máy, cuộn chân về mông, siết đùi sau',                     img: 'Ball_Leg_Curl' },
+      { name: 'Leg Curl',                 icon: '⬇️',  muscle: 'Đùi sau',          sets: 3, reps: '10–15', tip: 'Máy, nằm sấp trên ghế, cuộn chân về mông, siết đùi sau',  img: 'Lying_Leg_Curls' },
       { name: 'Abductor',                 icon: '🦵',  muscle: 'Đùi ngoài',        sets: 3, reps: '12–15', tip: 'Máy, đẩy hai chân ra ngoài',                                 img: 'Thigh_Abductor' },
       { name: 'Abdominal Crunch Machine',  icon: '🧠',  muscle: 'Bụng trên',        sets: 3, reps: '12–15', tip: 'Máy crunch, gập bụng, thở ra khi gập',                       img: 'Ab_Crunch_Machine' },
       { name: 'Leg Raise',                icon: '⬆️',  muscle: 'Bụng dưới',        sets: 3, reps: '10–15', tip: 'Nằm ngửa, nâng chân thẳng, lưng dưới sát đất',              img: 'Flat_Bench_Lying_Leg_Raise' },
