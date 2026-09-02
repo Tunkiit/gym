@@ -149,24 +149,11 @@ document.getElementById('exModal').addEventListener('click',e=>{ if(e.target===e
     try{
       fillWorkoutFromRoutine(k);
       document.getElementById('exerciseRows').scrollIntoView({behavior:'smooth', block:'start'});
-    }catch(err){
-      showErr('Lỗi: '+err.message);
-    }
+    }catch(err){}
   });
 });
 
-// hiện lỗi đỏ lên đầu trang để debug nhanh
-function showErr(msg){
-  let b=document.getElementById('errBanner');
-  if(!b){
-    b=document.createElement('div');
-    b.id='errBanner';
-    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:8px 16px;font:11px/1.4 monospace;white-space:pre-wrap';
-    document.body.prepend(b);
-  }
-  b.textContent='⚠ '+msg;
-}
-window.addEventListener('error',e=>{ showErr(e.message+'\n'+e.filename+':'+e.lineno); });
+// (debug banner đã xoá)
 
 function switchView(name){
   // 1) bỏ active toàn bộ nav + view
@@ -178,7 +165,7 @@ function switchView(name){
   const nav=document.querySelector('[data-view="'+name+'"]');
   if(nav) nav.classList.add('active');
   window.scrollTo(0,0);
-  try{ renderAll(); }catch(err){ showErr('renderAll: '+err.message); }
+  renderAll();
 }
 
 function fillWorkoutFromRoutine(key){
