@@ -1,0 +1,19 @@
+{
+  "Bench Press": "Barbell_Bench_Press_-_Medium_Grip",
+  "Incline Dumbbell Press": "Incline_Dumbbell_Press",
+  "Lateral Raise": "Cable_Seated_Lateral_Raise",
+  "Shoulder Press": "Alternating_Cable_Shoulder_Press",
+  "Tricep Pushdown": "Triceps_Pushdown",
+  "Lat Pulldown": "Close-Grip_Front_Lat_Pulldown",
+  "Seated Cable Row": "Seated_Cable_Rows",
+  "Straight-Arm Pulldown": "Straight-Arm_Pulldown",
+  "Preacher Curl": "Preacher_Curl",
+  "Hammer Curl": "Alternate_Hammer_Curl",
+  "Squat": "Barbell_Full_Squat",
+  "Leg Press": "Leg_Press",
+  "Leg Extension": "Leg_Extensions",
+  "Leg Curl": "Ball_Leg_Curl",
+  "Abductor": "Thigh_Abductor",
+  "Abdominal Crunch Machine": "Ab_Crunch_Machine",
+  "Leg Raise": "Flat_Bench_Lying_Leg_Raise"
+}

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYM TRACKER</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><span class="icon">🏋️</span><span>GYM TRACKER</span></div>
+    <nav class="nav">
+      <button class="nav-item active" data-view="home"><span class="ic">🏠</span><span class="lbl">Trang chủ</span></button>
+      <button class="nav-item" data-view="routine"><span class="ic">📋</span><span class="lbl">Giáo án</span></button>
+      <button class="nav-item" data-view="workout"><span class="ic">💪</span><span class="lbl">Buổi tập</span></button>
+      <button class="nav-item" data-view="diet"><span class="ic">🍗</span><span class="lbl">Ăn uống</span></button>
+      <button class="nav-item" data-view="weight"><span class="ic">⚖️</span><span class="lbl">Cân nặng</span></button>
+      <button class="nav-item" data-view="progress"><span class="ic">📊</span><span class="lbl">Tiến độ</span></button>
+    </nav>
+    <button class="theme-toggle" id="themeToggle"><span class="ic">🌙</span><span class="lbl">Dark / Light</span></button>
+  </aside>
+
+  <main class="main">
+    <!-- HOME -->
+    <section class="view active" id="view-home">
+      <h1 class="page-title">Chào <span id="greetName">bạn</span> 👋</h1>
+      <p class="greeting" id="greetMsg"></p>
+      <div class="grid stats">
+        <div class="stat"><div class="ic">🔥</div><div class="val" id="stStreak">0</div><div class="lbl">Ngày tập liên tiếp</div></div>
+        <div class="stat"><div class="ic">💪</div><div class="val" id="stWorkouts">0</div><div class="lbl">Buổi tập tuần này</div></div>
+        <div class="stat"><div class="ic">⚡</div><div class="val" id="stCal">0</div><div class="lbl">Calo đã đốt (7 ngày)</div></div>
+        <div class="stat"><div class="ic">🥗</div><div class="val" id="stKcalIn">0</div><div class="lbl">Calo nạp hôm nay</div></div>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="card">
+          <h3>📅 Buổi tập tuần này</h3>
+          <div id="weekWorkouts"></div>
+        </div>
+        <div class="card">
+          <h3>🍎 Bữa ăn hôm nay</h3>
+          <div id="todayMeals"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🏆 Tiến độ tháng này <span class="sub" id="monthSummary"></span></h3>
+        <div id="monthChart" class="chart-wrap"></div>
+      </div>
+    </section>
+
+    <!-- ROUTINE -->
+    <section class="view" id="view-routine">
+      <h1 class="page-title">📋 Giáo án của bạn</h1>
+      <p class="subtitle">Bộ tập Push / Pull / Legs — click vào bài tập để xem hình ảnh minh hoạ</p>
+      <div class="routine-grid" id="routineGrid"></div>
+      <div class="card">
+        <h3>💡 Bạn tập hôm nay?</h3>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:10px">Chọn buổi đang tập hôm nay — app sẽ tự động điền bài tập vào mục ghi buổi tập</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-push" id="rtnPush">🔴 Push — Ngực/Vai/Tay sau</button>
+          <button class="btn btn-pull" id="rtnPull">🔵 Pull — Lưng/Tay trước</button>
+          <button class="btn btn-legs" id="rtnLegs">🟢 Legs + Abs</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORKOUT -->
+    <section class="view" id="view-workout">
+      <h1 class="page-title">💪 Buổi tập</h1>
+      <p class="subtitle">Ghi lại bài tập, số tạ &amp; số lần lặp</p>
+      <div class="card">
+        <h3>＋ Ghi buổi tập mới</h3>
+        <div class="form-row">
+          <div class="field"><label>Ngày</label><input type="date" id="wDate"></div>
+          <div class="field"><label>Loại buổi</label>
+            <div class="type-btns" id="wTypeBtns" style="margin:0">
+              <button class="type-btn active" data-type="Push">🔴 Push</button>
+              <button class="type-btn" data-type="Pull">🔵 Pull</button>
+              <button class="type-btn" data-type="Legs">🟢 Legs</button>
+              <button class="type-btn" data-type="Cardio">Cardio</button>
+              <button class="type-btn" data-type="Full body">Full body</button>
+            </div>
+          </div>
+          <div class="field"><label>Thời lượng (phút)</label><input type="number" id="wDur" min="1" placeholder="60"></div>
+          <div class="field"><label>Calo đốt (ước)</label><input type="number" id="wCal" min="0" placeholder="300"></div>
+        </div>
+        <h3 style="margin-top:18px">📝 Bài tập trong buổi</h3>
+        <div id="exerciseRows"></div>
+        <div class="form-row" style="margin-top:10px">
+          <button class="btn ghost sm" id="addExercise">＋ Thêm bài tập</button>
+          <button class="btn" id="saveWorkout">Lưu buổi tập</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📋 Lịch sử buổi tập</h3>
+        <div id="workoutList"></div>
+      </div>
+    </section>
+
+    <!-- DIET -->
+    <section class="view" id="view-diet">
+      <h1 class="page-title">🥗 Ăn uống</h1>
+      <p class="subtitle">Theo dõi calo &amp; dinh dưỡng mỗi ngày</p>
+      <div class="card">
+        <h3>🎯 Mục tiêu hàng ngày</h3>
+        <div class="form-row">
+          <div class="field"><label>Calo</label><input type="number" id="gCal" value="2400"></div>
+          <div class="field"><label>Protein (g)</label><input type="number" id="gPro" value="150"></div>
+          <div class="field"><label>Carbs (g)</label><input type="number" id="gCarb" value="250"></div>
+          <div class="field"><label>Chất béo (g)</label><input type="number" id="gFat" value="70"></div>
+          <button class="btn sm" id="saveGoals">Lưu</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📊 Hôm nay</h3>
+        <div class="macros">
+          <div class="macro"><div class="v" id="mCal">0</div><div class="l">Calo / <span id="mCalG">0</span></div></div>
+          <div class="macro"><div class="v" id="mPro">0</div><div class="l">Protein g</div></div>
+          <div class="macro"><div class="v" id="mCarb">0</div><div class="l">Carbs g</div></div>
+          <div class="macro"><div class="v" id="mFat">0</div><div class="l">Chất béo g</div></div>
+        </div>
+        <div class="macro-bar" id="macroBar"></div>
+      </div>
+      <div class="card">
+        <h3>＋ Thêm bữa ăn</h3>
+        <div class="form-row">
+          <div class="field"><label>Bữa</label>
+            <select id="mMeal">
+              <option>Sáng</option><option>Trưa</option><option>Chiều</option><option>Tối</option><option>Ăn vặt</option>
+            </select>
+          </div>
+          <div class="field"><label>Món ăn</label><input type="text" id="mName" placeholder="Cơm gà ức, trứng, ..."></div>
+          <div class="field"><label>Calo</label><input type="number" id="mCalV" min="0" placeholder="450"></div>
+          <div class="field"><label>Protein</label><input type="number" id="mProV" min="0" placeholder="30"></div>
+          <div class="field"><label>Carbs</label><input type="number" id="mCarbV" min="0" placeholder="50"></div>
+          <div class="field"><label>Fat</label><input type="number" id="mFatV" min="0" placeholder="15"></div>
+          <button class="btn" id="addMeal">＋ Thêm</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🍽️ Bữa ăn hôm nay</h3>
+        <div id="mealList"></div>
+      </div>
+      <div class="card">
+        <h3>📅 Lịch sử ăn uống (7 ngày)</h3>
+        <div id="dietHistory"></div>
+      </div>
+    </section>
+
+    <!-- WEIGHT -->
+    <section class="view" id="view-weight">
+      <h1 class="page-title">⚖️ Cân nặng</h1>
+      <p class="subtitle">Theo dõi cân nặng mỗi ngày</p>
+      <div class="card">
+        <h3>＋ Ghi cân nặng</h3>
+        <div class="form-row">
+          <div class="field"><label>Ngày</label><input type="date" id="wtDate"></div>
+          <div class="field"><label>Cân nặng (kg)</label><input type="number" id="wtVal" step="0.1" placeholder="70.5"></div>
+          <button class="btn" id="saveWeight">Lưu</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📈 Biểu đồ cân nặng</h3>
+        <div id="weightChart"></div>
+      </div>
+      <div class="card">
+        <h3>📋 Lịch sử</h3>
+        <div id="weightList"></div>
+      </div>
+    </section>
+
+    <!-- PROGRESS -->
+    <section class="view" id="view-progress">
+      <h1 class="page-title">📊 Tiến độ</h1>
+      <p class="subtitle">Phân tích &amp; đề xuất lịch tập + meal plan</p>
+      <div class="tabs" id="progTabs">
+        <button class="tab active" data-tab="weekly">Tuần này</button>
+        <button class="tab" data-tab="exercise">Theo bài tập</button>
+        <button class="tab" data-tab="plan">Gợi ý kế hoạch</button>
+      </div>
+      <div id="prog-weekly"></div>
+      <div id="prog-exercise" style="display:none"></div>
+      <div id="prog-plan" style="display:none"></div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="exModal">
+  <div class="modal">
+    <button class="close" id="modalClose">✕</button>
+    <h2 id="modalTitle">Bench Press</h2>
+    <span class="mg-label" id="modalMG">Ngực</span>
+    <div class="img-wrap" id="modalImgWrap"></div>
+    <div class="detail-grid">
+      <div class="detail-item"><div class="v" id="modalSets">0</div><div class="l">Sets</div></div>
+      <div class="detail-item"><div class="v" id="modalReps">0</div><div class="l">Reps</div></div>
+      <div class="detail-item"><div class="v" id="modalMuscle">—</div><div class="l">Nhóm cơ chính</div></div>
+      <div class="detail-item"><div class="v" id="modalDay">—</div><div class="l">Buổi tập</div></div>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-top:6px;line-height:1.5" id="modalTips"></p>
+  </div>
+</div>
+
+<script src="data/routine.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
