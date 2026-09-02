@@ -226,6 +226,16 @@ document.getElementById('exerciseRows').appendChild(exerciseRow(null));
 document.getElementById('addExercise').addEventListener('click',()=>{
   document.getElementById('exerciseRows').appendChild(exerciseRow(null)); fillExList();
 });
+document.getElementById('resetWorkout').addEventListener('click',()=>{
+  if(!document.querySelectorAll('#exerciseRows .form-row').length) return;
+  if(!confirm('Reset toàn bộ bài tập trong buổi này?')) return;
+  const c=document.getElementById('exerciseRows');
+  c.innerHTML='';
+  c.appendChild(exerciseRow(null));
+  fillExList();
+  document.getElementById('wDur').value='';
+  document.getElementById('wCal').value='';
+});
 document.getElementById('saveWorkout').addEventListener('click',()=>{
   const date=document.getElementById('wDate').value||today();
   const dur=num(document.getElementById('wDur').value);

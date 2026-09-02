@@ -46,6 +46,8 @@ select{min-width:140px}
 .btn:hover{filter:brightness(1.1)}
 .btn.ghost{background:var(--card2);color:var(--fg);border:1px solid var(--border)}
 .btn.danger{background:transparent;color:var(--red);border:1px solid var(--red);padding:5px 10px;font-size:12px;border-radius:7px}
+.danger-btn{background:transparent;color:var(--red);border:1px solid var(--red)!important}
+.danger-btn:hover{background:var(--red)!important;color:#111!important;filter:brightness(1.1)}
 .btn.sm{padding:6px 12px;font-size:13px}
 .btn.btn-blue{background:var(--blue);color:#fff}
 .btn.btn-green{background:var(--accent2);color:#fff}
