@@ -143,7 +143,7 @@ document.getElementById('fillDay').addEventListener('click',()=>{
   const dayKey = daySelect.value;
   const m = getDayMeta(curSplit, dayKey);
   fillWorkoutFromRoutine(m.exs, m.name, m.emoji);
-  document.getElementById('wCal').value = '';
+  updateCalPreview();
   document.getElementById('exerciseRows').scrollIntoView({behavior:'smooth', block:'start'});
 });
 
@@ -217,8 +217,25 @@ document.querySelectorAll('#wTypeBtns .type-btn').forEach(b=>{
     document.querySelectorAll('#wTypeBtns .type-btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active'); wType=b.dataset.type;
     fillExList(); // cập nhật gợi ý bài tập theo loại buổi vừa chọn
+    // Cardio: ẩn cường độ, hiện chọn môn; còn lại: ngược lại
+    const isCardioType = wType==='Cardio';
+    document.getElementById('intensityField').style.display = isCardioType?'none':'';
+    document.getElementById('cardioField').style.display = isCardioType?'':'none';
+    updateCalPreview();
   });
 });
+// Cường độ: chọn mức → tính calo lại
+document.querySelectorAll('#intensityBtns .type-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#intensityBtns .type-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    updateCalPreview();
+  });
+});
+// Đổi môn cardio → tính calo lại
+document.getElementById('cardioSelect').addEventListener('change', updateCalPreview);
+// Gõ thời lượng → tính calo live
+document.getElementById('wDur').addEventListener('input', updateCalPreview);
 
 // Danh sách gợi ý bài tập (gộp tất cả giáo án + cardio)
 const ALL_EX = (()=>{
@@ -244,9 +261,33 @@ const SPLIT_EX = (()=>{
   });
   return o;
 })();
-// Cardio: kcal mỗi phút (MET xấp xỉ, người 70kg)
+// Cardio: MET từng môn (chuẩn ACSM)
 const CARDIO_MET = {'Chạy bộ':9,'Đạp xe':6.5,'Máy chèo':7,'Jump Rope':11};
 const isCardio = n => !!CARDIO_MET[n];
+// Cân nặng cơ thể: lấy mục gần nhất từ tab Cân nặng (localStorage), chưa có → 60
+function getBodyWeight(){
+  const ws = load(LS.weights, []);
+  if(!ws.length) return 60;
+  const sorted=[...ws].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const v = sorted[0].v != null ? sorted[0].v : sorted[0];
+  return num(v, 60) || 60;
+}
+// Calo buổi tập (chuẩn ACSM): MET × 3.5 × cân nặng × phút ÷ 200
+function calcWorkoutKcal(){
+  const dur = num(document.getElementById('wDur').value);
+  if(dur<=0) return 0;
+  const met = wType==='Cardio'
+    ? (CARDIO_MET[document.getElementById('cardioSelect').value]||6.5)
+    : num(document.querySelector('#intensityBtns .type-btn.active')?.dataset.met, 4.5);
+  return Math.round(met * 3.5 * getBodyWeight() * dur / 200);
+}
+function updateCalPreview(){
+  const el = document.getElementById('calPreview');
+  if(!el) return;
+  const k = calcWorkoutKcal();
+  el.textContent = k>0 ? '🔥 '+fmt(k)+' kcal' : '—';
+  el.classList.toggle('has', k>0);
+}
 function exerciseRow(ex){
   const cardio = ex && isCardio(ex.name);
   const d=document.createElement('div');
@@ -288,21 +329,22 @@ document.getElementById('resetWorkout').addEventListener('click',()=>{
   c.appendChild(exerciseRow(null));
   fillExList();
   document.getElementById('wDur').value='';
-  document.getElementById('wCal').value='';
+  updateCalPreview();
 });
 document.getElementById('saveWorkout').addEventListener('click',()=>{
   const date=document.getElementById('wDate').value||today();
   const dur=num(document.getElementById('wDur').value);
+  if(!dur||dur<=0){ alert('Bắt buộc nhập thời lượng (phút)'); document.getElementById('wDur').focus(); return; }
   const exs=[...document.querySelectorAll('#exerciseRows .form-row')]
     .map(r=>({name:r.querySelector('.ex-name').value.trim(),sets:num(r.querySelector('.ex-sets').value),reps:num(r.querySelector('.ex-reps').value),w:num(r.querySelector('.ex-w').value)}))
     .filter(e=>e.name);
   if(!exs.length){ alert('Thêm ít nhất 1 bài tập'); return; }
-  // calo đốt: chỉ lấy giá trị user tự nhập (từ đồng hồ thông minh), KHÔNG tự tính/bịa
-  const cal=num(document.getElementById('wCal').value);
+  // calo đốt: tự tính theo chuẩn ACSM (MET × 3.5 × cân nặng × phút ÷ 200)
+  const cal = calcWorkoutKcal();
   workouts.push({id:Date.now(), date, type:wType, dur, cal, exs});
   save(LS.workouts, workouts);
   renderAll();
-  alert('✅ Đã lưu buổi tập!');
+  alert('✅ Đã lưu buổi tập! Đốt ~'+fmt(cal)+' kcal');
 });
 function renderWorkoutList(){
   const el=document.getElementById('workoutList');

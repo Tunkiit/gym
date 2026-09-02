@@ -29,6 +29,8 @@ h1.page-title{font-size:26px;font-weight:800;margin-bottom:4px}
 .guide-list{list-style:none;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.55;color:var(--fg)}
 .guide-list li{padding-left:18px;position:relative}
 .guide-list li::before{content:'▸';position:absolute;left:0;color:var(--accent)}
+.cal-preview{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:14px;font-weight:700;color:var(--muted);min-width:110px;text-align:center}
+.cal-preview.has{color:var(--accent2);border-color:var(--accent2)}
 .card h3 .sub{font-size:12px;color:var(--muted);font-weight:500;margin-left:auto}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px}
 .stat .val{font-size:28px;font-weight:800}
