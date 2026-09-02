@@ -185,12 +185,12 @@ function renderRoutine(){
 }
 
 function switchView(name){
-  // 1) bỏ active toàn bộ nav + view
+  // 1) bỏ active toàn bộ nav + view (inline style không dùng nữa — trước đây display='block' dính lại gây lỗi chồng view)
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  // 2) bật view đích — ép cả class lẫn style cho chắc
+  // 2) bật view đích
   const v=document.getElementById('view-'+name);
-  if(v){ v.classList.add('active'); v.style.display='block'; }
+  if(v) v.classList.add('active');
   const nav=document.querySelector('[data-view="'+name+'"]');
   if(nav) nav.classList.add('active');
   window.scrollTo(0,0);
