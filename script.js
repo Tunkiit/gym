@@ -143,8 +143,8 @@ document.getElementById('fillDay').addEventListener('click',()=>{
   const dayKey = daySelect.value;
   const m = getDayMeta(curSplit, dayKey);
   fillWorkoutFromRoutine(m.exs, m.name, m.emoji);
-  // tự tính calo ước: tổng kcal mỗi bài × sets
-  document.getElementById('wCal').value = m.exs.reduce((a,e)=>a+((e.kcal||0)*e.sets),0);
+  document.getElementById('wCal').value = '';
+  updateCalEst();
   document.getElementById('exerciseRows').scrollIntoView({behavior:'smooth', block:'start'});
 });
 
@@ -154,12 +154,11 @@ function renderRoutine(){
   const dayKey = daySelect.value;
   const m = getDayMeta(curSplit, dayKey);
   const color = curSplit==='PPL' ? (dayKey==='Push'?'var(--push)':dayKey==='Pull'?'var(--pull)':'var(--legs)') : 'var(--accent)';
-  const totalKcal = m.exs.reduce((a,e)=>a+((e.kcal||0)*e.sets),0);
-  document.getElementById('dayCalEst').textContent = '🔥 ~'+totalKcal+' kcal';
+  document.getElementById('dayCalEst').textContent = '';
   grid.innerHTML = `<div class="routine-card" style="border-top:3px solid ${color}">
     <div class="routine-header">
       <h2>${m.label}</h2>
-      <span class="sets-count">${m.sets} sets · ~${totalKcal} kcal</span>
+      <span class="sets-count">${m.sets} sets</span>
     </div>
     <div class="routine-body">
       ${m.exs.map((ex,i)=>`
@@ -208,21 +207,9 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
   wType = target;
   const container=document.getElementById('exerciseRows');
   container.innerHTML='';
-  exs.forEach(ex=>{
-    const d=document.createElement('div');
-    d.className='form-row'; d.style.marginBottom='0'; d.style.alignItems='center';
-    d.innerHTML = `
-      <input type="text" class="ex-name" list="exList" placeholder="Bài tập" value="${ex.name}" style="flex:1;min-width:120px">
-      <datalist id="exList"></datalist>
-      <div class="field"><label>Sets</label><input type="number" class="ex-sets" min="1" value="${ex.sets}" style="width:60px"></div>
-      <div class="field"><label>Reps</label><input type="number" class="ex-reps" min="1" value="${parseInt(ex.reps)}" style="width:70px"></div>
-      <div class="field"><label>Kg</label><input type="number" class="ex-w" min="0" step="0.5" value="0" style="width:70px"></div>
-      <button class="btn danger ex-del">✕</button>`;
-    d.querySelector('.ex-del').addEventListener('click',()=>d.remove());
-    d.querySelector('.ex-name').addEventListener('input',()=>fillExList());
-    container.appendChild(d);
-  });
+  exs.forEach(ex=>container.appendChild(exerciseRow(ex)));
   fillExList();
+  updateCalEst();
 }
 
 // ====== WORKOUT ======
@@ -260,25 +247,44 @@ const SPLIT_EX = (()=>{
   });
   return o;
 })();
-// tra calo mỗi set của 1 bài (theo tên)
-const KCAL = (()=>{
-  const m={};
-  Object.values(ROUTINE).forEach(g=>g.exs.forEach(e=>{ if(e.kcal) m[e.name]=e.kcal; }));
-  Object.values(EXTRA_SPLITS).forEach(s=>s.days.forEach(d=>d.exs.forEach(e=>{ if(e.kcal) m[e.name]=e.kcal; })));
-  return m;
-})();
+// Cardio: kcal mỗi phút (MET xấp xỉ, người 70kg)
+const CARDIO_MET = {'Chạy bộ':9,'Đạp xe':6.5,'Máy chèo':7,'Jump Rope':11};
+const isCardio = n => !!CARDIO_MET[n];
+// calo 1 bài tập tạ: sets×3 (nền) + kg×reps×sets/50 (phần theo tạ)
+const exKcal = (name,kg,reps,sets) => {
+  if(isCardio(name)) return Math.round((kg||0) * CARDIO_MET[name]); // kg = phút
+  return Math.round(sets*3 + (kg||0)*reps*sets/50);
+};
 function exerciseRow(ex){
+  const cardio = ex && isCardio(ex.name);
   const d=document.createElement('div');
   d.className='form-row'; d.style.marginBottom='0'; d.style.alignItems='center';
   d.innerHTML = `
     <input type="text" class="ex-name" list="exList" placeholder="Bài tập" value="${(ex&&ex.name)||''}" style="flex:1;min-width:120px">
     <div class="field"><label>Sets</label><input type="number" class="ex-sets" min="1" value="${(ex&&ex.sets)||3}" style="width:60px"></div>
     <div class="field"><label>Reps</label><input type="number" class="ex-reps" min="1" value="${(ex&&ex.reps)||10}" style="width:70px"></div>
-    <div class="field"><label>Kg</label><input type="number" class="ex-w" min="0" step="0.5" value="${(ex&&ex.w)||0}" style="width:70px"></div>
+    <div class="field"><label class="w-lbl">${cardio?'Phút':'Kg'}</label><input type="number" class="ex-w" min="0" step="0.5" value="${(ex&&ex.w)||0}" style="width:70px"></div>
     <button class="btn danger ex-del">✕</button>`;
-  d.querySelector('.ex-del').addEventListener('click',()=>d.remove());
-  d.querySelector('.ex-name').addEventListener('input',()=>fillExList());
+  const sync = ()=>{
+    const name = d.querySelector('.ex-name').value.trim();
+    d.querySelector('.w-lbl').textContent = isCardio(name) ? 'Phút' : 'Kg';
+  };
+  d.querySelector('.ex-del').addEventListener('click',()=>{ d.remove(); updateCalEst(); });
+  d.querySelector('.ex-name').addEventListener('input',()=>{ sync(); fillExList(); updateCalEst(); });
+  d.querySelectorAll('.ex-sets,.ex-reps,.ex-w').forEach(i=>i.addEventListener('input',updateCalEst));
   return d;
+}
+// tính tổng calo ước của các bài đang trong form + hiện gợi ý cạnh ô calo
+function updateCalEst(){
+  const total=[...document.querySelectorAll('#exerciseRows .form-row')]
+    .reduce((s,r)=>{
+      const name=r.querySelector('.ex-name').value.trim();
+      if(!name) return s;
+      const sets=num(r.querySelector('.ex-sets').value), reps=num(r.querySelector('.ex-reps').value), w=num(r.querySelector('.ex-w').value);
+      return s+exKcal(name,w,reps,sets);
+    },0);
+  const hint=document.getElementById('calHint');
+  if(hint) hint.textContent = total ? '🔥 Ước ~'+fmt(total)+' kcal (tự tính theo tạ/phút)' : '';
 }
 function fillExList(){
   const dl=document.getElementById('exList'); dl.innerHTML='';
@@ -293,7 +299,7 @@ function fillExList(){
 }
 document.getElementById('exerciseRows').appendChild(exerciseRow(null));
 document.getElementById('addExercise').addEventListener('click',()=>{
-  document.getElementById('exerciseRows').appendChild(exerciseRow(null)); fillExList();
+  document.getElementById('exerciseRows').appendChild(exerciseRow(null)); fillExList(); updateCalEst();
 });
 document.getElementById('resetWorkout').addEventListener('click',()=>{
   if(!document.querySelectorAll('#exerciseRows .form-row').length) return;
@@ -312,9 +318,9 @@ document.getElementById('saveWorkout').addEventListener('click',()=>{
     .map(r=>({name:r.querySelector('.ex-name').value.trim(),sets:num(r.querySelector('.ex-sets').value),reps:num(r.querySelector('.ex-reps').value),w:num(r.querySelector('.ex-w').value)}))
     .filter(e=>e.name);
   if(!exs.length){ alert('Thêm ít nhất 1 bài tập'); return; }
-  // calo ước: tổng kcal mỗi bài × sets (nếu user để trống ô calo)
+  // calo ước: nếu user để trống thì tự tính theo kg×reps×sets (hoặc phút×MET cho cardio)
   let cal=num(document.getElementById('wCal').value);
-  if(!cal) cal = exs.reduce((a,e)=>a+(KCAL[e.name]||0)*e.sets,0);
+  if(!cal) cal = exs.reduce((a,e)=>a+exKcal(e.name, e.w, e.reps, e.sets),0);
   workouts.push({id:Date.now(), date, type:wType, dur, cal, exs});
   save(LS.workouts, workouts);
   renderAll();
