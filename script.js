@@ -262,7 +262,7 @@ function exerciseRow(ex){
   d.innerHTML = `
     <input type="text" class="ex-name" list="exList" placeholder="Bài tập" value="${(ex&&ex.name)||''}" style="flex:1;min-width:120px">
     <div class="field"><label>Sets</label><input type="number" class="ex-sets" min="1" value="${(ex&&ex.sets)||3}" style="width:60px"></div>
-    <div class="field"><label>Reps</label><input type="number" class="ex-reps" min="1" value="${(ex&&ex.reps)||10}" style="width:70px"></div>
+    <div class="field"><label>Reps</label><input type="number" class="ex-reps" min="1" value="${parseInt((ex&&ex.reps)||10)||10}" style="width:70px"></div>
     <div class="field"><label class="w-lbl">${cardio?'Phút':'Kg'}</label><input type="number" class="ex-w" min="0" step="0.5" value="${(ex&&ex.w)||0}" style="width:70px"></div>
     <button class="btn danger ex-del">✕</button>`;
   const sync = ()=>{
