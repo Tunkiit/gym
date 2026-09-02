@@ -144,7 +144,6 @@ document.getElementById('fillDay').addEventListener('click',()=>{
   const m = getDayMeta(curSplit, dayKey);
   fillWorkoutFromRoutine(m.exs, m.name, m.emoji);
   document.getElementById('wCal').value = '';
-  updateCalEst();
   document.getElementById('exerciseRows').scrollIntoView({behavior:'smooth', block:'start'});
 });
 
@@ -154,7 +153,6 @@ function renderRoutine(){
   const dayKey = daySelect.value;
   const m = getDayMeta(curSplit, dayKey);
   const color = curSplit==='PPL' ? (dayKey==='Push'?'var(--push)':dayKey==='Pull'?'var(--pull)':'var(--legs)') : 'var(--accent)';
-  document.getElementById('dayCalEst').textContent = '';
   grid.innerHTML = `<div class="routine-card" style="border-top:3px solid ${color}">
     <div class="routine-header">
       <h2>${m.label}</h2>
@@ -209,7 +207,6 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
   container.innerHTML='';
   exs.forEach(ex=>container.appendChild(exerciseRow(ex)));
   fillExList();
-  updateCalEst();
 }
 
 // ====== WORKOUT ======
@@ -250,11 +247,6 @@ const SPLIT_EX = (()=>{
 // Cardio: kcal mỗi phút (MET xấp xỉ, người 70kg)
 const CARDIO_MET = {'Chạy bộ':9,'Đạp xe':6.5,'Máy chèo':7,'Jump Rope':11};
 const isCardio = n => !!CARDIO_MET[n];
-// calo 1 bài tập tạ: sets×3 (nền) + kg×reps×sets/50 (phần theo tạ)
-const exKcal = (name,kg,reps,sets) => {
-  if(isCardio(name)) return Math.round((kg||0) * CARDIO_MET[name]); // kg = phút
-  return Math.round(sets*3 + (kg||0)*reps*sets/50);
-};
 function exerciseRow(ex){
   const cardio = ex && isCardio(ex.name);
   const d=document.createElement('div');
@@ -269,22 +261,9 @@ function exerciseRow(ex){
     const name = d.querySelector('.ex-name').value.trim();
     d.querySelector('.w-lbl').textContent = isCardio(name) ? 'Phút' : 'Kg';
   };
-  d.querySelector('.ex-del').addEventListener('click',()=>{ d.remove(); updateCalEst(); });
-  d.querySelector('.ex-name').addEventListener('input',()=>{ sync(); fillExList(); updateCalEst(); });
-  d.querySelectorAll('.ex-sets,.ex-reps,.ex-w').forEach(i=>i.addEventListener('input',updateCalEst));
+  d.querySelector('.ex-del').addEventListener('click',()=>{ d.remove(); });
+  d.querySelector('.ex-name').addEventListener('input',()=>{ sync(); fillExList(); });
   return d;
-}
-// tính tổng calo ước của các bài đang trong form + hiện gợi ý cạnh ô calo
-function updateCalEst(){
-  const total=[...document.querySelectorAll('#exerciseRows .form-row')]
-    .reduce((s,r)=>{
-      const name=r.querySelector('.ex-name').value.trim();
-      if(!name) return s;
-      const sets=num(r.querySelector('.ex-sets').value), reps=num(r.querySelector('.ex-reps').value), w=num(r.querySelector('.ex-w').value);
-      return s+exKcal(name,w,reps,sets);
-    },0);
-  const hint=document.getElementById('calHint');
-  if(hint) hint.textContent = total ? '🔥 Ước ~'+fmt(total)+' kcal (tự tính theo tạ/phút)' : '';
 }
 function fillExList(){
   const dl=document.getElementById('exList'); dl.innerHTML='';
@@ -299,7 +278,7 @@ function fillExList(){
 }
 document.getElementById('exerciseRows').appendChild(exerciseRow(null));
 document.getElementById('addExercise').addEventListener('click',()=>{
-  document.getElementById('exerciseRows').appendChild(exerciseRow(null)); fillExList(); updateCalEst();
+  document.getElementById('exerciseRows').appendChild(exerciseRow(null)); fillExList();
 });
 document.getElementById('resetWorkout').addEventListener('click',()=>{
   if(!document.querySelectorAll('#exerciseRows .form-row').length) return;
@@ -318,9 +297,8 @@ document.getElementById('saveWorkout').addEventListener('click',()=>{
     .map(r=>({name:r.querySelector('.ex-name').value.trim(),sets:num(r.querySelector('.ex-sets').value),reps:num(r.querySelector('.ex-reps').value),w:num(r.querySelector('.ex-w').value)}))
     .filter(e=>e.name);
   if(!exs.length){ alert('Thêm ít nhất 1 bài tập'); return; }
-  // calo ước: nếu user để trống thì tự tính theo kg×reps×sets (hoặc phút×MET cho cardio)
-  let cal=num(document.getElementById('wCal').value);
-  if(!cal) cal = exs.reduce((a,e)=>a+exKcal(e.name, e.w, e.reps, e.sets),0);
+  // calo đốt: chỉ lấy giá trị user tự nhập (từ đồng hồ thông minh), KHÔNG tự tính/bịa
+  const cal=num(document.getElementById('wCal').value);
   workouts.push({id:Date.now(), date, type:wType, dur, cal, exs});
   save(LS.workouts, workouts);
   renderAll();

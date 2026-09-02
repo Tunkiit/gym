@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GYM TRACKER</title>
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 <div class="app">
@@ -16,6 +16,7 @@
       <button class="nav-item" data-view="diet"><span class="ic">🍗</span><span class="lbl">Ăn uống</span></button>
       <button class="nav-item" data-view="weight"><span class="ic">⚖️</span><span class="lbl">Cân nặng</span></button>
       <button class="nav-item" data-view="progress"><span class="ic">📊</span><span class="lbl">Tiến độ</span></button>
+      <button class="nav-item" data-view="guide"><span class="ic">📖</span><span class="lbl">Hướng dẫn</span></button>
     </nav>
     <button class="theme-toggle" id="themeToggle"><span class="ic">🌙</span><span class="lbl">Dark / Light</span></button>
   </aside>
@@ -67,7 +68,6 @@
           </div>
           <div style="display:flex;align-items:flex-end;gap:8px;padding-bottom:2px">
             <button class="btn" id="fillDay">📋 Điền bài tập</button>
-            <span id="dayCalEst" class="badge green" style="align-self:center"></span>
           </div>
         </div>
         <div class="routine-grid" id="routineGrid" style="margin-bottom:0"></div>
@@ -88,7 +88,7 @@
             </div>
           </div>
           <div class="field"><label>Thời lượng (phút)</label><input type="number" id="wDur" min="1" placeholder="60"></div>
-          <div class="field"><label>Calo đốt (ước)</label><input type="number" id="wCal" min="0" placeholder="0"><span id="calHint" style="font-size:11px;color:var(--muted);margin-top:2px"></span></div>
+          <div class="field"><label>Calo đốt</label><input type="number" id="wCal" min="0" placeholder="Để trống nếu không biết"></div>
         </div>
         <h3 style="margin-top:18px">📝 Bài tập trong buổi</h3>
         <datalist id="exList"></datalist>
@@ -190,6 +190,63 @@
       <div id="prog-exercise" style="display:none"></div>
       <div id="prog-plan" style="display:none"></div>
     </section>
+
+    <!-- GUIDE -->
+    <section class="view" id="view-guide">
+      <h1 class="page-title">📖 Hướng dẫn</h1>
+      <p class="subtitle">Cách dùng từng phần của app</p>
+      <div class="card">
+        <h3>🏠 Trang chủ</h3>
+        <ul class="guide-list">
+          <li><b>Ngày tập liên tiếp</b> — số ngày bạn tập liên tục không nghỉ.</li>
+          <li><b>Buổi tập tuần này</b> — số buổi đã ghi trong tuần (thứ 2 → Chủ nhật).</li>
+          <li><b>Calo đã đốt (7 ngày)</b> — tổng calo bạn <i>tự ghi</i> vào buổi tập (nếu có).</li>
+          <li><b>Calo nạp hôm nay</b> — tổng calo bữa ăn hôm nay.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>💪 Buổi tập</h3>
+        <ul class="guide-list">
+          <li><b>1. Chọn giáo án</b> — PPL, Full Body, Upper/Lower hoặc Bro Split.</li>
+          <li><b>2. Chọn buổi</b> — ví dụ chọn giáo án PPL thì có Push / Pull / Legs.</li>
+          <li><b>3. Bấm "📋 Điền bài tập"</b> — app tự điền danh sách bài + sets/reps gợi ý. Bấm vào 1 bài để xem ảnh minh hoạ &amp; mẹo tập.</li>
+          <li><b>4. Sửa số sets / reps / kg</b> — theo mức tạ bạn dùng hôm đó.</li>
+          <li><b>5. Điền "Thời lượng"</b> — tổng phút tập buổi đó.</li>
+          <li><b>6. "Calo đốt"</b> — nếu bạn đeo đồng hồ thông minh (Apple Watch, Garmin...) thì ghi số calo máy báo. Không có thì <b>để trống</b> — app không tự bịa số.</li>
+          <li><b>7. Bấm "Lưu buổi tập"</b>.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🥗 Ăn uống</h3>
+        <ul class="guide-list">
+          <li><b>Mục tiêu hàng ngày</b> — calo/protein/carbs/fat bạn đặt ra mỗi ngày (có thể xem trên Google, ví dụ "tính TDEE").</li>
+          <li><b>Thêm bữa ăn</b> — mỗi món bạn ăn thì ghi calo + protein/carbs/fat. Không biết chính xác? Đọc nhãn dinh dưỡng, hoặc tra Google "calo ức gà" — nhập số gần đúng cũng được.</li>
+          <li><b>Bữa ăn hôm nay</b> — liệt kê + tổng dinh dưỡng trong ngày, so với mục tiêu.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>⚖️ Cân nặng</h3>
+        <ul class="guide-list">
+          <li>Ghi cân nặng mỗi sáng (sau khi đi vệ sinh, trước ăn — cho đều).</li>
+          <li>App vẽ biểu đồ để xem xu hướng dài hạn. Cân dao động ±1kg trong ngày là bình thường — nhìn xu hướng tuần/tháng, đừng nhìn từng ngày.</li>
+          <li>Không cần ghi mỗi ngày — 3-4 lần/tuần là đủ.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📊 Tiến độ</h3>
+        <ul class="guide-list">
+          <li><b>Tuần này</b> — tổng buổi tập, tổng thời lượng, số lần tập từng bài.</li>
+          <li><b>Theo bài tập</b> — xem từng bài bạn nâng nặng dần lên không (progressive overload).</li>
+          <li><b>Gợi ý kế hoạch</b> — app đề xuất lịch tập tiếp theo.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>💾 Dữ liệu ở đâu?</h3>
+        <ul class="guide-list">
+          <li>Toàn bộ dữ liệu lưu trên <b>chính thiết bị này</b> (localStorage) — không lên server. Xoá cache trình duyệt / dùng máy khác thì không thấy dữ liệu cũ.</li>
+        </ul>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -210,7 +267,7 @@
   </div>
 </div>
 
-<script src="data/routine.js?v=9"></script>
-<script src="script.js?v=9"></script>
+<script src="data/routine.js?v=10"></script>
+<script src="script.js?v=10"></script>
 </body>
 </html>
