@@ -9,9 +9,9 @@ const ROUTINE = {
     exs: [
       { name: 'Bench Press',              icon: '🏋️', muscle: 'Ngực giữa',        sets: 4, reps: '8–10',  tip: 'Tạ đòn, khuỷu tay 45°, hít sâu xuống',                     img: 'Barbell_Bench_Press_-_Medium_Grip' },
       { name: 'Incline Dumbbell Press',    icon: '🏋️', muscle: 'Ngực trên',        sets: 4, reps: '8–10',  tip: 'Ghế dốc 30°, tạ đơn, hít sâu xuống',                     img: 'Incline_Dumbbell_Press' },
-      { name: 'Pec Deck / Chest Fly',      icon: '🦅',  muscle: 'Ngực sâu',        sets: 3, reps: '12–15', tip: 'Cố định lưng, ép ngực, khuỷu hơi cong',                  img: 'Dumbbell_Flyes' },
+      { name: 'Chest Fly',                   icon: '🦅',  muscle: 'Ngực sâu',        sets: 3, reps: '12–15', tip: 'Máy fly, ép ngực vào trong, khuỷu hơi cong',                img: 'Butterfly' },
       { name: 'Lateral Raise',             icon: '🔺',  muscle: 'Vai giữa',        sets: 3, reps: '12–15', tip: 'Tạ nhẹ, khuỷu hơi cong, lên đến vai',                     img: 'Side_Lateral_Raise' },
-      { name: 'Shoulder Press',            icon: '⬆️',  muscle: 'Vai trước',       sets: 3, reps: '8–10',  tip: 'Đẩy tạ đơn/đòn qua đầu, siết cơ vai',                      img: 'Alternating_Cable_Shoulder_Press' },
+      { name: 'Shoulder Press',            icon: '⬆️',  muscle: 'Vai trước',       sets: 3, reps: '8–10',  tip: 'Đẩy tạ đơn/đòn qua đầu, siết cơ vai',                      img: 'Seated_Dumbbell_Press', alt: 'Machine_Shoulder_Military_Press' },
       { name: 'Tricep Pushdown',           icon: '💪',  muscle: 'Tay sau',         sets: 3, reps: '10–15', tip: 'Cáp, khuỷu cố định, xuống hết biên độ',                    img: 'Triceps_Pushdown' },
     ]
   },
@@ -47,8 +47,17 @@ const ROUTINE = {
   }
 };
 
-// Helper: lấy đường dẫn ảnh từ folder name
-function getExImg(folder) {
-  if (!folder) return '';
-  return `img/${folder}_0.jpg`;
+// Helper: lấy danh sách ảnh cho 1 bài (0 = bắt đầu, 1 = kết thúc)
+// Nếu bài có `alt` (ví dụ Shoulder Press: tạ đơn hoặc máy) thì trả về 2 bộ ảnh
+function getExImgs(ex) {
+  const base = (folder, idx) => `img/${folder}_${idx}.jpg`;
+  const one = f => f ? [base(f,0), base(f,1)] : [];
+  const main = one(ex.img);
+  if (ex.alt) {
+    return [
+      { label: 'Tạ đơn', imgs: main },
+      { label: 'Máy', imgs: one(ex.alt) }
+    ];
+  }
+  return [{ label: null, imgs: main }];
 }

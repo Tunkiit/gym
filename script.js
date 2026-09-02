@@ -113,18 +113,34 @@ function showExerciseModal(key, idx){
   document.getElementById('modalMuscle').textContent = ex.muscle;
   document.getElementById('modalDay').textContent = ROUTINE[key].emoji+' '+ROUTINE[key].name;
   document.getElementById('modalTips').textContent = '💡 Mẹo: '+ex.tip;
-  // image
-  const imgUrl = getExImg(ex.img);
+
+  // images: support multiple options (main + alt) + 0/1
+  const opts = getExImgs(ex);
   const wrap = document.getElementById('modalImgWrap');
-  if(imgUrl){
-    // check if file exists
-    const img = new Image();
-    img.onload = () => { wrap.innerHTML = `<img src="${imgUrl}" alt="${ex.name}">`; };
-    img.onerror = () => { wrap.innerHTML = `<div class="placeholder"><span class="big">${ex.icon}</span><span>${ex.name}<br><small>Không có ảnh minh hoạ</small></span></div>`; };
-    img.src = imgUrl;
-  } else {
-    wrap.innerHTML = `<div class="placeholder"><span class="big">${ex.icon}</span><span>${ex.name}<br><small>Thêm ảnh sau</small></span></div>`;
+
+  function renderOpt(optIdx) {
+    const opt = opts[optIdx];
+    if (!opt || !opt.imgs.length) {
+      wrap.innerHTML = `<div class="placeholder"><span class="big">${ex.icon}</span><span>${ex.name}<br><small>Không có ảnh minh hoạ</small></span></div>`;
+      return;
+    }
+    // show 2 images side by side
+    const imgs = opt.imgs.map((src, i) => {
+      const cls = i === 0 ? 'img-start' : 'img-end';
+      const lbl = i === 0 ? 'Bắt đầu' : 'Kết thúc';
+      return `<div class="img-col"><div class="img-frame"><img src="${src}" alt="${ex.name}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\' style=\\'height:160px\\'><span class=\\'big\\' style=\\'font-size:32px\\'>${ex.icon}</span><span style=\\'font-size:12px\\'>Không tải được</span></div>'"></div><div class="img-label">${lbl}</div></div>`;
+    }).join('');
+    const tabs = opts.length > 1 ? `<div class="modal-tabs">${opts.map((o, i) => `<button class="modal-tab ${i === optIdx ? 'active' : ''}" data-oi="${i}">${o.label}</button>`).join('')}</div>` : '';
+    wrap.innerHTML = tabs + `<div class="img-pair">${imgs}</div>`;
+    // bind tabs
+    wrap.querySelectorAll('.modal-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const oi = parseInt(btn.dataset.oi);
+        renderOpt(oi);
+      });
+    });
   }
+  renderOpt(0);
   document.getElementById('exModal').classList.add('open');
 }
 document.getElementById('modalClose').addEventListener('click',()=>document.getElementById('exModal').classList.remove('open'));
