@@ -232,6 +232,7 @@ document.querySelectorAll('#wTypeBtns .type-btn').forEach(b=>{
   b.addEventListener('click',()=>{
     document.querySelectorAll('#wTypeBtns .type-btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active'); wType=b.dataset.type;
+    fillExList(); // cập nhật gợi ý bài tập theo loại buổi vừa chọn
   });
 });
 
@@ -241,6 +242,23 @@ const ALL_EX = (()=>{
   Object.values(ROUTINE).forEach(g=>g.exs.forEach(e=>names.add(e.name)));
   Object.values(EXTRA_SPLITS).forEach(s=>s.days.forEach(d=>d.exs.forEach(e=>names.add(e.name))));
   return [...names];
+})();
+// nhóm bài (Push/Pull/Legs) cho mọi bài — dùng để lọc gợi ý theo loại buổi
+const GROUP = (()=>{
+  const m={};
+  Object.entries(ROUTINE).forEach(([k,g])=>g.exs.forEach(e=>m[e.name]=k));
+  Object.entries(_G).forEach(([n,k])=>{ m[n]=k; });
+  return m;
+})();
+// bài thuộc từng giáo án thêm (theo tên giáo án đang chọn trong ô loại buổi)
+const SPLIT_EX = (()=>{
+  const map={'Full Body':'FullBody','Upper/Lower':'UpperLower','Bro Split':'BroSplit'};
+  const o={};
+  Object.entries(map).forEach(([label,key])=>{
+    o[label]=new Set();
+    EXTRA_SPLITS[key].days.forEach(d=>d.exs.forEach(e=>o[label].add(e.name)));
+  });
+  return o;
 })();
 // tra calo mỗi set của 1 bài (theo tên)
 const KCAL = (()=>{
@@ -254,7 +272,6 @@ function exerciseRow(ex){
   d.className='form-row'; d.style.marginBottom='0'; d.style.alignItems='center';
   d.innerHTML = `
     <input type="text" class="ex-name" list="exList" placeholder="Bài tập" value="${(ex&&ex.name)||''}" style="flex:1;min-width:120px">
-    <datalist id="exList"></datalist>
     <div class="field"><label>Sets</label><input type="number" class="ex-sets" min="1" value="${(ex&&ex.sets)||3}" style="width:60px"></div>
     <div class="field"><label>Reps</label><input type="number" class="ex-reps" min="1" value="${(ex&&ex.reps)||10}" style="width:70px"></div>
     <div class="field"><label>Kg</label><input type="number" class="ex-w" min="0" step="0.5" value="${(ex&&ex.w)||0}" style="width:70px"></div>
@@ -266,7 +283,12 @@ function exerciseRow(ex){
 function fillExList(){
   const dl=document.getElementById('exList'); dl.innerHTML='';
   const seen=new Set();
-  ALL_EX.forEach(e=>{ const o=document.createElement('option'); o.value=e; dl.appendChild(o); seen.add(e); });
+  // lọc theo loại buổi đang chọn: Push → chỉ bài Push; Full Body → chỉ bài trong giáo án đó; Cardio → bài cardio
+  let pool=ALL_EX;
+  if(wType==='Cardio') pool=['Chạy bộ','Đạp xe','Máy chèo','Jump Rope'];
+  else if(SPLIT_EX[wType]) pool=[...SPLIT_EX[wType]];
+  else if(wType==='Push'||wType==='Pull'||wType==='Legs') pool=ALL_EX.filter(n=>GROUP[n]===wType);
+  pool.forEach(e=>{ const o=document.createElement('option'); o.value=e; dl.appendChild(o); seen.add(e); });
   document.querySelectorAll('.ex-name').forEach(i=>{ const v=i.value.trim(); if(v&&!seen.has(v)){ const o=document.createElement('option'); o.value=v; dl.appendChild(o); seen.add(v); } });
 }
 document.getElementById('exerciseRows').appendChild(exerciseRow(null));

@@ -176,6 +176,23 @@ const EXTRA_SPLITS = {
 // Tên các giáo án (cho dropdown chọn)
 const SPLIT_NAMES = ['Push/Pull/Legs (PPL)', 'Full Body', 'Upper/Lower', 'Bro Split'];
 
+// Nhóm (Push/Pull/Legs) cho bài không nằm trong ROUTINE — để lọc gợi ý khi gõ tên bài
+const _G = {
+  'Bent Over Barbell Row':'Pull',
+  'Romanian Deadlift':'Legs',
+  'Pull-ups':'Pull',
+  'Pushups':'Push',
+  'Cable Rear Delt Fly':'Push',
+  'Face Pull':'Push',
+  'Dumbbell Shrug':'Push',
+  'Cable Rope Overhead Triceps Extension':'Push',
+  'Standing Biceps Cable Curl':'Pull',
+  'Dips - Triceps Version':'Push',
+  'Dips - Chest Version':'Push',
+  'Standing Calf Raises':'Legs',
+  'Seated Calf Raise':'Legs'
+};
+
 // Helper: lấy danh sách ảnh cho 1 bài (0 = bắt đầu, 1 = kết thúc)
 // Nếu bài có `alt` (ví dụ Bench Press: tạ đòn hoặc máy) thì trả về 2 bộ ảnh
 function getExImgs(ex) {
