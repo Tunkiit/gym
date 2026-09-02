@@ -224,14 +224,28 @@ document.querySelectorAll('#wTypeBtns .type-btn').forEach(b=>{
     updateCalPreview();
   });
 });
-// Cường độ: chọn mức → tính calo lại
+// Cường độ: chọn mức → tính calo lại + hiện gợi ý
+const INTENSITY_HINT = {
+  '3.5': '🟢 Nhẹ: thở đều, nói chuyện thoải mái, nghỉ 2-3 phút giữa set',
+  '4.5': '🟡 Vừa: thở gấp nhẹ, nói được nhưng ngắt quãng, nghỉ 1-2 phút',
+  '5.5': '🔴 Nặng: thở gấp, chỉ nói được từng từ, nghỉ dưới 1 phút',
+};
+function updateIntensityHint(){
+  const el = document.getElementById('intensityHint');
+  if(!el) return;
+  const active = document.querySelector('#intensityBtns .type-btn.active');
+  const met = active?.dataset.met;
+  el.textContent = INTENSITY_HINT[met] || '🟡 Vừa: thở gấp nhẹ, nói được nhưng ngắt quãng, nghỉ 1-2 phút';
+}
 document.querySelectorAll('#intensityBtns .type-btn').forEach(b=>{
   b.addEventListener('click',()=>{
     document.querySelectorAll('#intensityBtns .type-btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
+    updateIntensityHint();
     updateCalPreview();
   });
 });
+updateIntensityHint(); // hiện hint mặc định khi load
 // Đổi môn cardio → tính calo lại
 document.getElementById('cardioSelect').addEventListener('change', updateCalPreview);
 // Gõ thời lượng → tính calo live

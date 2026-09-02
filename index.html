@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GYM TRACKER</title>
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <div class="app">
@@ -94,6 +94,7 @@
               <button class="type-btn active" data-met="4.5">🟡 Vừa</button>
               <button class="type-btn" data-met="5.5">🔴 Nặng</button>
             </div>
+            <span id="intensityHint" style="font-size:11px;color:var(--muted);line-height:1.4"></span>
           </div>
           <div class="field" id="cardioField" style="display:none"><label>Môn cardio</label>
             <select id="cardioSelect">
@@ -227,7 +228,7 @@
           <li><b>3. Bấm "📋 Điền bài tập"</b> — app tự điền danh sách bài + sets/reps gợi ý. Bấm vào 1 bài để xem ảnh minh hoạ &amp; mẹo tập.</li>
           <li><b>4. Sửa số sets / reps / kg</b> — theo mức tạ bạn dùng hôm đó.</li>
           <li><b>5. Điền "Thời lượng (phút)"</b> — <b>bắt buộc</b>, không nhập thì không lưu được.</li>
-          <li><b>6. Chọn "Cường độ"</b> — 🟢 Nhẹ / 🟡 Vừa / 🔴 Nặng. Tập càng nặng, cường độ càng cao thì calo tính ra càng lớn.</li>
+          <li><b>6. Chọn "Cường độ"</b> — 🟢 Nhẹ (thở đều, nói chuyện thoải mái, nghỉ 2-3 phút) / 🟡 Vừa (thở gấp nhẹ, nói ngắt quãng, nghỉ 1-2 phút) / 🔴 Nặng (thở gấp, nói từng từ, nghỉ dưới 1 phút). Mỗi mức có hướng dẫn hiện ngay dưới nút chọn. Tập càng nặng → calo càng cao.</li>
           <li><b>7. Chọn "🏃 Cardio"</b> — nếu hôm đó tập cardio (chạy bộ, đạp xe, máy chèo, nhảy dây), app tự dùng bảng MET phù hợp thay vì cường độ.</li>
           <li><b>8. "Calo đốt"</b> — app <b>tự tính</b> theo công thức chuẩn ACSM: MET × 3.5 × cân nặng × phút ÷ 200. Bạn không cần nhập, nhìn số hiển thị là biết.</li>
           <li><b>9. Bấm "Lưu buổi tập"</b> — app báo lại số kcal đã đốt ngay sau khi lưu.</li>
@@ -284,7 +285,7 @@
   </div>
 </div>
 
-<script src="data/routine.js?v=11"></script>
-<script src="script.js?v=11"></script>
+<script src="data/routine.js?v=12"></script>
+<script src="script.js?v=12"></script>
 </body>
 </html>
