@@ -161,12 +161,12 @@ function showErr(msg){
   if(!b){
     b=document.createElement('div');
     b.id='errBanner';
-    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:8px 16px;font:13px/1.4 monospace';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:8px 16px;font:11px/1.4 monospace;white-space:pre-wrap';
     document.body.prepend(b);
   }
   b.textContent='⚠ '+msg;
 }
-window.addEventListener('error',e=>{ showErr(e.message); });
+window.addEventListener('error',e=>{ showErr(e.message+'\n'+e.filename+':'+e.lineno); });
 
 function switchView(name){
   // 1) bỏ active toàn bộ nav + view
