@@ -64,50 +64,18 @@ document.getElementById('themeToggle').addEventListener('click',()=>{
   document.querySelector('#themeToggle .ic').textContent = cur==='light'?'☀️':'🌙';
 });
 
-// ====== ROUTINE VIEW ======
-function renderRoutine(){
-  const grid=document.getElementById('routineGrid');
-  grid.innerHTML = Object.entries(ROUTINE).map(([key,rt])=>{
-    const color = key==='Push'?'var(--push)':key==='Pull'?'var(--pull)':'var(--legs)';
-    return `<div class="routine-card" style="border-top:3px solid ${color}">
-      <div class="routine-header">
-        <h2>${rt.emoji} ${rt.name}</h2>
-        <span class="sets-count">${rt.sets} sets</span>
-      </div>
-      <div class="routine-body">
-        ${rt.exs.map((ex,i)=>`
-          <div class="routine-ex" data-key="${key}" data-idx="${i}">
-            <span class="ex-icon">${ex.icon}</span>
-            <div class="ex-info">
-              <div class="ex-name">${ex.name}</div>
-              <div class="ex-meta">${ex.sets}×${ex.reps} · ${ex.muscle}</div>
-            </div>
-            <span class="ex-mg">${ex.muscle}</span>
-            <button class="ex-view">🔍</button>
-          </div>
-        `).join('')}
-      </div>
-    </div>`;
-  }).join('');
-  grid.querySelectorAll('.routine-ex').forEach(el=>{
-    el.addEventListener('click',()=>{
-      const key=el.dataset.key, idx=parseInt(el.dataset.idx);
-      showExerciseModal(key, idx);
-    });
-  });
-}
 
 // ====== MODAL ======
-function showExerciseModal(key, idx){
-  const ex=ROUTINE[key].exs[idx];
+function showExerciseModalEx(ex, dayName, emoji){
   document.getElementById('modalTitle').textContent = ex.name;
   document.getElementById('modalMG').textContent = ex.muscle;
-  document.getElementById('modalMG').style.background = key==='Push'?'rgba(239,68,68,.15)':key==='Pull'?'rgba(59,130,246,.15)':'rgba(34,197,94,.15)';
-  document.getElementById('modalMG').style.color = key==='Push'?'var(--push)':key==='Pull'?'var(--pull)':'var(--legs)';
+  const color = emoji==='🔴'?'var(--push)':emoji==='🔵'?'var(--pull)':emoji==='🟢'?'var(--legs)':'var(--accent)';
+  document.getElementById('modalMG').style.background = color.replace('var(--push)','rgba(239,68,68,.15)').replace('var(--pull)','rgba(59,130,246,.15)').replace('var(--legs)','rgba(34,197,94,.15)').replace('var(--accent)','rgba(245,158,11,.15)');
+  document.getElementById('modalMG').style.color = color;
   document.getElementById('modalSets').textContent = ex.sets;
   document.getElementById('modalReps').textContent = ex.reps;
   document.getElementById('modalMuscle').textContent = ex.muscle;
-  document.getElementById('modalDay').textContent = ROUTINE[key].emoji+' '+ROUTINE[key].name;
+  document.getElementById('modalDay').textContent = (emoji||'')+' '+(dayName||'');
   document.getElementById('modalTips').textContent = '💡 Mẹo: '+ex.tip;
 
   // images: support multiple options (main + alt) + 0/1
@@ -142,18 +110,80 @@ function showExerciseModal(key, idx){
 document.getElementById('modalClose').addEventListener('click',()=>document.getElementById('exModal').classList.remove('open'));
 document.getElementById('exModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) e.target.classList.remove('open'); });
 
-// ====== ROUTINE → WORKOUT (cùng tab rồi, chỉ điền form) ======
-['Push','Pull','Legs'].forEach(k=>{
-  const btn = document.getElementById('rtn'+k);
-  if(btn) btn.addEventListener('click',()=>{
-    try{
-      fillWorkoutFromRoutine(k);
-      document.getElementById('exerciseRows').scrollIntoView({behavior:'smooth', block:'start'});
-    }catch(err){}
-  });
+// ====== SPLIT SELECTOR (Giáo án + buổi) ======
+let curSplit = localStorage.getItem('gym_split') || 'PPL';
+// Cấu trúc danh sách buổi theo giáo án: PPL dùng ROUTINE, còn lại dùng EXTRA_SPLITS
+function getSplitDays(key){
+  if(key==='PPL') return ['Push','Pull','Legs'];
+  return (EXTRA_SPLITS[key]||EXTRA_SPLITS.FullBody).days.map((d,i)=>key+'_'+i);
+}
+function getDayMeta(key, dayKey){
+  if(key==='PPL'){ const rt=ROUTINE[dayKey]; return {label:rt.emoji+' '+rt.name, exs:rt.exs, emoji:rt.emoji, name:rt.name, sets:rt.sets}; }
+  const [sk,di]=dayKey.split('_'); const day=EXTRA_SPLITS[sk].days[+di];
+  return {label:EXTRA_SPLITS[sk].emoji+' '+day.name, exs:getSplitDay(sk,+di), emoji:EXTRA_SPLITS[sk].emoji, name:day.name, sets:day.exs.reduce((a,e)=>a+e.sets,0)};
+}
+
+const splitSelect = document.getElementById('splitSelect');
+const daySelect = document.getElementById('daySelect');
+function fillDayOptions(){
+  splitSelect.value = curSplit;
+  const days = getSplitDays(curSplit);
+  daySelect.innerHTML = days.map(d=>{ const m=getDayMeta(curSplit,d); return `<option value="${d}">${m.label}</option>`; }).join('');
+}
+splitSelect.addEventListener('change',()=>{
+  curSplit = splitSelect.value;
+  localStorage.setItem('gym_split', curSplit);
+  fillDayOptions();
+  renderRoutine();
+});
+daySelect.addEventListener('change',()=>renderRoutine());
+fillDayOptions();
+
+document.getElementById('fillDay').addEventListener('click',()=>{
+  const dayKey = daySelect.value;
+  const m = getDayMeta(curSplit, dayKey);
+  fillWorkoutFromRoutine(m.exs, m.name, m.emoji);
+  // tự tính calo ước: tổng kcal mỗi bài × sets
+  document.getElementById('wCal').value = m.exs.reduce((a,e)=>a+((e.kcal||0)*e.sets),0);
+  document.getElementById('exerciseRows').scrollIntoView({behavior:'smooth', block:'start'});
 });
 
-// (debug banner đã xoá)
+// ====== ROUTINE VIEW ======
+function renderRoutine(){
+  const grid=document.getElementById('routineGrid');
+  const dayKey = daySelect.value;
+  const m = getDayMeta(curSplit, dayKey);
+  const color = curSplit==='PPL' ? (dayKey==='Push'?'var(--push)':dayKey==='Pull'?'var(--pull)':'var(--legs)') : 'var(--accent)';
+  const totalKcal = m.exs.reduce((a,e)=>a+((e.kcal||0)*e.sets),0);
+  document.getElementById('dayCalEst').textContent = '🔥 ~'+totalKcal+' kcal';
+  grid.innerHTML = `<div class="routine-card" style="border-top:3px solid ${color}">
+    <div class="routine-header">
+      <h2>${m.label}</h2>
+      <span class="sets-count">${m.sets} sets · ~${totalKcal} kcal</span>
+    </div>
+    <div class="routine-body">
+      ${m.exs.map((ex,i)=>`
+        <div class="routine-ex" data-key="${curSplit}" data-idx="${i}">
+          <span class="ex-icon">${ex.icon}</span>
+          <div class="ex-info">
+            <div class="ex-name">${ex.name}</div>
+            <div class="ex-meta">${ex.sets}×${ex.reps} · ${ex.muscle}</div>
+          </div>
+          <span class="ex-mg">${ex.muscle}</span>
+          <button class="ex-view">🔍</button>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+  grid.querySelectorAll('.routine-ex').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const idx=parseInt(el.dataset.idx);
+      const dayKey2=daySelect.value;
+      const m2=getDayMeta(curSplit, dayKey2);
+      showExerciseModalEx(m2.exs[idx], m2.name, m2.emoji, curSplit);
+    });
+  });
+}
 
 function switchView(name){
   // 1) bỏ active toàn bộ nav + view
@@ -168,15 +198,17 @@ function switchView(name){
   renderAll();
 }
 
-function fillWorkoutFromRoutine(key){
+function fillWorkoutFromRoutine(exs, dayName, emoji){
   document.getElementById('wDate').value = today();
-  document.querySelectorAll('#wTypeBtns .type-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.type===key);
-  });
-  wType = key;
+  // đồng bộ nút loại buổi: PPL → Push/Pull/Legs; giáo án khác → tên giáo án
+  const wbtns=[...document.querySelectorAll('#wTypeBtns .type-btn')];
+  const hit = wbtns.find(b=>b.dataset.type===dayName);
+  const target = hit ? dayName : (curSplit==='PPL' ? (dayName.includes('PUSH')?'Push':dayName.includes('PULL')?'Pull':'Legs') : (curSplit==='FullBody'?'Full Body':curSplit==='UpperLower'?'Upper/Lower':'Bro Split'));
+  wbtns.forEach(b=>b.classList.toggle('active', b.dataset.type===target));
+  wType = target;
   const container=document.getElementById('exerciseRows');
   container.innerHTML='';
-  ROUTINE[key].exs.forEach(ex=>{
+  exs.forEach(ex=>{
     const d=document.createElement('div');
     d.className='form-row'; d.style.marginBottom='0'; d.style.alignItems='center';
     d.innerHTML = `
@@ -203,13 +235,20 @@ document.querySelectorAll('#wTypeBtns .type-btn').forEach(b=>{
   });
 });
 
-const EXERCISES = {
-  'Push':['Bench Press','Incline Dumbbell Press','Pec Deck','Chest Fly','Lateral Raise','Shoulder Press','Tricep Pushdown'],
-  'Pull':['Lat Pulldown','Seated Cable Row','One-Arm Cable Lat Pulldown','Straight-Arm Pulldown','Preacher Curl','Hammer Curl'],
-  'Legs':['Squat','Leg Press','Bulgarian Split Squat','Leg Extension','Leg Curl','Abductor','Abdominal Crunch Machine','Leg Raise'],
-  'Cardio':['Chạy bộ','Đạp xe','Máy chèo','Jump Rope'],
-  'Full body':['Squat','Bench Press','Deadlift','Row','Shoulder Press']
-};
+// Danh sách gợi ý bài tập (gộp tất cả giáo án + cardio)
+const ALL_EX = (()=>{
+  const names=new Set(['Chạy bộ','Đạp xe','Máy chèo','Jump Rope']);
+  Object.values(ROUTINE).forEach(g=>g.exs.forEach(e=>names.add(e.name)));
+  Object.values(EXTRA_SPLITS).forEach(s=>s.days.forEach(d=>d.exs.forEach(e=>names.add(e.name))));
+  return [...names];
+})();
+// tra calo mỗi set của 1 bài (theo tên)
+const KCAL = (()=>{
+  const m={};
+  Object.values(ROUTINE).forEach(g=>g.exs.forEach(e=>{ if(e.kcal) m[e.name]=e.kcal; }));
+  Object.values(EXTRA_SPLITS).forEach(s=>s.days.forEach(d=>d.exs.forEach(e=>{ if(e.kcal) m[e.name]=e.kcal; })));
+  return m;
+})();
 function exerciseRow(ex){
   const d=document.createElement('div');
   d.className='form-row'; d.style.marginBottom='0'; d.style.alignItems='center';
@@ -227,7 +266,7 @@ function exerciseRow(ex){
 function fillExList(){
   const dl=document.getElementById('exList'); dl.innerHTML='';
   const seen=new Set();
-  (EXERCISES[wType]||[]).forEach(e=>{ const o=document.createElement('option'); o.value=e; dl.appendChild(o); seen.add(e); });
+  ALL_EX.forEach(e=>{ const o=document.createElement('option'); o.value=e; dl.appendChild(o); seen.add(e); });
   document.querySelectorAll('.ex-name').forEach(i=>{ const v=i.value.trim(); if(v&&!seen.has(v)){ const o=document.createElement('option'); o.value=v; dl.appendChild(o); seen.add(v); } });
 }
 document.getElementById('exerciseRows').appendChild(exerciseRow(null));
@@ -247,11 +286,13 @@ document.getElementById('resetWorkout').addEventListener('click',()=>{
 document.getElementById('saveWorkout').addEventListener('click',()=>{
   const date=document.getElementById('wDate').value||today();
   const dur=num(document.getElementById('wDur').value);
-  const cal=num(document.getElementById('wCal').value);
   const exs=[...document.querySelectorAll('#exerciseRows .form-row')]
     .map(r=>({name:r.querySelector('.ex-name').value.trim(),sets:num(r.querySelector('.ex-sets').value),reps:num(r.querySelector('.ex-reps').value),w:num(r.querySelector('.ex-w').value)}))
     .filter(e=>e.name);
   if(!exs.length){ alert('Thêm ít nhất 1 bài tập'); return; }
+  // calo ước: tổng kcal mỗi bài × sets (nếu user để trống ô calo)
+  let cal=num(document.getElementById('wCal').value);
+  if(!cal) cal = exs.reduce((a,e)=>a+(KCAL[e.name]||0)*e.sets,0);
   workouts.push({id:Date.now(), date, type:wType, dur, cal, exs});
   save(LS.workouts, workouts);
   renderAll();
