@@ -12,7 +12,6 @@
     <div class="logo"><span class="icon">🏋️</span><span>GYM TRACKER</span></div>
     <nav class="nav">
       <button class="nav-item active" data-view="home"><span class="ic">🏠</span><span class="lbl">Trang chủ</span></button>
-      <button class="nav-item" data-view="routine"><span class="ic">📋</span><span class="lbl">Giáo án</span></button>
       <button class="nav-item" data-view="workout"><span class="ic">💪</span><span class="lbl">Buổi tập</span></button>
       <button class="nav-item" data-view="diet"><span class="ic">🍗</span><span class="lbl">Ăn uống</span></button>
       <button class="nav-item" data-view="weight"><span class="ic">⚖️</span><span class="lbl">Cân nặng</span></button>
@@ -48,26 +47,19 @@
       </div>
     </section>
 
-    <!-- ROUTINE -->
-    <section class="view" id="view-routine">
-      <h1 class="page-title">📋 Giáo án của bạn</h1>
-      <p class="subtitle">Bộ tập Push / Pull / Legs — click vào bài tập để xem hình ảnh minh hoạ</p>
-      <div class="routine-grid" id="routineGrid"></div>
+    <!-- WORKOUT -->
+    <section class="view" id="view-workout">
+      <h1 class="page-title">💪 Buổi tập</h1>
+      <p class="subtitle">Chọn loại buổi — app tự điền bài tập + ảnh minh hoạ. Click bài tập để xem chi tiết</p>
       <div class="card">
-        <h3>💡 Bạn tập hôm nay?</h3>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:10px">Chọn buổi đang tập hôm nay — app sẽ tự động điền bài tập vào mục ghi buổi tập</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <h3>💡 Hôm nay tập gì?</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <button class="btn btn-push" id="rtnPush">🔴 Push — Ngực/Vai/Tay sau</button>
           <button class="btn btn-pull" id="rtnPull">🔵 Pull — Lưng/Tay trước</button>
           <button class="btn btn-legs" id="rtnLegs">🟢 Legs + Abs</button>
         </div>
+        <div class="routine-grid" id="routineGrid" style="margin-bottom:0"></div>
       </div>
-    </section>
-
-    <!-- WORKOUT -->
-    <section class="view" id="view-workout">
-      <h1 class="page-title">💪 Buổi tập</h1>
-      <p class="subtitle">Ghi lại bài tập, số tạ &amp; số lần lặp</p>
       <div class="card">
         <h3>＋ Ghi buổi tập mới</h3>
         <div class="form-row">

@@ -142,15 +142,15 @@ function showExerciseModal(key, idx){
 document.getElementById('modalClose').addEventListener('click',()=>document.getElementById('exModal').classList.remove('open'));
 document.getElementById('exModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) e.target.classList.remove('open'); });
 
-// ====== ROUTINE → WORKOUT ======
+// ====== ROUTINE → WORKOUT (cùng tab rồi, chỉ điền form) ======
 ['Push','Pull','Legs'].forEach(k=>{
   const btn = document.getElementById('rtn'+k);
   if(btn) btn.addEventListener('click',()=>{
     try{
       fillWorkoutFromRoutine(k);
-      switchView('workout');
+      document.getElementById('exerciseRows').scrollIntoView({behavior:'smooth', block:'start'});
     }catch(err){
-      showErr('Lỗi khi chuyển: '+err.message);
+      showErr('Lỗi: '+err.message);
     }
   });
 });
@@ -207,8 +207,8 @@ function fillWorkoutFromRoutine(key){
 }
 
 // ====== WORKOUT ======
+let wType = 'Push'; // phải khai báo TRƯỚC khi dùng trong fillWorkoutFromRoutine
 document.getElementById('wDate').value = today();
-let wType = 'Push';
 document.querySelectorAll('#wTypeBtns .type-btn').forEach(b=>{
   b.addEventListener('click',()=>{
     document.querySelectorAll('#wTypeBtns .type-btn').forEach(x=>x.classList.remove('active'));
