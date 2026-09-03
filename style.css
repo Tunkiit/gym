@@ -49,6 +49,7 @@ input[type="date"]{color-scheme:dark}
 select{min-width:140px}
 .btn{background:var(--accent);color:#111;border:none;border-radius:9px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
 .btn:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.35;cursor:default;filter:none}
 .btn.ghost{background:var(--card2);color:var(--fg);border:1px solid var(--border)}
 .btn.danger{background:transparent;color:var(--red);border:1px solid var(--red);padding:5px 10px;font-size:12px;border-radius:7px}
 .danger-btn{background:transparent;color:var(--red);border:1px solid var(--red)!important}

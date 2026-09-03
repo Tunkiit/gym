@@ -744,25 +744,38 @@ function renderHome(){
   document.getElementById('todayMeals').innerHTML = tMeals.length?
     tMeals.map(m=>`<div class="list-item"><div class="grow"><div class="name">${m.meal} · ${m.name}</div></div><span class="badge gray">${fmt(m.cal)} kcal</span></div>`).join('')
     : '<div class="empty">Chưa có bữa ăn nào</div>';
+}
 
-  const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+// ====== MONTH CHART (lật tháng ← →) ======
+let monthOff=0;
+function renderMonth(){
+  const now=new Date();
+  const d0=new Date(now.getFullYear(), now.getMonth()+monthOff, 1);
+  const ym=`${d0.getFullYear()}-${String(d0.getMonth()+1).padStart(2,'0')}`;
+  const label=d0.toLocaleDateString('vi-VN',{month:'long',year:'numeric'});
+  document.getElementById('monthLabel').textContent=label;
+  const isCur = monthOff===0;
+  document.getElementById('monthPrev').disabled=monthOff<=-24; // xem tối đa 2 năm trước
+  document.getElementById('monthNext').disabled=monthOff>=0;   // không xem tương lai
   const mWs=meals.filter(m=>m.date.startsWith(ym)).reduce((a,m)=>a+m.cal,0);
   const mWk=workouts.filter(w=>w.date.startsWith(ym)).length;
-  document.getElementById('monthSummary').textContent = `Nạp ${fmt(mWs)} kcal · ${mWk} buổi tập`;
-  const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  document.getElementById('monthSummary').textContent=`Nạp ${fmt(mWs)} kcal · ${mWk} buổi tập`;
+  const daysInMonth=new Date(d0.getFullYear(), d0.getMonth()+1, 0).getDate();
   const chart=document.getElementById('monthChart'); chart.innerHTML='';
   const dayCals=[...Array(daysInMonth)].map((_,i)=>{
-    const d=ym+'-'+String(i+1).padStart(2,'0');
-    return {d, cal:meals.filter(m=>m.date===d).reduce((a,m)=>a+m.cal,0), w:workouts.filter(w=>w.date===d).length};
+    const dd=`${ym}-${String(i+1).padStart(2,'0')}`;
+    return {d:dd, cal:meals.filter(m=>m.date===dd).reduce((a,m)=>a+m.cal,0), w:workouts.filter(w=>w.date===dd).length};
   });
   const maxC=Math.max(...dayCals.map(x=>x.cal),1);
   dayCals.forEach(x=>{
     const b=document.createElement('div'); b.className='bar'; b.style.height='100%';
-    b.innerHTML=`<div class="tip">${vnDate(x.d)} · ${fmt(x.cal)} kcal${x.w?' · 💪'+x.w:''}</div><div class="fill" style="height:${x.cal/maxC*100}%"></div><div class="bar-label">${String(x.d.slice(8)).padStart(2,'0')}</div>`;
+    b.innerHTML=`<div class="tip">${vnDate(x.d)} · ${fmt(x.cal)} kcal${x.w?' · 💪'+x.w:''}</div><div class="fill" style="height:${x.cal/maxC*100}%"></div><div class="bar-label">${x.d.slice(8)}</div>`;
     chart.appendChild(b);
   });
-  chart.children[now.getDate()-1].style.background='var(--accent)';
+  if(isCur){ const t=new Date(); if(t.getDate()<=daysInMonth) chart.children[t.getDate()-1].style.background='var(--accent)'; }
 }
+document.getElementById('monthPrev').addEventListener('click', ()=>{ monthOff--; renderMonth(); });
+document.getElementById('monthNext').addEventListener('click', ()=>{ monthOff++; renderMonth(); });
 
 // ====== PROGRESS ======
 function calcPR(exName){
@@ -840,6 +853,6 @@ document.querySelectorAll('#progTabs .tab').forEach(b=>b.addEventListener('click
 
 // ====== RENDER ALL ======
 function renderAll(){
-  renderHome(); renderRoutine(); renderWorkoutList(); renderDiet(); renderWeight(); renderTdee(); renderWeekly(); renderExercise(); renderPlan();
+  renderHome(); renderMonth(); renderRoutine(); renderWorkoutList(); renderDiet(); renderWeight(); renderTdee(); renderWeekly(); renderExercise(); renderPlan();
 }
 renderAll();
