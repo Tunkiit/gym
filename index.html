@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GYM TRACKER</title>
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 <div class="app">
@@ -145,13 +145,12 @@
       </div>
       <div class="card">
         <h3>📊 Hôm nay</h3>
-        <div class="macros">
-          <div class="macro"><div class="v" id="mCal">0</div><div class="l">Calo / <span id="mCalG">0</span></div></div>
-          <div class="macro"><div class="v" id="mPro">0</div><div class="l">Protein g</div></div>
-          <div class="macro"><div class="v" id="mCarb">0</div><div class="l">Carbs g</div></div>
-          <div class="macro"><div class="v" id="mFat">0</div><div class="l">Chất béo g</div></div>
+        <div class="ring-grid" id="ringGrid">
+          <div class="ring-box" data-ring="cal"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"/></svg><div class="ring-c"><div class="v" id="mCal">0</div><div class="l">Calo</div><div class="g" id="mCalG">0</div></div></div>
+          <div class="ring-box" data-ring="pro"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"/></svg><div class="ring-c"><div class="v" id="mPro">0</div><div class="l">Protein</div><div class="g" id="mProG">0</div></div></div>
+          <div class="ring-box" data-ring="carb"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"/></svg><div class="ring-c"><div class="v" id="mCarb">0</div><div class="l">Carbs</div><div class="g" id="mCarbG">0</div></div></div>
+          <div class="ring-box" data-ring="fat"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"/></svg><div class="ring-c"><div class="v" id="mFat">0</div><div class="l">Chất béo</div><div class="g" id="mFatG">0</div></div></div>
         </div>
-        <div class="macro-bar" id="macroBar"></div>
       </div>
       <div class="card">
         <h3>＋ Thêm bữa ăn</h3>
@@ -339,7 +338,7 @@
   </div>
 </div>
 
-<script src="data/routine.js?v=13"></script>
-<script src="script.js?v=13"></script>
+<script src="data/routine.js?v=14"></script>
+<script src="script.js?v=14"></script>
 </body>
 </html>

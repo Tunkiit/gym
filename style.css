@@ -73,6 +73,20 @@ select{min-width:140px}
 .badge.pull{background:rgba(59,130,246,.15);color:var(--pull)}
 .badge.legs{background:rgba(34,197,94,.15);color:var(--legs)}
 .empty{color:var(--muted);text-align:center;padding:26px;font-size:14px}
+/* ===== RING CHART ===== */
+.ring-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
+.ring-box{position:relative;width:100%;aspect-ratio:1;max-width:130px;justify-self:center}
+.ring-box svg{width:100%;height:100%}
+.ring-bg{fill:none;stroke:var(--card2);stroke-width:10}
+.ring-fg{fill:none;stroke:var(--accent);stroke-width:10;stroke-linecap:round;transition:stroke-dasharray .3s;stroke-dasharray:0 100}
+.ring-box[data-ring=pro] .ring-fg{stroke:#3b82f6}
+.ring-box[data-ring=carb] .ring-fg{stroke:#f59e0b}
+.ring-box[data-ring=fat] .ring-fg{stroke:#a855f7}
+.ring-box[data-ring=cal] .ring-fg{stroke:var(--accent)}
+.ring-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.2}
+.ring-c .v{font-size:clamp(14px,3vw,20px);font-weight:800}
+.ring-c .l{font-size:10px;color:var(--muted)}
+.ring-c .g{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
 /* ===== WORKOUT HISTORY CARDS ===== */
 .wk-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px}
 .wk-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
@@ -159,6 +173,7 @@ tr:last-child td{border-bottom:none}
   .main{margin-left:64px;padding:20px 16px}
   .stats{grid-template-columns:repeat(2,1fr)}
   .macros{grid-template-columns:repeat(2,1fr)}
+  .ring-grid{grid-template-columns:repeat(2,1fr)}
   .routine-grid{grid-template-columns:1fr}
   .modal .detail-grid{grid-template-columns:1fr}
 }

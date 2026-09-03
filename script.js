@@ -524,11 +524,15 @@ function renderDiet(){
     const left=Math.max(0, rec-t.cal);
     sug.innerHTML = `📌 Mục tiêu <b>${g==='cut'?'⚡ Siết':g==='bulk'?'💪 Tăng cơ':'⚖️ Giữ cân'}</b>: TDEE ${fmt(tdee)} kcal → <b>hôm nay nên ăn ~${fmt(rec)} kcal</b>${left>0?`. Còn có thể ăn thêm ${fmt(left)} kcal`:'. Đã đạt/ăn đủ!'}`;
   }
-  const bar=document.getElementById('macroBar'); bar.innerHTML='';
-  const segs=[['protein',t.pro,goals.pro,'#3b82f6'],['carbs',t.carb,goals.carb,'#f59e0b'],['fat',t.fat,goals.fat,'#a855f7']];
-  const totalPct=segs.reduce((s,x)=>s+pct(x[1],x[2]),0);
-  segs.forEach(s=>{ const p=totalPct>100?pct(s[1],s[2])/totalPct*100:pct(s[1],s[2]); if(p>0){ const el=document.createElement('span'); el.style.width=p+'%'; el.style.background=s[3]; bar.appendChild(el); } });
-  if(t.cal>goals.cal) bar.style.border='1px solid var(--red)'; else bar.style.border='none';
+  // Cập nhật vòng tròn
+  const rings=[['mCal','mCalG',t.cal,goals.cal],['mPro','mProG',t.pro,goals.pro],['mCarb','mCarbG',t.carb,goals.carb],['mFat','mFatG',t.fat,goals.fat]];
+  rings.forEach(([idV,idG,val,goal])=>{
+    document.getElementById(idV).textContent=fmt(val);
+    document.getElementById(idG).textContent=fmt(goal);
+    const pct=goal>0?Math.min(100,val/goal*100):0;
+    const box=document.getElementById(idV).closest('.ring-box');
+    if(box) box.querySelector('.ring-fg').style.strokeDasharray = `${pct} 100`;
+  });
 
   const el=document.getElementById('mealList');
   const tMeals=meals.filter(m=>m.date===today()).sort((a,b)=>a.id-b.id);
@@ -553,6 +557,8 @@ document.getElementById('saveGoals').addEventListener('click',()=>{
   goals={cal:num(document.getElementById('gCal').value,2400),pro:num(document.getElementById('gPro').value,150),carb:num(document.getElementById('gCarb').value,250),fat:num(document.getElementById('gFat').value,70)};
   save(LS.goals, goals); renderAll(); alert('✅ Đã lưu mục tiêu');
 });
+// Đổi mục tiêu (siết/giữ/tăng) → cập nhật gợi ý calo ngay
+document.getElementById('goalSelect').addEventListener('change', renderDiet);
 
 // ====== AI PARSE (bữa ăn) ======
 // Cấu hình AI lưu localStorage
