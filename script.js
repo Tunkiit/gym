@@ -510,8 +510,13 @@ function dayTotals(day){
 function renderDiet(){
   const t=dayTotals(today());
   const pct=(v,g)=>g>0?Math.min(100,v/g*100):0;
+  // đọc mục tiêu từ ô input (đã nhập hoặc tự điền, chưa cần Lưu)
+  const goalCal = num(document.getElementById('gCal').value, 2400);
+  const goalPro = num(document.getElementById('gPro').value, 150);
+  const goalCarb = num(document.getElementById('gCarb').value, 250);
+  const goalFat = num(document.getElementById('gFat').value, 70);
   document.getElementById('mCal').textContent=fmt(t.cal);
-  document.getElementById('mCalG').textContent=fmt(goals.cal);
+  document.getElementById('mCalG').textContent=fmt(goalCal);
   document.getElementById('mPro').textContent=fmt(t.pro);
   document.getElementById('mCarb').textContent=fmt(t.carb);
   document.getElementById('mFat').textContent=fmt(t.fat);
@@ -525,7 +530,7 @@ function renderDiet(){
     sug.innerHTML = `📌 Mục tiêu <b>${g==='cut'?'⚡ Siết':g==='bulk'?'💪 Tăng cơ':'⚖️ Giữ cân'}</b>: TDEE ${fmt(tdee)} kcal → <b>hôm nay nên ăn ~${fmt(rec)} kcal</b>${left>0?`. Còn có thể ăn thêm ${fmt(left)} kcal`:'. Đã đạt/ăn đủ!'}`;
   }
   // Cập nhật vòng tròn
-  const rings=[['mCal','mCalG',t.cal,goals.cal],['mPro','mProG',t.pro,goals.pro],['mCarb','mCarbG',t.carb,goals.carb],['mFat','mFatG',t.fat,goals.fat]];
+  const rings=[['mCal','mCalG',t.cal,goalCal],['mPro','mProG',t.pro,goalPro],['mCarb','mCarbG',t.carb,goalCarb],['mFat','mFatG',t.fat,goalFat]];
   rings.forEach(([idV,idG,val,goal])=>{
     document.getElementById(idV).textContent=fmt(val);
     document.getElementById(idG).textContent=fmt(goal);
@@ -557,8 +562,17 @@ document.getElementById('saveGoals').addEventListener('click',()=>{
   goals={cal:num(document.getElementById('gCal').value,2400),pro:num(document.getElementById('gPro').value,150),carb:num(document.getElementById('gCarb').value,250),fat:num(document.getElementById('gFat').value,70)};
   save(LS.goals, goals); renderAll(); alert('✅ Đã lưu mục tiêu');
 });
-// Đổi mục tiêu (siết/giữ/tăng) → cập nhật gợi ý calo ngay
-document.getElementById('goalSelect').addEventListener('change', renderDiet);
+// Đổi mục tiêu (siết/giữ/tăng) → tự điền calo + protein gợi ý + cập nhật ngay
+document.getElementById('goalSelect').addEventListener('change', ()=>{
+  const tdee=getTDEE();
+  const g=document.getElementById('goalSelect').value;
+  const rec = g==='cut' ? Math.round(tdee-400) : g==='bulk' ? Math.round(tdee+250) : Math.round(tdee);
+  const kg=getBodyWeight();
+  const pro = g==='bulk' ? Math.round(kg*2.2) : g==='cut' ? Math.round(kg*2.2) : Math.round(kg*2);
+  document.getElementById('gCal').value = rec;
+  document.getElementById('gPro').value = pro;
+  renderDiet();
+});
 
 // ====== AI PARSE (bữa ăn) ======
 // Cấu hình AI lưu localStorage
