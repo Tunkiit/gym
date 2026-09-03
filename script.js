@@ -624,7 +624,11 @@ function aiParse(){
   out.textContent='⏳ Đang phân tích...';
   const sys = `Bạn là chuyên gia dinh dưỡng. Người dùng nhập bữa ăn bằng tiếng Việt kiểu "1 chén cơm, 300g ức gà, 2 quả trứng ốp la".
 Hãy trả về CHỈ MỘT JSON array, mỗi phần tử: {"name":"tên món","qty":số lượng,"unit":"g hoặc suat","kcal":số,"p":protein g,"c":carbs g,"f":fat g}.
-Quy ước: món nấu chín tính theo 100g; suất ăn như phở/bún/cơm tấm tính theo suat (qty=1); trứng/chuối tính theo quả (1 quả≈55g). Ước lượng dinh dưỡng hợp lý. KHÔNG thêm text nào ngoài JSON.`;
+QUAN TRỌNG: kcal/p/c/f là TỔNG giá trị của món đó với ĐÚNG số lượng qty đã cho (không phải per 100g).
+Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":"g","kcal":495,"p":93,"c":0,"f":9} (vì 100g ức gà ≈ 165 kcal, 31g P → 300g ≈ 495 kcal, 93g P).
+"2 quả trứng ốp la" → {"name":"trứng ốp la","qty":2,"unit":"qua","kcal":180,"p":14,"c":1,"f":13} (1 quả ≈ 90 kcal).
+"1 tô phở bò" → {"name":"phở bò","qty":1,"unit":"suat","kcal":450,"p":20,"c":50,"f":15}.
+Ước lượng dinh dưỡng hợp lý cho tổng khối lượng/suất. KHÔNG thêm text nào ngoài JSON.`;
   const ep = (AI_CFG.endpoint||'https://api.b.ai/v1').replace(/\/+$/,'');
   fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
     body:JSON.stringify({model:AI_CFG.model||'gemini-2.0-flash', messages:[{role:'system',content:sys},{role:'user',content:prompt}], temperature:0.2})})
@@ -638,11 +642,10 @@ Quy ước: món nấu chín tính theo 100g; suất ăn như phở/bún/cơm t�
       const items=JSON.parse(m[0]);
       if(!items.length){ out.textContent='❌ Không nhận diện được món nào'; return; }
       items.forEach(it=>{
-        const qty=num(it.qty,1)||1;
-        const ratio=it.unit==='g' ? qty/100 : qty;
+        // AI đã trả TỔNG kcal/p/c/f cho đúng số lượng → dùng thẳng, không nhân ratio nữa
         meals.push({id:Date.now()+Math.random(), date:today(), meal:document.getElementById('mMeal').value,
-          name:it.name||'Món ăn', cal:Math.round(num(it.kcal,0)*ratio), pro:Math.round(num(it.p,0)*ratio),
-          carb:Math.round(num(it.c,0)*ratio), fat:Math.round(num(it.f,0)*ratio)});
+          name:it.name||'Món ăn', cal:Math.round(num(it.kcal,0)), pro:Math.round(num(it.p,0)),
+          carb:Math.round(num(it.c,0)), fat:Math.round(num(it.f,0))});
       });
       save(LS.meals, meals);
       out.innerHTML='✅ Đã thêm <b>'+items.length+'</b> món: '+items.map(x=>x.name+(x.qty?` (${x.qty}${x.unit==='g'?'g':''})`:'')).join(', ');
