@@ -659,12 +659,23 @@ document.getElementById('aiUploadImg').addEventListener('change', e=>{
     cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
     cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
     URL.revokeObjectURL(url);
-    aiPhotoData = cv.toDataURL('image/jpeg', 0.85); // luôn nén về jpeg để gửi nhẹ
-    document.getElementById('aiResult').innerHTML = `📸 Đã chọn ảnh <b>${f.name}</b> (${Math.round(aiPhotoData.length/1024)} KB) — bấm 🤖 Phân tích`;
+    aiPhotoData = cv.toDataURL('image/jpeg', 0.85);
+    // hiện thumbnail
+    document.getElementById('aiPhotoThumb').src = aiPhotoData;
+    document.getElementById('aiPhotoName').textContent = f.name;
+    document.getElementById('aiPhotoBox').style.display = 'flex';
+    document.getElementById('aiResult').textContent = '';
   };
   img.onerror = ()=>{ URL.revokeObjectURL(url); document.getElementById('aiResult').textContent='❌ Không đọc được ảnh'; };
   img.src = url;
-  e.target.value = ''; // cho phép chọn lại cùng file
+  e.target.value = '';
+});
+// Nút bỏ ảnh
+document.getElementById('aiPhotoClear').addEventListener('click', ()=>{
+  aiPhotoData = null;
+  document.getElementById('aiPhotoBox').style.display = 'none';
+  document.getElementById('aiPhotoThumb').src = '';
+  document.getElementById('aiResult').textContent = '';
 });
 function aiParse(){
   const prompt=document.getElementById('aiPrompt').value.trim();
