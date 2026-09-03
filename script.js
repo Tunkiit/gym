@@ -843,12 +843,12 @@ function renderWeekly(){
 }
 function renderExercise(){
   const el=document.getElementById('prog-exercise');
-  const exNames=[...new Set(workouts.flatMap(w=>w.exs).map(e=>e.name))];
+  const exNames=[...new Set(workouts.flatMap(w=>w.exs).map(e=>e.name))].filter(n=>!isCardio(n));
   if(!exNames.length){ el.innerHTML='<div class="empty">Chưa có bài tập nào để phân tích</div>'; return; }
   // Bài tập trong 7 ngày gần nhất (bỏ bài cardio — volume/best set không áp dụng cho cardio)
   const since=daysAgo(6);
   const weekExs=workouts.filter(w=>w.date>=since).flatMap(w=>w.exs.map(e=>({date:w.date,name:e.name,sets:e.sets||0,reps:e.reps||0,w:e.w||0,isCardio:isCardio(e.name)})));
-  const weekNames=[...new Set(weekExs.map(e=>e.name))];
+  const weekNames=[...new Set(weekExs.map(e=>e.name))].filter(n=>!isCardio(n));
   const volSum=(arr)=>arr.reduce((a,e)=>a+(e.isCardio?0:e.sets*e.reps*e.w),0);
   const bestSet=(arr)=>arr.filter(e=>!e.isCardio&&e.w>0).reduce((b,e)=> (e.w>b.w || (e.w===b.w&&e.reps>b.reps))?e:b, {w:0,reps:0});
   const rows=weekNames.map(n=>{
