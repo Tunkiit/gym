@@ -220,7 +220,7 @@ tr:last-child td{border-bottom:none}
   .theme-toggle{justify-content:flex-start;padding:11px 12px}
   .theme-toggle .ic{font-size:17px}
   .theme-toggle .lbl{display:inline}
-  .main{margin-left:0;padding:60px 14px 20px;margin-top:0}
+  .main{margin-left:0;padding:60px 14px 20px;margin-top:0;min-width:0} /* min-width:0 để flex item co đúng viewport — chart tràn làm cả trang giãn ngang */
   .stats{grid-template-columns:repeat(2,1fr)}
   .macros{grid-template-columns:repeat(2,1fr)}
   .ring-grid{grid-template-columns:repeat(2,1fr)}
