@@ -629,7 +629,7 @@ document.getElementById('goalSelect').addEventListener('change', ()=>{
 
 // ====== AI PARSE (bữa ăn) ======
 // Key: chỉ từ config.js (GitHub Actions chèn từ Secret khi deploy). KHÔNG đọc localStorage cũ.
-const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.b.ai/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'gemini-2.0-flash'};
+const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.b.ai/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'deepseek-v4-flash'};
 localStorage.removeItem('gym_ai_cfg'); localStorage.removeItem('gym_ai_provs'); // dọn cấu hình cũ gây lỗi
 function aiParse(){
   const prompt=document.getElementById('aiPrompt').value.trim();
@@ -646,7 +646,7 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
 Ước lượng dinh dưỡng hợp lý cho tổng khối lượng/suất. KHÔNG thêm text nào ngoài JSON.`;
   const ep = (AI_CFG.endpoint||'https://api.b.ai/v1').replace(/\/+$/,'');
   fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
-    body:JSON.stringify({model:AI_CFG.model||'gemini-2.0-flash', messages:[{role:'system',content:sys},{role:'user',content:prompt}], temperature:0.2})})
+    body:JSON.stringify({model:AI_CFG.model||'deepseek-v4-flash', messages:[{role:'system',content:sys},{role:'user',content:prompt}], temperature:0.2})})
     .then(r=>r.json())
     .then(data=>{
       if(data.error){ out.textContent='❌ Lỗi: '+(data.error.message||data.error); return; }
@@ -738,7 +738,7 @@ function renderHome(){
   document.getElementById('stKcalIn').textContent=fmt(dayTotals(today()).cal);
 
   const hour=new Date().getHours();
-  const g=hour<12?'Chúc buổi sáng':hour<18?'Chúc buổi trưa':'Chúc buổi tối';
+  const g=hour<12?'Chúc buổi sáng':hour<17?'Chúc buổi chiều':hour<21?'Chúc buổi tối':'Chúc bạn ngủ ngon';
   const todayW=wk.find(w=>w.date===today());
   const t=dayTotals(today());
   const msg = todayW? `💪 ${g}! Hôm nay bạn đã tập ${todayW.type} ${todayW.dur?todayW.dur+' phút':''}. ${t.cal?`Đã nạp ${fmt(t.cal)}/${fmt(goals.cal)} kcal.`:''} Cố lên!`
@@ -793,8 +793,8 @@ document.getElementById('monthNext').addEventListener('click', ()=>{ monthOff++;
 
 // ====== PROGRESS ======
 function calcPR(exName){
-  return workouts.flatMap(w=>w.exs.map(e=>({date:w.date,type:w.type,name:e.name,sets:e.sets,reps:e.reps,w:e.w})))
-    .filter(e=>e.name.toLowerCase()===exName.toLowerCase() && e.w>0)
+  return workouts.flatMap(w=>w.exs.map(e=>({date:w.date,type:w.type,name:e.name,sets:e.sets,reps:e.reps,w:e.w,isCardio:isCardio(e.name)})))
+    .filter(e=>e.name.toLowerCase()===exName.toLowerCase() && (!e.isCardio) && e.w>0)
     .reduce((best,e)=> e.w>best.w?e:best, {w:0});
 }
 let weekOff=0;
@@ -845,12 +845,12 @@ function renderExercise(){
   const el=document.getElementById('prog-exercise');
   const exNames=[...new Set(workouts.flatMap(w=>w.exs).map(e=>e.name))];
   if(!exNames.length){ el.innerHTML='<div class="empty">Chưa có bài tập nào để phân tích</div>'; return; }
-  // Bài tập trong 7 ngày gần nhất
+  // Bài tập trong 7 ngày gần nhất (bỏ bài cardio — volume/best set không áp dụng cho cardio)
   const since=daysAgo(6);
-  const weekExs=workouts.filter(w=>w.date>=since).flatMap(w=>w.exs.map(e=>({date:w.date,name:e.name,sets:e.sets||0,reps:e.reps||0,w:e.w||0})));
+  const weekExs=workouts.filter(w=>w.date>=since).flatMap(w=>w.exs.map(e=>({date:w.date,name:e.name,sets:e.sets||0,reps:e.reps||0,w:e.w||0,isCardio:isCardio(e.name)})));
   const weekNames=[...new Set(weekExs.map(e=>e.name))];
-  const volSum=(arr)=>arr.reduce((a,e)=>a+e.sets*e.reps*e.w,0);
-  const bestSet=(arr)=>arr.filter(e=>e.w>0).reduce((b,e)=> (e.w>b.w || (e.w===b.w&&e.reps>b.reps))?e:b, {w:0,reps:0});
+  const volSum=(arr)=>arr.reduce((a,e)=>a+(e.isCardio?0:e.sets*e.reps*e.w),0);
+  const bestSet=(arr)=>arr.filter(e=>!e.isCardio&&e.w>0).reduce((b,e)=> (e.w>b.w || (e.w===b.w&&e.reps>b.reps))?e:b, {w:0,reps:0});
   const rows=weekNames.map(n=>{
     const arr=weekExs.filter(e=>e.name.toLowerCase()===n.toLowerCase());
     const bs=bestSet(arr);
