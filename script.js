@@ -600,30 +600,21 @@ document.getElementById('goalSelect').addEventListener('change', ()=>{
 });
 
 // ====== AI PARSE (bữa ăn) ======
-// Key: từ config.js (GitHub Actions → Secret) hoặc localStorage override
-const DEFAULT_AI = {key: (window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:'https://api.b.ai/v1', model:'gemini-2.0-flash'};
-let aiCfg = load('gym_ai_cfg', DEFAULT_AI);
-// nạp sẵn vào form
-document.getElementById('aiKey').value = aiCfg.key||'';
-document.getElementById('aiEndpoint').value = aiCfg.endpoint||'https://api.b.ai/v1';
-document.getElementById('aiModel').value = aiCfg.model||'gemini-2.0-flash';
-document.getElementById('saveAiCfg').addEventListener('click',()=>{
-  aiCfg={key:document.getElementById('aiKey').value.trim(), endpoint:document.getElementById('aiEndpoint').value.trim(),
-    model:document.getElementById('aiModel').value.trim()};
-  save('gym_ai_cfg', aiCfg); alert('✅ Đã lưu cài đặt AI');
-});
+// Key: chỉ từ config.js (GitHub Actions chèn từ Secret khi deploy). KHÔNG đọc localStorage cũ.
+const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.b.ai/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'gemini-2.0-flash'};
+localStorage.removeItem('gym_ai_cfg'); localStorage.removeItem('gym_ai_provs'); // dọn cấu hình cũ gây lỗi
 function aiParse(){
   const prompt=document.getElementById('aiPrompt').value.trim();
   const out=document.getElementById('aiResult');
   if(!prompt){ out.textContent='⚠️ Nhập bữa ăn trước (VD: 1 chén cơm, 300g ức gà)'; return; }
-  if(!aiCfg.key){ out.textContent='⚠️ Chưa có key AI. Vào mục cài đặt phía dưới để nhập key.'; return; }
+  if(!AI_CFG.key){ out.textContent='⚠️ Bản này chưa có key AI. Bản deploy từ GitHub sẽ có sẵn.'; return; }
   out.textContent='⏳ Đang phân tích...';
   const sys = `Bạn là chuyên gia dinh dưỡng. Người dùng nhập bữa ăn bằng tiếng Việt kiểu "1 chén cơm, 300g ức gà, 2 quả trứng ốp la".
 Hãy trả về CHỈ MỘT JSON array, mỗi phần tử: {"name":"tên món","qty":số lượng,"unit":"g hoặc suat","kcal":số,"p":protein g,"c":carbs g,"f":fat g}.
 Quy ước: món nấu chín tính theo 100g; suất ăn như phở/bún/cơm tấm tính theo suat (qty=1); trứng/chuối tính theo quả (1 quả≈55g). Ước lượng dinh dưỡng hợp lý. KHÔNG thêm text nào ngoài JSON.`;
-  const ep = (aiCfg.endpoint||'https://api.b.ai/v1').replace(/\/+$/,'');
-  fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+aiCfg.key},
-    body:JSON.stringify({model:aiCfg.model||'gemini-2.0-flash', messages:[{role:'system',content:sys},{role:'user',content:prompt}], temperature:0.2})})
+  const ep = (AI_CFG.endpoint||'https://api.b.ai/v1').replace(/\/+$/,'');
+  fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
+    body:JSON.stringify({model:AI_CFG.model||'gemini-2.0-flash', messages:[{role:'system',content:sys},{role:'user',content:prompt}], temperature:0.2})})
     .then(r=>r.json())
     .then(data=>{
       if(data.error){ out.textContent='❌ Lỗi: '+(data.error.message||data.error); return; }
