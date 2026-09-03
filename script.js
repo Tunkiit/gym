@@ -53,7 +53,7 @@ const LIGHT = {
   '--bg':'#f6f7f9','--card':'#ffffff','--card2':'#eef1f5','--border':'#e0e5ec',
   '--fg':'#1a2029','--muted':'#64748b','--accent':'#f59e0b','--accent2':'#16a34a','--red':'#dc2626'
 };
-if(localStorage.getItem(LS.theme)==='light') applyTheme('light');
+if(localStorage.getItem(LS.theme)==='light'){ applyTheme('light'); document.querySelector('#themeToggle .ic').textContent='☀️'; }
 function applyTheme(t){
   const root=document.documentElement;
   if(t==='light'){

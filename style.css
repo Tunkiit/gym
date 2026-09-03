@@ -46,6 +46,19 @@ input,select{background:var(--card2);border:1px solid var(--border);color:var(--
 input:focus,select:focus{border-color:var(--accent)}
 input[type="number"]{width:110px}
 input[type="date"]{color-scheme:dark}
+/* ===== LIGHT THEME (gradient, dễ nhìn) ===== */
+body.light{background:linear-gradient(160deg,#eef3fb 0%,#fdf3e7 55%,#eefaf1 100%);background-attachment:fixed}
+body.light .sidebar{background:linear-gradient(180deg,#ffffff,#f7fafd);border-right:1px solid #e3e9f2}
+body.light .card{background:rgba(255,255,255,.85);border-color:#e3e9f2;box-shadow:0 2px 10px rgba(30,41,59,.05)}
+body.light .stat{background:rgba(255,255,255,.85);border-color:#e3e9f2;box-shadow:0 2px 10px rgba(30,41,59,.05)}
+body.light input,body.light select{background:#fff;border-color:#dde3ec;color:#1a2029}
+body.light input[type="date"]{color-scheme:light}
+body.light .btn.ghost{background:#f2f5fa;border-color:#e0e6ef;color:#334155}
+body.light .nav-item.active{background:linear-gradient(135deg,rgba(245,158,11,.22),rgba(245,158,11,.08))}
+body.light .food-suggestions{background:#fff;border-color:#e0e6ef}
+body.light .food-sug:hover{background:rgba(245,158,11,.1)}
+body.light table th{color:#64748b}
+body.light .wk-card{background:#fff;border-color:#e3e9f2;box-shadow:0 2px 8px rgba(30,41,59,.05)}
 select{min-width:140px}
 .btn{background:var(--accent);color:#111;border:none;border-radius:9px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
 .btn:hover{filter:brightness(1.1)}
