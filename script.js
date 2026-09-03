@@ -1019,11 +1019,22 @@ document.getElementById('importFile').addEventListener('change',e=>{
       if(d.name) localStorage.setItem(LS.name,d.name);
       save('gym_fav_foods',d.favFoods||[]); if(d.body) save('gym_body',d.body);
       location.reload();
-    }catch(err){ msg.textContent='❌ Lỗi: '+err.message; }
-  };
-  reader.readAsText(f);
-  e.target.value='';
-});
+          }catch(err){ msg.textContent='❌ Lỗi: '+err.message; }
+        };
+        reader.readAsText(f);
+        e.target.value='';
+      });
+      // Xoá toàn bộ dữ liệu
+      document.getElementById('resetAllBtn').addEventListener('click',()=>{
+        if(!confirm('⚠️ Bạn có chắc muốn XOÁ TOÀN BỘ dữ liệu? (buổi tập, bữa ăn, cân nặng, mục tiêu, món yêu thích — tất cả)\n\nKhuyến nghị: xuất backup trước khi xoá.')) return;
+        if(!confirm('❌ Lần cuối: XOÁ SẠCH toàn bộ dữ liệu, không thể khôi phục nếu chưa backup. Tiếp tục?')) return;
+        localStorage.removeItem(LS.workouts); localStorage.removeItem(LS.meals);
+        localStorage.removeItem(LS.weights); localStorage.removeItem(LS.goals);
+        localStorage.removeItem(LS.name); localStorage.removeItem('gym_fav_foods');
+        localStorage.removeItem('gym_body'); localStorage.removeItem('gym_split');
+        alert('✅ Đã xoá sạch toàn bộ dữ liệu. Trang sẽ tải lại.');
+        location.reload();
+      });
 
 // ====== RENDER ALL ======
 function renderAll(){
