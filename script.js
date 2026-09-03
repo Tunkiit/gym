@@ -853,28 +853,18 @@ function renderMonth(){
   const mWk=workouts.filter(w=>w.date.startsWith(ym)).length;
   document.getElementById('monthSummary').textContent=`Nạp ${fmt(mWs)} kcal · ${mWk} buổi tập`;
   const daysInMonth=new Date(d0.getFullYear(), d0.getMonth()+1, 0).getDate();
-  const chart=document.getElementById('monthChart');
-  // ngày đầu tháng rơi vào cột nào (T2=0 ... CN=6)
-  const lead=(new Date(d0.getFullYear(), d0.getMonth(), 1).getDay()+6)%7;
-  const dayData={};
-  for(let i=1;i<=daysInMonth;i++){
-    const dd=`${ym}-${String(i).padStart(2,'0')}`;
-    dayData[i]={cal:meals.filter(m=>m.date===dd).reduce((a,m)=>a+m.cal,0), wk:workouts.filter(w=>w.date===dd).length};
-  }
-  const wd=['T2','T3','T4','T5','T6','T7','CN'];
-  const todayStr=today();
-  let html=`<div class="cal-head">${wd.map(w=>`<div>${w}</div>`).join('')}</div><div class="cal-grid">`;
-  html+=`<div class="cal-empty" style="grid-column:span ${lead}"></div>`;
-  for(let i=1;i<=daysInMonth;i++){
-    const dd=`${ym}-${String(i).padStart(2,'0')}`;
-    const d=dayData[i]; const cls=['cal-cell'];
-    if(dd===todayStr) cls.push('today');
-    if(d.wk) cls.push('has-wk');
-    if(!d.cal&&!d.wk) cls.push('empty-day');
-    html+=`<div class="${cls.join(' ')}"><div class="cal-d">${i}</div>${d.wk?'<div class="cal-dot">💪</div>':''}<div class="cal-kcal">${d.cal?fmt(d.cal):''}</div></div>`;
-  }
-  html+=`</div>`;
-  chart.innerHTML=html;
+  const chart=document.getElementById('monthChart'); chart.innerHTML='';
+  const dayCals=[...Array(daysInMonth)].map((_,i)=>{
+    const dd=`${ym}-${String(i+1).padStart(2,'0')}`;
+    return {d:dd, cal:meals.filter(m=>m.date===dd).reduce((a,m)=>a+m.cal,0), w:workouts.filter(w=>w.date===dd).length};
+  });
+  const maxC=Math.max(...dayCals.map(x=>x.cal),1);
+  dayCals.forEach(x=>{
+    const b=document.createElement('div'); b.className='bar'; b.style.height='100%';
+    b.innerHTML=`<div class="tip">${vnDate(x.d)} · ${fmt(x.cal)} kcal${x.w?' · 💪'+x.w:''}</div><div class="fill" style="height:${x.cal/maxC*100}%\"></div><div class="bar-label">${x.d.slice(8)}</div>`;
+    chart.appendChild(b);
+  });
+  if(isCur){ const t=new Date(); if(t.getDate()<=daysInMonth) chart.children[t.getDate()-1].style.background='var(--accent)'; }
 }
 document.getElementById('monthPrev').addEventListener('click', ()=>{ monthOff--; renderMonth(); });
 document.getElementById('monthNext').addEventListener('click', ()=>{ monthOff++; renderMonth(); });
@@ -985,7 +975,13 @@ document.querySelectorAll('#progTabs .tab').forEach(b=>b.addEventListener('click
   if(b.dataset.tab==='plan') renderPlan();
 }));
 
-// ====== BACKUP (xuất/nhập dữ liệu) ======
+// ====== BACKUP (xuất/nhập dữ liệu) — nút ở sidebar ======
+function showMsg(txt){
+  const m=document.getElementById('backupMsg');
+  m.textContent=txt; m.classList.add('show');
+  clearTimeout(showMsg._t);
+  showMsg._t=setTimeout(()=>m.classList.remove('show'), 4000);
+}
 function collectData(){
   return {
     app:'gym-tracker', version:1, exported:new Date().toISOString(),
@@ -1002,12 +998,11 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
   a.download='gym-backup-'+today()+'.json';
   a.click();
   URL.revokeObjectURL(a.href);
-  document.getElementById('backupMsg').textContent='✅ Đã tải file backup ('+new Blob([JSON.stringify(data)]).size+' bytes). Giữ file cẩn thận!';
+  showMsg('✅ Đã tải backup');
 });
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change',e=>{
   const f=e.target.files[0]; if(!f) return;
-  const msg=document.getElementById('backupMsg');
   const reader=new FileReader();
   reader.onload=()=>{
     try{
@@ -1019,22 +1014,22 @@ document.getElementById('importFile').addEventListener('change',e=>{
       if(d.name) localStorage.setItem(LS.name,d.name);
       save('gym_fav_foods',d.favFoods||[]); if(d.body) save('gym_body',d.body);
       location.reload();
-          }catch(err){ msg.textContent='❌ Lỗi: '+err.message; }
-        };
-        reader.readAsText(f);
-        e.target.value='';
-      });
-      // Xoá toàn bộ dữ liệu
-      document.getElementById('resetAllBtn').addEventListener('click',()=>{
-        if(!confirm('⚠️ Bạn có chắc muốn XOÁ TOÀN BỘ dữ liệu? (buổi tập, bữa ăn, cân nặng, mục tiêu, món yêu thích — tất cả)\n\nKhuyến nghị: xuất backup trước khi xoá.')) return;
-        if(!confirm('❌ Lần cuối: XOÁ SẠCH toàn bộ dữ liệu, không thể khôi phục nếu chưa backup. Tiếp tục?')) return;
-        localStorage.removeItem(LS.workouts); localStorage.removeItem(LS.meals);
-        localStorage.removeItem(LS.weights); localStorage.removeItem(LS.goals);
-        localStorage.removeItem(LS.name); localStorage.removeItem('gym_fav_foods');
-        localStorage.removeItem('gym_body'); localStorage.removeItem('gym_split');
-        alert('✅ Đã xoá sạch toàn bộ dữ liệu. Trang sẽ tải lại.');
-        location.reload();
-      });
+    }catch(err){ showMsg('❌ '+err.message); }
+  };
+  reader.readAsText(f);
+  e.target.value='';
+});
+// Xoá toàn bộ dữ liệu
+document.getElementById('resetAllBtn').addEventListener('click',()=>{
+  if(!confirm('⚠️ Bạn có chắc muốn XOÁ TOÀN BỘ dữ liệu? (buổi tập, bữa ăn, cân nặng, mục tiêu, món yêu thích — tất cả)\n\nKhuyến nghị: xuất backup trước khi xoá.')) return;
+  if(!confirm('❌ Lần cuối: XOÁ SẠCH toàn bộ dữ liệu, không thể khôi phục nếu chưa backup. Tiếp tục?')) return;
+  localStorage.removeItem(LS.workouts); localStorage.removeItem(LS.meals);
+  localStorage.removeItem(LS.weights); localStorage.removeItem(LS.goals);
+  localStorage.removeItem(LS.name); localStorage.removeItem('gym_fav_foods');
+  localStorage.removeItem('gym_body'); localStorage.removeItem('gym_split');
+  alert('✅ Đã xoá sạch toàn bộ dữ liệu. Trang sẽ tải lại.');
+  location.reload();
+});
 
 // ====== RENDER ALL ======
 function renderAll(){

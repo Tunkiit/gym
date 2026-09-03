@@ -19,6 +19,14 @@ body{background:var(--bg);color:var(--fg);font-family:'Segoe UI',system-ui,sans-
 .nav-item .ic{font-size:17px;width:22px;text-align:center}
 .theme-toggle{margin-top:auto;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:14px;border:none;background:none;width:100%;text-align:left}
 .theme-toggle:hover{background:var(--card2);color:var(--fg)}
+/* ===== SIDEBAR DATA (xuất/nhập/xoá) ===== */
+.data-row{display:flex;gap:4px;margin:2px 2px 8px}
+.data-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border-radius:9px;cursor:pointer;color:var(--muted);font-size:10px;font-weight:600;border:1px solid transparent;background:none;transition:.15s;line-height:1.2}
+.data-btn .ic{font-size:14px}
+.data-btn:hover{background:var(--card2);color:var(--fg)}
+.data-btn-danger:hover{background:rgba(239,68,68,.14);color:var(--red)}
+.data-msg{font-size:10px;color:var(--muted);text-align:center;padding:0 4px 6px;line-height:1.3;display:none}
+.data-msg.show{display:block}
 /* ===== MAIN ===== */
 .main{margin-left:220px;flex:1;padding:28px 32px}
 h1.page-title{font-size:26px;font-weight:800;margin-bottom:4px}
@@ -131,20 +139,6 @@ select{min-width:140px}
 .bar .tip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:.1s;z-index:5}
 .bar:hover .tip{opacity:1}
 .bar-label{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* ===== MONTH CALENDAR ===== */
-.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
-.cal-head div{font-size:11px;font-weight:700;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.5px;padding:4px 0}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal-cell{background:var(--card2);border:1px solid var(--border);border-radius:8px;min-height:56px;padding:5px 6px;display:flex;flex-direction:column;gap:2px;position:relative}
-.cal-cell.today{outline:2px solid var(--accent);outline-offset:-1px}
-.cal-cell.has-wk{background:linear-gradient(160deg,rgba(34,197,94,.16),var(--card2))}
-.cal-cell.empty-day{opacity:.45}
-.cal-d{font-size:13px;font-weight:700;color:var(--fg)}
-.cal-dot{font-size:11px;line-height:1}
-.cal-kcal{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:auto}
-body.light .cal-cell{background:#fff}
-body.light .cal-cell.empty-day{opacity:.4}
-body.light .cal-cell.has-wk{background:linear-gradient(160deg,rgba(34,197,94,.14),#fff)}
 /* ===== ROUTINE CARDS ===== */
 .routine-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:20px}
 .routine-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:.2s}
@@ -207,6 +201,9 @@ tr:last-child td{border-bottom:none}
 @media(max-width:900px){
   .sidebar{width:60px;padding:14px 6px}
   .sidebar .lbl,.logo span{display:none}
+  .data-btn .lbl{display:none}
+  .data-btn{font-size:0;padding:7px 2px}
+  .data-btn .ic{font-size:17px}
   .logo{padding:0 6px 14px;justify-content:center}
   .nav-item{justify-content:center;padding:10px 6px;font-size:13px}
   .nav-item .ic{font-size:18px;width:auto}
@@ -267,11 +264,6 @@ tr:last-child td{border-bottom:none}
   .food-suggestions{max-height:160px}
   table{font-size:12px}
   table th,table td{padding:6px 4px}
-  .cal-cell{min-height:44px;padding:3px 4px;border-radius:6px}
-  .cal-d{font-size:11px}
-  .cal-kcal{font-size:9px}
-  .cal-dot{font-size:9px}
-  .cal-head div{font-size:9px;padding:2px 0}
 }
 /* Light theme overrides */
 body.light{
