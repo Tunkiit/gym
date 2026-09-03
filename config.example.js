@@ -2,5 +2,6 @@
 window.AI_CONFIG = {
   key: 'sk-...',
   endpoint: 'https://api.b.ai/v1',
-  model: 'deepseek-v4-flash',
+  model: 'glm-5.3-flash',
+  visionModel: 'glm-5.3-flash',
 };
