@@ -883,6 +883,46 @@ document.querySelectorAll('#progTabs .tab').forEach(b=>b.addEventListener('click
   if(b.dataset.tab==='plan') renderPlan();
 }));
 
+// ====== BACKUP (xuất/nhập dữ liệu) ======
+function collectData(){
+  return {
+    app:'gym-tracker', version:1, exported:new Date().toISOString(),
+    workouts:load(LS.workouts,[]), meals:load(LS.meals,[]), weights:load(LS.weights,[]),
+    goals:load(LS.goals,{cal:2400,pro:150,carb:250,fat:70}), name:localStorage.getItem(LS.name)||'',
+    favFoods:load('gym_fav_foods',[]), body:load('gym_body',null)
+  };
+}
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const data=collectData();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='gym-backup-'+today()+'.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  document.getElementById('backupMsg').textContent='✅ Đã tải file backup ('+new Blob([JSON.stringify(data)]).size+' bytes). Giữ file cẩn thận!';
+});
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const msg=document.getElementById('backupMsg');
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const d=JSON.parse(reader.result);
+      if(!d||d.app!=='gym-tracker') throw new Error('File không phải backup của app này');
+      if(!confirm('Nhập dữ liệu này sẽ THAY THẾ toàn bộ dữ liệu hiện tại. Tiếp tục?')) return;
+      save(LS.workouts,d.workouts||[]); save(LS.meals,d.meals||[]); save(LS.weights,d.weights||[]);
+      save(LS.goals,d.goals||{cal:2400,pro:150,carb:250,fat:70});
+      if(d.name) localStorage.setItem(LS.name,d.name);
+      save('gym_fav_foods',d.favFoods||[]); if(d.body) save('gym_body',d.body);
+      location.reload();
+    }catch(err){ msg.textContent='❌ Lỗi: '+err.message; }
+  };
+  reader.readAsText(f);
+  e.target.value='';
+});
+
 // ====== RENDER ALL ======
 function renderAll(){
   renderHome(); renderMonth(); renderRoutine(); renderWorkoutList(); renderDiet(); renderWeight(); renderTdee(); renderWeekly(); renderExercise(); renderPlan();

@@ -318,6 +318,19 @@
           <li>Toàn bộ dữ liệu lưu trên <b>chính thiết bị này</b> (localStorage) — không lên server. Xoá cache trình duyệt / dùng máy khác thì không thấy dữ liệu cũ.</li>
         </ul>
       </div>
+      <div class="card">
+        <h3>💾 Sao lưu &amp; khôi phục</h3>
+        <ul class="guide-list">
+          <li><b>📤 Xuất dữ liệu</b> — tải về 1 file JSON chứa toàn bộ: buổi tập, bữa ăn, cân nặng, mục tiêu, món yêu thích. Lưu file ở nơi an toàn (Google Drive, USB...).</li>
+          <li><b>📥 Nhập dữ liệu</b> — chọn file JSON đã xuất → app khôi phục toàn bộ. Dùng khi xoá cache, đổi máy, hoặc cài lại trình duyệt.</li>
+        </ul>
+        <div class="form-row" style="margin-top:10px">
+          <button class="btn" id="exportBtn">📤 Xuất dữ liệu</button>
+          <button class="btn ghost" id="importBtn">📥 Nhập dữ liệu</button>
+          <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+        </div>
+        <div id="backupMsg" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
+      </div>
     </section>
   </main>
 </div>
