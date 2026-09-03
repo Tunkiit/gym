@@ -13,17 +13,24 @@ let goals = load(LS.goals, {cal:2400, pro:150, carb:250, fat:70});
 let workouts = load(LS.workouts, []);
 let meals = load(LS.meals, []);
 let weights = load(LS.weights, []);
+// Thông số cơ thể: chiều cao, tuổi, giới tính, mức vận động
+let body = load('gym_body', {height:0, age:0, gender:'male', active:1.4});
 
-const today = () => new Date().toISOString().slice(0,10);
+// Ngày theo GIỜ ĐỊA PHƯƠNG (không dùng toISOString vì nó là UTC → 5-6h sáng bị lùi 1 ngày)
+function localISO(d=new Date()){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+const today = () => localISO();
 const num = (v,d=0) => { const n=parseFloat(v); return isNaN(n)?d:n; };
 const fmt = n => Math.round(n).toLocaleString('vi-VN');
 
-function daysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
+function daysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return localISO(d); }
 function weekRange(){
   const d=new Date(); const day=d.getDay()||7; const start=new Date(d); start.setDate(d.getDate()-day+1);
-  const end=new Date(d); return [start.toISOString().slice(0,10), end.toISOString().slice(0,10)];
+  const end=new Date(d); return [localISO(start), localISO(end)];
 }
 function vnDate(s){ const d=new Date(s+'T00:00:00'); return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'}); }
+function vnDateFull(s){ const d=new Date(s+'T00:00:00'); return d.toLocaleDateString('vi-VN',{weekday:'short',day:'2-digit',month:'2-digit'}); }
 
 // ====== NAME ======
 let userName = localStorage.getItem(LS.name) || '';
@@ -286,6 +293,55 @@ function getBodyWeight(){
   const v = sorted[0].v != null ? sorted[0].v : sorted[0];
   return num(v, 60) || 60;
 }
+// ====== BODY (Cơ thể) ======
+function getBMR(){
+  const kg = getBodyWeight();
+  const h = num(body.height), a = num(body.age);
+  if(h>=100 && a>=10){ // Mifflin-St Jeor
+    const base = 10*kg + 6.25*h - 5*a;
+    return body.gender==='female' ? base-161 : base+5;
+  }
+  return 22*kg; // fallback đơn giản
+}
+function getTDEE(day=today()){
+  const active = num(body.active, 1.4) || 1.4;
+  const exercise = workouts.filter(w=>w.date===day).reduce((a,w)=>a+num(w.cal,0),0);
+  return Math.round(getBMR()*active + exercise);
+}
+function renderTdee(){
+  const el=document.getElementById('tdeeBox');
+  const kg=getBodyWeight();
+  const bmr=getBMR();
+  const active=num(body.active,1.4)||1.4;
+  const t=dayTotals(today());
+  const exCal=workouts.filter(w=>w.date===today()).reduce((a,w)=>a+num(w.cal,0),0);
+  const tdee=getTDEE();
+  const balance=t.cal-tdee;
+  const verdict = balance < -300 ? `🔥 Thâm hụt ${fmt(-balance)} kcal → đang giảm mỡ` : balance < 0 ? `🔥 Thâm hụt ${fmt(-balance)} kcal nhẹ → giữ nhịp` : balance > 300 ? `📈 Dư ${fmt(balance)} kcal → đang tăng cân` : `⚖️ Cân bằng (${fmt(balance)} kcal) — giữ nguyên`;
+  el.innerHTML = `
+    <div class="grid stats" style="grid-template-columns:repeat(2,1fr);margin-bottom:14px">
+      <div class="stat"><div class="ic">⚖️</div><div class="val">${fmt(kg)}</div><div class="lbl">Cân nặng hiện tại</div></div>
+      <div class="stat"><div class="ic">🛌</div><div class="val">${fmt(bmr)}</div><div class="lbl">BMR (calo nền)</div></div>
+    </div>
+    <div class="list-item">
+      <div class="grow"><div class="name">Nạp vào hôm nay</div><div class="meta">Từ tab Ăn uống</div></div>
+      <span class="badge gray">${fmt(t.cal)} kcal</span>
+    </div>
+    <div class="list-item">
+      <div class="grow"><div class="name">Tiêu hao hôm nay (TDEE)</div><div class="meta">BMR × ${active} + tập luyện</div></div>
+      <span class="badge gray">${fmt(tdee)} kcal</span>
+    </div>
+    ${exCal?`<div class="list-item"><div class="grow"><div class="name">Tập luyện hôm nay</div></div><span class="badge green">+${fmt(exCal)} kcal</span></div>`:''}
+    <div class="list-item" style="border-color:var(--accent)">
+      <div class="grow"><div class="name">Kết quả</div><div class="meta">Nạp − Tiêu hao</div></div>
+      <span class="badge ${balance<0?'green':'red'}">${verdict}</span>
+    </div>`;
+}
+document.getElementById('saveBody').addEventListener('click',()=>{
+  body={height:num(document.getElementById('bHeight').value), age:num(document.getElementById('bAge').value),
+    gender:document.getElementById('bGender').value, active:num(document.getElementById('bActive').value,1.4)};
+  save('gym_body', body); renderAll(); alert('✅ Đã lưu thông số cơ thể');
+});
 // Calo buổi tập (chuẩn ACSM): MET × 3.5 × cân nặng × phút ÷ 200
 function calcWorkoutKcal(){
   const dur = num(document.getElementById('wDur').value);
@@ -365,13 +421,14 @@ function renderWorkoutList(){
   const sorted=[...workouts].sort((a,b)=>b.date.localeCompare(a.date));
   if(!sorted.length){ el.innerHTML='<div class="empty">Chưa có buổi tập nào</div>'; return; }
   el.innerHTML = sorted.slice(0,20).map(w=>`
-    <div class="list-item">
-      <div class="grow">
-        <div class="name"><span class="badge ${w.type==='Push'?'push':w.type==='Pull'?'pull':w.type==='Legs'?'legs':'gray'}">${w.type}</span> ${vnDate(w.date)} ${w.dur?'· '+w.dur+' phút':''}</div>
-        <div class="meta">${w.exs.map(e=>`${e.name} ${e.sets}×${e.reps}${e.w?' @'+e.w+'kg':''}`).join(' · ')}</div>
+    <div class="wk-card">
+      <div class="wk-head">
+        <span class="badge ${w.type==='Push'?'push':w.type==='Pull'?'pull':w.type==='Legs'?'legs':'gray'}">${w.type}</span>
+        <span class="wk-date">${vnDateFull(w.date)}${w.dur?' · '+w.dur+' phút':''}</span>
+        ${w.cal?`<span class="badge green">🔥 ${fmt(w.cal)} kcal</span>`:''}
+        <button class="btn danger" data-del="${w.id}">✕</button>
       </div>
-      ${w.cal?`<span class="badge green">🔥 ${fmt(w.cal)} kcal</span>`:''}
-      <button class="btn danger" data-del="${w.id}">✕</button>
+      <div class="wk-chips">${w.exs.map(e=>`<span class="chip">${e.name} ${e.sets}×${e.reps}${e.w?' @'+e.w+'kg':''}</span>`).join('')}</div>
     </div>`).join('');
   el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
     if(confirm('Xoá buổi tập này?')){ workouts=workouts.filter(w=>w.id!=b.dataset.del); save(LS.workouts,workouts); renderAll(); }
@@ -379,9 +436,62 @@ function renderWorkoutList(){
 }
 
 // ====== MEALS ======
+// Nạp database món ăn
+let FOOD_DB = [];
+(async function loadFoods(){
+  try{ const r=await fetch('data/foods.json'); FOOD_DB=await r.json(); fillFoodList(); }catch(e){ console.log('Không tải được foods.json'); }
+})();
+// Món yêu thích (lưu localStorage)
+let favFoods = load('gym_fav_foods', []);
+function fillFoodList(){
+  const dl=document.getElementById('foodList'); dl.innerHTML='';
+  const all=[...FOOD_DB, ...favFoods.map(f=>({...f, fav:true}))];
+  all.forEach(f=>{ const o=document.createElement('option'); o.value=f.n+(f.fav?' ⭐':''); dl.appendChild(o); });
+}
+// Gõ tên món → tự điền macro
+document.getElementById('mName').addEventListener('input', function(){
+  const v=this.value.trim().toLowerCase();
+  // tìm trong FOOD_DB + favFoods
+  const all=[...FOOD_DB, ...favFoods.map(f=>({...f, fav:true}))];
+  const hit=all.find(f=>f.n.toLowerCase()===v.replace(' ⭐','').trim());
+  if(!hit) return;
+  const qty=num(document.getElementById('mQty').value,100);
+  const ratio=hit.unit==='g' ? qty/100 : qty;
+  document.getElementById('mCalV').value = Math.round(hit.kcal*ratio);
+  document.getElementById('mProV').value = Math.round(hit.p*ratio);
+  document.getElementById('mCarbV').value = Math.round(hit.c*ratio);
+  document.getElementById('mFatV').value = Math.round(hit.f*ratio);
+  document.getElementById('mQtyLbl').textContent = hit.unit==='g' ? 'Khối lượng (g)' : 'Số suất';
+});
+// Lưu món yêu thích
+document.getElementById('saveFavFood').addEventListener('click',()=>{
+  const name=document.getElementById('mName').value.trim().replace(' ⭐','');
+  if(!name) return;
+  if(FOOD_DB.find(f=>f.n.toLowerCase()===name.toLowerCase())){ alert('Món này đã có sẵn trong danh sách'); return; }
+  if(favFoods.find(f=>f.n.toLowerCase()===name.toLowerCase())){ alert('Món này đã có trong yêu thích'); return; }
+  const cal=num(document.getElementById('mCalV').value), p=num(document.getElementById('mProV').value);
+  const c=num(document.getElementById('mCarbV').value), f=num(document.getElementById('mFatV').value);
+  const qty=num(document.getElementById('mQty').value,100);
+  // lưu theo 100g nếu unit là g, suất nếu unit là suất
+  const unit = qty===1 ? 'suat' : 'g';
+  const ratio = unit==='g' ? qty/100 : qty;
+  const item={n:name, kcal:Math.round(cal/ratio)||1, p:Math.round(p/ratio)||0, c:Math.round(c/ratio)||0, f:Math.round(f/ratio)||0, unit};
+  favFoods.push(item); save('gym_fav_foods', favFoods); fillFoodList(); alert('✅ Đã lưu "'+name+'" vào mục yêu thích ⭐');
+});
 function addMeal(){
   const date = today();
-  const name=document.getElementById('mName').value.trim();
+  const name=document.getElementById('mName').value.trim().replace(' ⭐','');
+  // tìm món trong DB → nếu chưa điền calo, tự tính theo khối lượng/suất
+  const all=[...FOOD_DB, ...favFoods.map(f=>({...f, fav:true}))];
+  const hit=all.find(f=>f.n.toLowerCase()===name.toLowerCase());
+  if(hit){
+    const qty=num(document.getElementById('mQty').value,100);
+    const ratio=hit.unit==='g' ? qty/100 : qty;
+    if(!num(document.getElementById('mCalV').value)) document.getElementById('mCalV').value=Math.round(hit.kcal*ratio);
+    if(!num(document.getElementById('mProV').value)) document.getElementById('mProV').value=Math.round(hit.p*ratio);
+    if(!num(document.getElementById('mCarbV').value)) document.getElementById('mCarbV').value=Math.round(hit.c*ratio);
+    if(!num(document.getElementById('mFatV').value)) document.getElementById('mFatV').value=Math.round(hit.f*ratio);
+  }
   const cal=num(document.getElementById('mCalV').value);
   if(!name&&cal<=0){ alert('Nhập tên món hoặc calo'); return; }
   const m={id:Date.now(), date, meal:document.getElementById('mMeal').value,
@@ -405,6 +515,15 @@ function renderDiet(){
   document.getElementById('mPro').textContent=fmt(t.pro);
   document.getElementById('mCarb').textContent=fmt(t.carb);
   document.getElementById('mFat').textContent=fmt(t.fat);
+  // Gợi ý mục tiêu theo TDEE
+  const sug=document.getElementById('goalSug');
+  const tdee=getTDEE();
+  const g=document.getElementById('goalSelect')?.value||'maintain';
+  if(sug && tdee>0){
+    const rec = g==='cut' ? Math.round(tdee-400) : g==='bulk' ? Math.round(tdee+250) : tdee;
+    const left=Math.max(0, rec-t.cal);
+    sug.innerHTML = `📌 Mục tiêu <b>${g==='cut'?'⚡ Siết':g==='bulk'?'💪 Tăng cơ':'⚖️ Giữ cân'}</b>: TDEE ${fmt(tdee)} kcal → <b>hôm nay nên ăn ~${fmt(rec)} kcal</b>${left>0?`. Còn có thể ăn thêm ${fmt(left)} kcal`:'. Đã đạt/ăn đủ!'}`;
+  }
   const bar=document.getElementById('macroBar'); bar.innerHTML='';
   const segs=[['protein',t.pro,goals.pro,'#3b82f6'],['carbs',t.carb,goals.carb,'#f59e0b'],['fat',t.fat,goals.fat,'#a855f7']];
   const totalPct=segs.reduce((s,x)=>s+pct(x[1],x[2]),0);
@@ -435,7 +554,65 @@ document.getElementById('saveGoals').addEventListener('click',()=>{
   save(LS.goals, goals); renderAll(); alert('✅ Đã lưu mục tiêu');
 });
 
+// ====== AI PARSE (bữa ăn) ======
+// Cấu hình AI lưu localStorage
+let aiCfg = load('gym_ai_cfg', {key:'', endpoint:'https://api.b.ai/v1', model:'gemini-2.0-flash', worker:''});
+// nạp sẵn vào form
+document.getElementById('aiKey').value = aiCfg.key||'';
+document.getElementById('aiEndpoint').value = aiCfg.endpoint||'https://api.b.ai/v1';
+document.getElementById('aiModel').value = aiCfg.model||'gemini-2.0-flash';
+document.getElementById('aiWorker').value = aiCfg.worker||'';
+document.getElementById('saveAiCfg').addEventListener('click',()=>{
+  aiCfg={key:document.getElementById('aiKey').value.trim(), endpoint:document.getElementById('aiEndpoint').value.trim(),
+    model:document.getElementById('aiModel').value.trim(), worker:document.getElementById('aiWorker').value.trim()};
+  save('gym_ai_cfg', aiCfg); alert('✅ Đã lưu cài đặt AI');
+});
+function aiParse(){
+  const prompt=document.getElementById('aiPrompt').value.trim();
+  const out=document.getElementById('aiResult');
+  if(!prompt){ out.textContent='⚠️ Nhập bữa ăn trước (VD: 1 chén cơm, 300g ức gà)'; return; }
+  if(!aiCfg.key || !aiCfg.worker){ out.textContent='⚠️ Chưa cài đặt AI: điền Key + Worker URL rồi bấm Lưu ở mục phía dưới.'; return; }
+  out.textContent='⏳ Đang phân tích...';
+  const sys = `Bạn là chuyên gia dinh dưỡng. Người dùng nhập bữa ăn bằng tiếng Việt kiểu "1 chén cơm, 300g ức gà, 2 quả trứng ốp la".
+Hãy trả về CHỈ MỘT JSON array, mỗi phần tử: {"name":"tên món","qty":số lượng,"unit":"g hoặc suat","kcal":số,"p":protein g,"c":carbs g,"f":fat g}.
+Quy ước: món nấu chín tính theo 100g; suất ăn như phở/bún/cơm tấm tính theo suat (qty=1); trứng/chuối tính theo quả (1 quả≈55g). Ước lượng dinh dưỡng hợp lý. KHÔNG thêm text nào ngoài JSON.`;
+  const body={endpoint:aiCfg.endpoint||'https://api.b.ai/v1', model:aiCfg.model||'gemini-2.0-flash', apiKey:aiCfg.key,
+    messages:[{role:'system',content:sys},{role:'user',content:prompt}]};
+  fetch(aiCfg.worker, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.error){ out.textContent='❌ Lỗi: '+(data.error.message||data.error); return; }
+      const txt=data.choices?.[0]?.message?.content || data.choices?.[0]?.text || '';
+      if(!txt){ out.textContent='❌ Không nhận được kết quả từ AI'; return; }
+      // trích JSON từ text (AI hay bọc ```json ... ```)
+      const m=txt.match(/\[[\s\S]*\]/);
+      if(!m){ out.textContent='❌ AI trả về không phải JSON: '+txt.slice(0,120); return; }
+      const items=JSON.parse(m[0]);
+      if(!items.length){ out.textContent='❌ Không nhận diện được món nào'; return; }
+      // thêm vào meals
+      items.forEach(it=>{
+        const qty=num(it.qty,1)||1;
+        const ratio=it.unit==='g' ? qty/100 : qty;
+        meals.push({id:Date.now()+Math.random(), date:today(), meal:document.getElementById('mMeal').value,
+          name:it.name||'Món ăn', cal:Math.round(num(it.kcal,0)*ratio), pro:Math.round(num(it.p,0)*ratio),
+          carb:Math.round(num(it.c,0)*ratio), fat:Math.round(num(it.f,0)*ratio)});
+      });
+      save(LS.meals, meals);
+      out.innerHTML='✅ Đã thêm <b>'+items.length+'</b> món: '+items.map(x=>x.name+(x.qty?` (${x.qty}${x.unit==='g'?'g':''})`:'')).join(', ');
+      document.getElementById('aiPrompt').value='';
+      renderAll();
+    })
+    .catch(e=>{ out.textContent='❌ Lỗi kết nối: '+e.message; });
+}
+document.getElementById('aiParseBtn').addEventListener('click', aiParse);
+document.getElementById('aiPrompt').addEventListener('keydown', e=>{ if(e.key==='Enter') aiParse(); });
+
 // ====== WEIGHT ======
+// nạp sẵn thông số cơ thể vào form
+document.getElementById('bHeight').value = body.height||'';
+document.getElementById('bAge').value = body.age||'';
+document.getElementById('bGender').value = body.gender||'male';
+document.getElementById('bActive').value = String(body.active||1.4);
 document.getElementById('wtDate').value = today();
 document.getElementById('saveWeight').addEventListener('click',()=>{
   const date=document.getElementById('wtDate').value||today();
@@ -450,10 +627,11 @@ function renderWeight(){
   if(sorted.length<2){ el.innerHTML='<div class="empty">Nhập ít nhất 2 lần để xem biểu đồ</div>'; }
   else{
     const vals=sorted.map(w=>w.v); const min=Math.min(...vals), max=Math.max(...vals);
-    const range=Math.max(max-min,0.5);
+    // đáy biểu đồ: làm tròn xuống bội số 5 (thấp hơn min) → cột thấp nhất vẫn nhìn thấy, không vượt khung
+    const base=Math.floor(min/5)*5; const range=Math.max(max-base,0.5);
     el.innerHTML = '<div class="chart-wrap" style="height:200px;align-items:flex-start">'+
       sorted.map(w=>{
-        const h=((w.v-min)/range*100)+6;
+        const h=((w.v-base)/range*100)+4;
         const color=w.v<=vals[0]? 'linear-gradient(180deg,var(--accent2),#15803d)' : 'linear-gradient(180deg,var(--accent),#d97706)';
         return `<div class="bar" style="display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%">
           <div class="tip">${w.v} kg · ${vnDate(w.date)}</div>
@@ -466,9 +644,9 @@ function renderWeight(){
   document.getElementById('weightList').innerHTML = list.length?
     list.map((w,i)=>`
       <div class="list-item">
-        <div class="grow"><div class="name">${vnDate(w.date)}${w.date===today()?' (hôm nay)':''}</div></div>
+        <div class="grow"><div class="name">${vnDateFull(w.date)}${w.date===today()?' (hôm nay)':''}</div></div>
         <span class="weight-cell" style="font-size:16px">${w.v} kg</span>
-        ${i>0?`<span class="badge ${w.v<=list[i-1].v?'green':'red'}">${w.v<=list[i-1].v?'▼':'▲'} ${Math.abs(w.v-list[i-1].v).toFixed(1)}</span>`:''}
+        ${i<list.length-1?`<span class="badge ${w.v<=list[i+1].v?'green':'red'}">${w.v<=list[i+1].v?'▼':'▲'} ${Math.abs(w.v-list[i+1].v).toFixed(1)}</span>`:''}
         <button class="btn danger" data-del="${w.id||w.date}">✕</button>
       </div>`).join('') : '<div class="empty">Chưa có dữ liệu</div>';
   document.querySelectorAll('#weightList [data-del]').forEach(b=>b.addEventListener('click',()=>{
@@ -480,8 +658,8 @@ function renderWeight(){
 function getStreak(){
   let streak=0; const set=new Set(workouts.map(w=>w.date));
   let d=new Date();
-  if(!set.has(d.toISOString().slice(0,10))) d.setDate(d.getDate()-1);
-  while(set.has(d.toISOString().slice(0,10))){ streak++; d.setDate(d.getDate()-1); }
+  if(!set.has(localISO(d))) d.setDate(d.getDate()-1);
+  while(set.has(localISO(d))){ streak++; d.setDate(d.getDate()-1); }
   return streak;
 }
 function renderHome(){
@@ -516,14 +694,14 @@ function renderHome(){
     tMeals.map(m=>`<div class="list-item"><div class="grow"><div class="name">${m.meal} · ${m.name}</div></div><span class="badge gray">${fmt(m.cal)} kcal</span></div>`).join('')
     : '<div class="empty">Chưa có bữa ăn nào</div>';
 
-  const now=new Date(); const ym=now.toISOString().slice(0,7);
+  const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   const mWs=meals.filter(m=>m.date.startsWith(ym)).reduce((a,m)=>a+m.cal,0);
   const mWk=workouts.filter(w=>w.date.startsWith(ym)).length;
   document.getElementById('monthSummary').textContent = `Nạp ${fmt(mWs)} kcal · ${mWk} buổi tập`;
   const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
   const chart=document.getElementById('monthChart'); chart.innerHTML='';
   const dayCals=[...Array(daysInMonth)].map((_,i)=>{
-    const d=`${ym}-${String(i+1).padStart(2,'0')}`;
+    const d=ym+'-'+String(i+1).padStart(2,'0');
     return {d, cal:meals.filter(m=>m.date===d).reduce((a,m)=>a+m.cal,0), w:workouts.filter(w=>w.date===d).length};
   });
   const maxC=Math.max(...dayCals.map(x=>x.cal),1);
@@ -544,7 +722,7 @@ function calcPR(exName){
 function renderWeekly(){
   const el=document.getElementById('prog-weekly');
   const [ws,we]=weekRange();
-  const days=[...Array(7)].map((_,i)=>{ const d=new Date(ws); d.setDate(new Date(ws).getDate()+i); return d.toISOString().slice(0,10); });
+  const days=[...Array(7)].map((_,i)=>{ const d=new Date(ws); d.setDate(new Date(ws).getDate()+i); return localISO(d); });
   const wk=workouts.filter(w=>w.date>=ws&&w.date<=we);
   const totalCal=wk.reduce((a,w)=>a+w.cal,0);
   const totalMin=wk.reduce((a,w)=>a+w.dur,0);
@@ -611,6 +789,6 @@ document.querySelectorAll('#progTabs .tab').forEach(b=>b.addEventListener('click
 
 // ====== RENDER ALL ======
 function renderAll(){
-  renderHome(); renderRoutine(); renderWorkoutList(); renderDiet(); renderWeight(); renderWeekly(); renderExercise(); renderPlan();
+  renderHome(); renderRoutine(); renderWorkoutList(); renderDiet(); renderWeight(); renderTdee(); renderWeekly(); renderExercise(); renderPlan();
 }
 renderAll();
