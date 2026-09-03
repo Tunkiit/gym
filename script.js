@@ -439,30 +439,55 @@ function renderWorkoutList(){
 // Nạp database món ăn
 let FOOD_DB = [];
 (async function loadFoods(){
-  try{ const r=await fetch('data/foods.json'); FOOD_DB=await r.json(); fillFoodList(); }catch(e){ console.log('Không tải được foods.json'); }
+  try{ const r=await fetch('data/foods.json'); FOOD_DB=await r.json(); }catch(e){ console.log('Không tải được foods.json'); }
 })();
 // Món yêu thích (lưu localStorage)
 let favFoods = load('gym_fav_foods', []);
-function fillFoodList(){
-  const dl=document.getElementById('foodList'); dl.innerHTML='';
-  const all=[...FOOD_DB, ...favFoods.map(f=>({...f, fav:true}))];
-  all.forEach(f=>{ const o=document.createElement('option'); o.value=f.n+(f.fav?' ⭐':''); dl.appendChild(o); });
-}
-// Gõ tên món → tự điền macro
-document.getElementById('mName').addEventListener('input', function(){
-  const v=this.value.trim().toLowerCase();
-  // tìm trong FOOD_DB + favFoods
-  const all=[...FOOD_DB, ...favFoods.map(f=>({...f, fav:true}))];
-  const hit=all.find(f=>f.n.toLowerCase()===v.replace(' ⭐','').trim());
-  if(!hit) return;
+function allFoods(){ return [...FOOD_DB, ...favFoods.map(f=>({...f, fav:true}))]; }
+// Gõ tên món → gợi ý (tối đa 8 kết quả, lọc theo chữ gõ vào)
+const foodInput=document.getElementById('mName'), sugBox=document.getElementById('foodSuggestions');
+foodInput.addEventListener('input', ()=>{
+  const v=foodInput.value.trim().toLowerCase();
+  sugBox.innerHTML=''; sugBox.style.display='none';
+  if(!v) return;
+  const hits=allFoods().filter(f=>f.n.toLowerCase().includes(v)).slice(0,8);
+  if(!hits.length) return;
+  sugBox.style.display='block';
+  hits.forEach(f=>{
+    const d=document.createElement('div');
+    d.className='food-sug';
+    d.textContent=f.n+(f.fav?' ⭐':'')+' · '+(f.unit==='g'?f.kcal+' kcal/100g':'1 suất '+f.kcal+' kcal');
+    d.addEventListener('click', ()=>{ foodInput.value=f.n; sugBox.style.display='none';
+      document.getElementById('mQty').value = f.unit==='g' ? 100 : 1;
+      fillMacros(f); });
+    sugBox.appendChild(d);
+  });
+});
+// Bấm ✕ → xoá món, xoá macro, focus lại input
+document.getElementById('foodClear').addEventListener('click', ()=>{
+  foodInput.value=''; sugBox.style.display='none';
+  document.getElementById('mCalV').value=''; document.getElementById('mProV').value='';
+  document.getElementById('mCarbV').value=''; document.getElementById('mFatV').value='';
+  document.getElementById('mQty').value=1; document.getElementById('mQtyLbl').textContent='Số suất';
+  foodInput.focus();
+});
+document.addEventListener('click', e=>{ if(!e.target.closest('.food-search-wrap')) sugBox.style.display='none'; });
+// Đổi khối lượng/suất → tính lại macro nếu đang chọn món
+document.getElementById('mQty').addEventListener('input', ()=>{
+  const v=foodInput.value.trim().replace(' ⭐','');
+  const hit=allFoods().find(f=>f.n.toLowerCase()===v.toLowerCase());
+  if(hit) fillMacros(hit);
+});
+// Điền macro theo món + khối lượng
+function fillMacros(hit){
   const qty=num(document.getElementById('mQty').value,100);
   const ratio=hit.unit==='g' ? qty/100 : qty;
-  document.getElementById('mCalV').value = Math.round(hit.kcal*ratio);
-  document.getElementById('mProV').value = Math.round(hit.p*ratio);
-  document.getElementById('mCarbV').value = Math.round(hit.c*ratio);
-  document.getElementById('mFatV').value = Math.round(hit.f*ratio);
-  document.getElementById('mQtyLbl').textContent = hit.unit==='g' ? 'Khối lượng (g)' : 'Số suất';
-});
+  document.getElementById('mCalV').value=Math.round(hit.kcal*ratio);
+  document.getElementById('mProV').value=Math.round(hit.p*ratio);
+  document.getElementById('mCarbV').value=Math.round(hit.c*ratio);
+  document.getElementById('mFatV').value=Math.round(hit.f*ratio);
+  document.getElementById('mQtyLbl').textContent=hit.unit==='g' ? 'Khối lượng (g)' : 'Số suất';
+}
 // Lưu món yêu thích
 document.getElementById('saveFavFood').addEventListener('click',()=>{
   const name=document.getElementById('mName').value.trim().replace(' ⭐','');
@@ -476,7 +501,7 @@ document.getElementById('saveFavFood').addEventListener('click',()=>{
   const unit = qty===1 ? 'suat' : 'g';
   const ratio = unit==='g' ? qty/100 : qty;
   const item={n:name, kcal:Math.round(cal/ratio)||1, p:Math.round(p/ratio)||0, c:Math.round(c/ratio)||0, f:Math.round(f/ratio)||0, unit};
-  favFoods.push(item); save('gym_fav_foods', favFoods); fillFoodList(); alert('✅ Đã lưu "'+name+'" vào mục yêu thích ⭐');
+  favFoods.push(item); save('gym_fav_foods', favFoods); alert('✅ Đã lưu "'+name+'" vào mục yêu thích ⭐');
 });
 function addMeal(){
   const date = today();
@@ -575,41 +600,39 @@ document.getElementById('goalSelect').addEventListener('change', ()=>{
 });
 
 // ====== AI PARSE (bữa ăn) ======
-// Cấu hình AI lưu localStorage
-let aiCfg = load('gym_ai_cfg', {key:'', endpoint:'https://api.b.ai/v1', model:'gemini-2.0-flash', worker:''});
+// Key: từ config.js (GitHub Actions → Secret) hoặc localStorage override
+const DEFAULT_AI = {key: (window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:'https://api.b.ai/v1', model:'gemini-2.0-flash'};
+let aiCfg = load('gym_ai_cfg', DEFAULT_AI);
 // nạp sẵn vào form
 document.getElementById('aiKey').value = aiCfg.key||'';
 document.getElementById('aiEndpoint').value = aiCfg.endpoint||'https://api.b.ai/v1';
 document.getElementById('aiModel').value = aiCfg.model||'gemini-2.0-flash';
-document.getElementById('aiWorker').value = aiCfg.worker||'';
 document.getElementById('saveAiCfg').addEventListener('click',()=>{
   aiCfg={key:document.getElementById('aiKey').value.trim(), endpoint:document.getElementById('aiEndpoint').value.trim(),
-    model:document.getElementById('aiModel').value.trim(), worker:document.getElementById('aiWorker').value.trim()};
+    model:document.getElementById('aiModel').value.trim()};
   save('gym_ai_cfg', aiCfg); alert('✅ Đã lưu cài đặt AI');
 });
 function aiParse(){
   const prompt=document.getElementById('aiPrompt').value.trim();
   const out=document.getElementById('aiResult');
   if(!prompt){ out.textContent='⚠️ Nhập bữa ăn trước (VD: 1 chén cơm, 300g ức gà)'; return; }
-  if(!aiCfg.key || !aiCfg.worker){ out.textContent='⚠️ Chưa cài đặt AI: điền Key + Worker URL rồi bấm Lưu ở mục phía dưới.'; return; }
+  if(!aiCfg.key){ out.textContent='⚠️ Chưa có key AI. Vào mục cài đặt phía dưới để nhập key.'; return; }
   out.textContent='⏳ Đang phân tích...';
   const sys = `Bạn là chuyên gia dinh dưỡng. Người dùng nhập bữa ăn bằng tiếng Việt kiểu "1 chén cơm, 300g ức gà, 2 quả trứng ốp la".
 Hãy trả về CHỈ MỘT JSON array, mỗi phần tử: {"name":"tên món","qty":số lượng,"unit":"g hoặc suat","kcal":số,"p":protein g,"c":carbs g,"f":fat g}.
 Quy ước: món nấu chín tính theo 100g; suất ăn như phở/bún/cơm tấm tính theo suat (qty=1); trứng/chuối tính theo quả (1 quả≈55g). Ước lượng dinh dưỡng hợp lý. KHÔNG thêm text nào ngoài JSON.`;
-  const body={endpoint:aiCfg.endpoint||'https://api.b.ai/v1', model:aiCfg.model||'gemini-2.0-flash', apiKey:aiCfg.key,
-    messages:[{role:'system',content:sys},{role:'user',content:prompt}]};
-  fetch(aiCfg.worker, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})
+  const ep = (aiCfg.endpoint||'https://api.b.ai/v1').replace(/\/+$/,'');
+  fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+aiCfg.key},
+    body:JSON.stringify({model:aiCfg.model||'gemini-2.0-flash', messages:[{role:'system',content:sys},{role:'user',content:prompt}], temperature:0.2})})
     .then(r=>r.json())
     .then(data=>{
       if(data.error){ out.textContent='❌ Lỗi: '+(data.error.message||data.error); return; }
       const txt=data.choices?.[0]?.message?.content || data.choices?.[0]?.text || '';
       if(!txt){ out.textContent='❌ Không nhận được kết quả từ AI'; return; }
-      // trích JSON từ text (AI hay bọc ```json ... ```)
       const m=txt.match(/\[[\s\S]*\]/);
       if(!m){ out.textContent='❌ AI trả về không phải JSON: '+txt.slice(0,120); return; }
       const items=JSON.parse(m[0]);
       if(!items.length){ out.textContent='❌ Không nhận diện được món nào'; return; }
-      // thêm vào meals
       items.forEach(it=>{
         const qty=num(it.qty,1)||1;
         const ratio=it.unit==='g' ? qty/100 : qty;
