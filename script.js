@@ -260,7 +260,7 @@ document.getElementById('wDur').addEventListener('input', updateCalPreview);
 
 // Danh sách gợi ý bài tập (gộp tất cả giáo án + cardio)
 const ALL_EX = (()=>{
-  const names=new Set(['Chạy bộ','Đạp xe','Máy chèo','Jump Rope']);
+  const names=new Set(['Chạy bộ','Đi bộ','Đạp xe','Máy chèo','Jump Rope']);
   Object.values(ROUTINE).forEach(g=>g.exs.forEach(e=>names.add(e.name)));
   Object.values(EXTRA_SPLITS).forEach(s=>s.days.forEach(d=>d.exs.forEach(e=>names.add(e.name))));
   return [...names];
@@ -283,7 +283,7 @@ const SPLIT_EX = (()=>{
   return o;
 })();
 // Cardio: MET từng môn (chuẩn ACSM)
-const CARDIO_MET = {'Chạy bộ':9,'Đạp xe':6.5,'Máy chèo':7,'Jump Rope':11};
+const CARDIO_MET = {'Chạy bộ':9,'Đi bộ':3.5,'Đạp xe':6.5,'Máy chèo':7,'Jump Rope':11};
 const isCardio = n => !!CARDIO_MET[n];
 // Cân nặng cơ thể: lấy mục gần nhất từ tab Cân nặng (localStorage), chưa có → 60
 function getBodyWeight(){
@@ -364,13 +364,22 @@ function exerciseRow(ex){
   d.className='form-row'; d.style.marginBottom='0'; d.style.alignItems='center';
   d.innerHTML = `
     <input type="text" class="ex-name" list="exList" placeholder="Bài tập" value="${(ex&&ex.name)||''}" style="flex:1;min-width:120px">
-    <div class="field"><label>Sets</label><input type="number" class="ex-sets" min="1" value="${(ex&&ex.sets)||3}" style="width:60px"></div>
-    <div class="field"><label>Reps</label><input type="number" class="ex-reps" min="1" value="${parseInt((ex&&ex.reps)||10)||10}" style="width:70px"></div>
-    <div class="field"><label class="w-lbl">${cardio?'Phút':'Kg'}</label><input type="number" class="ex-w" min="0" step="0.5" value="${(ex&&ex.w)||0}" style="width:70px"></div>
+    <div class="ex-fields" style="display:flex;gap:8px;align-items:flex-end">
+      <div class="field ex-sets-field" style="${cardio?'display:none':''}"><label>Sets</label><input type="number" class="ex-sets" min="1" value="${(ex&&ex.sets)||3}" style="width:60px"></div>
+      <div class="field ex-reps-field" style="${cardio?'display:none':''}"><label>Reps</label><input type="number" class="ex-reps" min="1" value="${parseInt((ex&&ex.reps)||10)||10}" style="width:70px"></div>
+      <div class="field ex-w-field"><label class="w-lbl">${cardio?'Phút':'Kg'}</label><input type="number" class="ex-w" min="0" step="0.5" value="${(ex&&ex.w)||0}" style="width:70px"></div>
+      <div class="field ex-speed-field" style="${cardio?'':'display:none'}"><label>Km/h</label><input type="number" class="ex-speed" min="0" step="0.5" value="${(ex&&ex.speed)||0}" style="width:65px"></div>
+      <div class="field ex-incline-field" style="${cardio?'':'display:none'}"><label>Dốc %</label><input type="number" class="ex-incline" min="0" step="0.5" value="${(ex&&ex.incline)||0}" style="width:65px"></div>
+    </div>
     <button class="btn danger ex-del">✕</button>`;
   const sync = ()=>{
     const name = d.querySelector('.ex-name').value.trim();
-    d.querySelector('.w-lbl').textContent = isCardio(name) ? 'Phút' : 'Kg';
+    const c = isCardio(name);
+    d.querySelector('.ex-sets-field').style.display = c ? 'none' : '';
+    d.querySelector('.ex-reps-field').style.display = c ? 'none' : '';
+    d.querySelector('.ex-speed-field').style.display = c ? '' : 'none';
+    d.querySelector('.ex-incline-field').style.display = c ? '' : 'none';
+    d.querySelector('.w-lbl').textContent = c ? 'Phút' : 'Kg';
   };
   d.querySelector('.ex-del').addEventListener('click',()=>{ d.remove(); });
   d.querySelector('.ex-name').addEventListener('input',()=>{ sync(); fillExList(); });
@@ -381,7 +390,7 @@ function fillExList(){
   const seen=new Set();
   // lọc theo loại buổi đang chọn: Push → chỉ bài Push; Full Body → chỉ bài trong giáo án đó; Cardio → bài cardio
   let pool=ALL_EX;
-  if(wType==='Cardio') pool=['Chạy bộ','Đạp xe','Máy chèo','Jump Rope'];
+  if(wType==='Cardio') pool=['Chạy bộ','Đi bộ','Đạp xe','Máy chèo','Jump Rope'];
   else if(SPLIT_EX[wType]) pool=[...SPLIT_EX[wType]];
   else if(wType==='Push'||wType==='Pull'||wType==='Legs') pool=ALL_EX.filter(n=>GROUP[n]===wType);
   pool.forEach(e=>{ const o=document.createElement('option'); o.value=e; dl.appendChild(o); seen.add(e); });
@@ -406,8 +415,8 @@ document.getElementById('saveWorkout').addEventListener('click',()=>{
   const dur=num(document.getElementById('wDur').value);
   if(!dur||dur<=0){ alert('Bắt buộc nhập thời lượng (phút)'); document.getElementById('wDur').focus(); return; }
   const exs=[...document.querySelectorAll('#exerciseRows .form-row')]
-    .map(r=>({name:r.querySelector('.ex-name').value.trim(),sets:num(r.querySelector('.ex-sets').value),reps:num(r.querySelector('.ex-reps').value),w:num(r.querySelector('.ex-w').value)}))
-    .filter(e=>e.name);
+      .map(r=>({name:r.querySelector('.ex-name').value.trim(),sets:num(r.querySelector('.ex-sets').value),reps:num(r.querySelector('.ex-reps').value),w:num(r.querySelector('.ex-w').value),speed:num(r.querySelector('.ex-speed')?.value),incline:num(r.querySelector('.ex-incline')?.value)}))
+      .filter(e=>e.name);
   if(!exs.length){ alert('Thêm ít nhất 1 bài tập'); return; }
   // calo đốt: tự tính theo chuẩn ACSM (MET × 3.5 × cân nặng × phút ÷ 200)
   const cal = calcWorkoutKcal();
@@ -428,7 +437,12 @@ function renderWorkoutList(){
         ${w.cal?`<span class="badge green">🔥 ${fmt(w.cal)} kcal</span>`:''}
         <button class="btn danger" data-del="${w.id}">✕</button>
       </div>
-      <div class="wk-chips">${w.exs.map(e=>`<span class="chip">${e.name} ${e.sets}×${e.reps}${e.w?' @'+e.w+'kg':''}</span>`).join('')}</div>
+      <div class="wk-chips">${w.exs.map(e=>{
+              const c=isCardio(e.name);
+              return c
+                ? `<span class="chip">${e.name} ${e.w||0} phút${e.speed?' @'+e.speed+'km/h':''}${e.incline?' dốc'+e.incline+'%':''}</span>`
+                : `<span class="chip">${e.name} ${e.sets}×${e.reps}${e.w?' @'+e.w+'kg':''}</span>`;
+            }).join('')}</div>
     </div>`).join('');
   el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
     if(confirm('Xoá buổi tập này?')){ workouts=workouts.filter(w=>w.id!=b.dataset.del); save(LS.workouts,workouts); renderAll(); }
