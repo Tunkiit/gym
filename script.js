@@ -697,15 +697,18 @@ document.getElementById('aiPlanBtn').addEventListener('click', ()=>{
   const goalPro=num(document.getElementById('gPro').value,150);
   const tdee=getTDEE();
   const favs=favFoods.map(f=>f.n).slice(0,15);
-  const time=document.getElementById('aiPlanTime').value;
-  const timeLbl={sang:'sáng (6-9h)',trua:'trưa (11-13h)',chieu:'chiều (16-18h)',toi:'tối (19-21h)'}[time]||'';
+  const time=document.getElementById('aiPlanTime').value; // "17:30" hoặc ""
   out.textContent='⏳ Đang xếp thực đơn...';
   const sys='Bạn là chuyên gia dinh dưỡng thể thao. Trả lời bằng tiếng Việt, ngắn gọn, thực tế, không dùng bảng phức tạp.';
   const user=`Tôi tập gym. Mục tiêu: ${goalCal} kcal/ngày, protein ${goalPro}g. TDEE: ${tdee} kcal. Hôm nay đã nạp ${t.cal} kcal.
 Món tôi hay ăn (ưu tiên chọn trong đây): ${favs.length?favs.join(', '):'chưa có — chọn món Việt phổ biến'}.
-${timeLbl?`Hôm nay tôi tập lúc ${timeLbl}.`:''}
-Gợi ý thực đơn hôm nay: bữa Sáng, Trưa, Tối (mỗi bữa: món + khẩu lượng + ~calo), tổng ~${goalCal} kcal, đủ protein. ${timeLbl?`Kèm mục "TRƯỚC TẬP": nên ăn gì, ăn cách giờ tập bao lâu (giờ tập ${timeLbl}), và sau tập nên nạp gì.`:''}`;
+${time?`Hôm nay tôi tập lúc ${time} (${time} giờ).`:''}
+Gợi ý thực đơn hôm nay: bữa Sáng, Trưa, Tối (mỗi bữa: món + khẩu lượng + ~calo), tổng ~${goalCal} kcal, đủ protein. ${time?`Kèm mục "TRƯỚC TẬP": nên ăn gì, ăn cách giờ tập bao lâu (tập lúc ${time}), và sau tập nên nạp gì.`:''}`;
   aiCall(sys,user).then(txt=>{ aiShow(out,txt); }).catch(e=>{ out.textContent='❌ '+e.message; });
+});
+// Bỏ chọn giờ tập
+document.getElementById('aiPlanNoTime').addEventListener('click', ()=>{
+  document.getElementById('aiPlanTime').value='';
 });
 
 // ====== AI 1: NHẬN XÉT TUẦN ======
@@ -739,6 +742,13 @@ Câu hỏi: ${q}`;
 }
 document.getElementById('aiAskBtn').addEventListener('click', aiAsk);
 document.getElementById('aiAsk').addEventListener('keydown', e=>{ if(e.key==='Enter') aiAsk(); });
+// Câu hỏi mẫu bấm nhanh: điền vào ô + hỏi luôn
+document.querySelectorAll('.qi-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.getElementById('aiAsk').value = b.dataset.q;
+    aiAsk();
+  });
+});
 
 // ====== WEIGHT ======
 // nạp sẵn thông số cơ thể vào form

@@ -183,19 +183,17 @@
       </div>
       <div class="card">
         <h3>🤖 Gợi ý thực đơn hôm nay (AI)</h3>
-        <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px">AI xếp thực đơn 3 bữa theo mục tiêu &amp; TDEE của bạn, ưu tiên món ⭐ yêu thích. Chọn giờ tập (nếu hôm nay có tập) để AI thêm gợi ý <b>ăn gì trước tập &amp; ăn cách bao lâu</b>.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px">AI xếp thực đơn 3 bữa theo mục tiêu &amp; TDEE của bạn, ưu tiên món ⭐ yêu thích. Nhập giờ tập cụ thể (nếu hôm nay có tập) để AI thêm gợi ý <b>ăn gì trước tập &amp; ăn cách bao lâu</b>.</p>
         <div class="form-row" style="margin-bottom:10px">
-          <div class="field"><label>Hôm nay tập lúc mấy giờ?</label>
-            <select id="aiPlanTime">
-              <option value="">— Không tập hôm nay —</option>
-              <option value="sang">🌅 Sáng (6-9h)</option>
-              <option value="trua">☀️ Trưa (11-13h)</option>
-              <option value="chieu">🌤️ Chiều (16-18h)</option>
-              <option value="toi">🌙 Tối (19-21h)</option>
-            </select>
+          <div class="field"><label>Tập lúc mấy giờ hôm nay?</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="time" id="aiPlanTime" style="width:150px">
+              <button class="btn ghost sm" id="aiPlanNoTime" type="button" title="Bỏ chọn giờ tập">✕ Không tập</button>
+            </div>
           </div>
           <button class="btn btn-blue" id="aiPlanBtn">🤖 Gợi ý thực đơn</button>
         </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:-4px;margin-bottom:8px">Bỏ trống giờ = không tập hôm nay. Ví dụ nhập <b>17:30</b> → AI tự tính nên ăn trưa xong cách mấy tiếng, ăn nhẹ lúc mấy giờ.</div>
         <div id="aiPlanOut" style="font-size:13px;line-height:1.7;white-space:pre-line"></div>
         <div style="font-size:12px;color:var(--muted);margin-top:8px">💡 Muốn thêm món khác? Bấm ⭐ bên cạnh món bạn hay ăn ở dưới — AI sẽ ưu tiên món đó lần sau.</div>
       </div>
@@ -286,9 +284,15 @@
         <div class="card">
           <h3>💬 Hỏi AI về tập luyện / ăn uống</h3>
           <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">AI biết giáo án bạn đang theo (PPL, Full Body...) và lịch tập gần đây — hỏi bất cứ điều gì.</p>
-          <div class="form-row">
+          <div class="form-row" style="margin-bottom:8px">
             <input type="text" id="aiAsk" placeholder="VD: Tuần này tôi nên tập mấy buổi? Có nên đổi giáo án không?" style="flex:2;min-width:200px">
             <button class="btn btn-blue" id="aiAskBtn">💬 Hỏi</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+            <button class="btn ghost sm qi-btn" data-q="Vừa ăn trưa xong 30 phút, tập được chưa?">🍽️ Vừa ăn xong tập được chưa?</button>
+            <button class="btn ghost sm qi-btn" data-q="Trước tập 30 phút nên ăn gì để no lâu?">🍌 Ăn nhẹ trước tập</button>
+            <button class="btn ghost sm qi-btn" data-q="Hôm nay tập Push, có nên bỏ Lateral Raise nếu vai đau không?">🤕 Đau vai có nên bỏ bài?</button>
+            <button class="btn ghost sm qi-btn" data-q="Ăn tối xong tập luôn có sao không?">🌙 Tập sau ăn tối</button>
           </div>
           <div id="aiAskOut" style="font-size:13px;line-height:1.6;margin-top:10px;white-space:pre-line"></div>
         </div>
