@@ -672,6 +672,74 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
 document.getElementById('aiParseBtn').addEventListener('click', aiParse);
 document.getElementById('aiPrompt').addEventListener('keydown', e=>{ if(e.key==='Enter') aiParse(); });
 
+// ====== AI CHUNG (gọi 1 lần, dùng cho thực đơn / nhận xét / hỏi đáp) ======
+function aiCall(sys, user){
+  if(!AI_CFG.key) return Promise.reject(new Error('Bản này chưa có key AI. Bản deploy từ GitHub sẽ có sẵn.'));
+  const ep=(AI_CFG.endpoint||'https://api.b.ai/v1').replace(/\/+$/,'');
+  return fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
+    body:JSON.stringify({model:AI_CFG.model||'deepseek-v4-flash', messages:[{role:'system',content:sys},{role:'user',content:user}], temperature:0.4})})
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.error) throw new Error(data.error.message||data.error);
+      const txt=data.choices?.[0]?.message?.content || data.choices?.[0]?.text || '';
+      if(!txt) throw new Error('Không nhận được kết quả từ AI');
+      return txt.trim();
+    });
+}
+// Hiện kết quả AI (xuống dòng thành <br>)
+const aiShow = (el, txt) => el.innerHTML = txt.replace(/\n/g,'<br>');
+
+// ====== AI 2: GỢI Ý THỰC ĐƠN HÔM NAY ======
+document.getElementById('aiPlanBtn').addEventListener('click', ()=>{
+  const out=document.getElementById('aiPlanOut');
+  const t=dayTotals(today());
+  const goalCal=num(document.getElementById('gCal').value,2400);
+  const goalPro=num(document.getElementById('gPro').value,150);
+  const tdee=getTDEE();
+  const favs=favFoods.map(f=>f.n).slice(0,15);
+  const time=document.getElementById('aiPlanTime').value;
+  const timeLbl={sang:'sáng (6-9h)',trua:'trưa (11-13h)',chieu:'chiều (16-18h)',toi:'tối (19-21h)'}[time]||'';
+  out.textContent='⏳ Đang xếp thực đơn...';
+  const sys='Bạn là chuyên gia dinh dưỡng thể thao. Trả lời bằng tiếng Việt, ngắn gọn, thực tế, không dùng bảng phức tạp.';
+  const user=`Tôi tập gym. Mục tiêu: ${goalCal} kcal/ngày, protein ${goalPro}g. TDEE: ${tdee} kcal. Hôm nay đã nạp ${t.cal} kcal.
+Món tôi hay ăn (ưu tiên chọn trong đây): ${favs.length?favs.join(', '):'chưa có — chọn món Việt phổ biến'}.
+${timeLbl?`Hôm nay tôi tập lúc ${timeLbl}.`:''}
+Gợi ý thực đơn hôm nay: bữa Sáng, Trưa, Tối (mỗi bữa: món + khẩu lượng + ~calo), tổng ~${goalCal} kcal, đủ protein. ${timeLbl?`Kèm mục "TRƯỚC TẬP": nên ăn gì, ăn cách giờ tập bao lâu (giờ tập ${timeLbl}), và sau tập nên nạp gì.`:''}`;
+  aiCall(sys,user).then(txt=>{ aiShow(out,txt); }).catch(e=>{ out.textContent='❌ '+e.message; });
+});
+
+// ====== AI 1: NHẬN XÉT TUẦN ======
+document.getElementById('aiReviewBtn').addEventListener('click', ()=>{
+  const out=document.getElementById('aiReviewOut');
+  out.textContent='⏳ AI đang đọc dữ liệu 7 ngày...';
+  const days=[...Array(7)].map((_,i)=>daysAgo(6-i));
+  const wk=workouts.filter(w=>w.date>=days[0]);
+  const wl=weights.filter(w=>w.date>=days[0]).sort((a,b)=>a.date.localeCompare(b.date));
+  const sys='Bạn là huấn luyện viên gym chuyên nghiệp. Nhận xét ngắn gọn, cụ thể, có số liệu, tiếng Việt. Không chê bai — luôn kèm hướng khắc phục.';
+  const user=`Dữ liệu 7 ngày qua (${vnDate(days[0])} → ${vnDate(days[6])}):
+- Buổi tập: ${wk.length} buổi. ${wk.map(w=>`${vnDate(w.date)} ${w.type} ${w.dur} phút ${w.cal} kcal`).join('; ')||'không có'}
+- Calo nạp từng ngày: ${days.map(d=>`${vnDate(d)} ${dayTotals(d).cal} kcal`).join(', ')}
+- Cân nặng: ${wl.length?wl.map(w=>`${vnDate(w.date)} ${w.v} kg`).join(' → '):'chưa ghi'}
+- Mục tiêu: ${num(document.getElementById('gCal').value,2400)} kcal/ngày, TDEE ${getTDEE()} kcal.
+Nhận xét: 1) điểm tốt 2) điểm cần cải thiện 3) 3 gợi ý cụ thể cho tuần tới.`;
+  aiCall(sys,user).then(txt=>{ aiShow(out,txt); }).catch(e=>{ out.textContent='❌ '+e.message; });
+});
+
+// ====== AI 3: HỎI AI VỀ TẬP LUYỆN / ĂN UỐNG ======
+function aiAsk(){
+  const q=document.getElementById('aiAsk').value.trim();
+  const out=document.getElementById('aiAskOut');
+  if(!q){ out.textContent='⚠️ Nhập câu hỏi trước'; return; }
+  out.textContent='⏳ Đang trả lời...';
+  const wk=workouts.slice(-10).reverse();
+  const sys='Bạn là huấn luyện viên gym. Trả lời tiếng Việt, ngắn gọn, dễ hiểu, dựa trên dữ liệu người dùng nếu liên quan.';
+  const user=`Giáo án đang theo: ${curSplit} (${getDayMeta(curSplit,daySelect.value).label}). Lịch tập gần đây: ${wk.map(w=>`${vnDate(w.date)} ${w.type}`).join('; ')||'chưa có'}. Cân nặng: ${getBodyWeight()} kg. Mục tiêu: ${num(document.getElementById('gCal').value,2400)} kcal/ngày.
+Câu hỏi: ${q}`;
+  aiCall(sys,user).then(txt=>{ aiShow(out,txt); }).catch(e=>{ out.textContent='❌ '+e.message; });
+}
+document.getElementById('aiAskBtn').addEventListener('click', aiAsk);
+document.getElementById('aiAsk').addEventListener('keydown', e=>{ if(e.key==='Enter') aiAsk(); });
+
 // ====== WEIGHT ======
 // nạp sẵn thông số cơ thể vào form
 document.getElementById('bHeight').value = body.height||'';
@@ -891,7 +959,7 @@ function renderPlan(){
 document.querySelectorAll('#progTabs .tab').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#progTabs .tab').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  ['weekly','exercise','plan'].forEach(t=>document.getElementById('prog-'+t).style.display = t===b.dataset.tab?'block':'none');
+  ['weekly','exercise','plan','ai'].forEach(t=>document.getElementById('prog-'+t).style.display = t===b.dataset.tab?'block':'none');
   if(b.dataset.tab==='weekly') renderWeekly();
   if(b.dataset.tab==='exercise') renderExercise();
   if(b.dataset.tab==='plan') renderPlan();

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GYM TRACKER</title>
-<link rel="stylesheet" href="style.css?v=15">
+<link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 <div class="app">
@@ -182,6 +182,24 @@
         <div style="font-size:12px;color:var(--muted);margin-top:8px">Gõ tên món → gợi ý hiện ra (tối đa 8), bấm chọn → tự điền calo. ⭐ = món yêu thích.</div>
       </div>
       <div class="card">
+        <h3>🤖 Gợi ý thực đơn hôm nay (AI)</h3>
+        <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px">AI xếp thực đơn 3 bữa theo mục tiêu &amp; TDEE của bạn, ưu tiên món ⭐ yêu thích. Chọn giờ tập (nếu hôm nay có tập) để AI thêm gợi ý <b>ăn gì trước tập &amp; ăn cách bao lâu</b>.</p>
+        <div class="form-row" style="margin-bottom:10px">
+          <div class="field"><label>Hôm nay tập lúc mấy giờ?</label>
+            <select id="aiPlanTime">
+              <option value="">— Không tập hôm nay —</option>
+              <option value="sang">🌅 Sáng (6-9h)</option>
+              <option value="trua">☀️ Trưa (11-13h)</option>
+              <option value="chieu">🌤️ Chiều (16-18h)</option>
+              <option value="toi">🌙 Tối (19-21h)</option>
+            </select>
+          </div>
+          <button class="btn btn-blue" id="aiPlanBtn">🤖 Gợi ý thực đơn</button>
+        </div>
+        <div id="aiPlanOut" style="font-size:13px;line-height:1.7;white-space:pre-line"></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px">💡 Muốn thêm món khác? Bấm ⭐ bên cạnh món bạn hay ăn ở dưới — AI sẽ ưu tiên món đó lần sau.</div>
+      </div>
+      <div class="card">
         <h3>🤖 Phân tích bữa ăn bằng AI</h3>
         <div class="form-row">
           <input type="text" id="aiPrompt" placeholder="VD: 1 chén cơm, 300g ức gà, 2 quả trứng ốp la" style="flex:2;min-width:200px">
@@ -253,10 +271,28 @@
         <button class="tab active" data-tab="weekly">Tuần này</button>
         <button class="tab" data-tab="exercise">Theo bài tập</button>
         <button class="tab" data-tab="plan">Gợi ý kế hoạch</button>
+        <button class="tab" data-tab="ai">🤖 AI Coach</button>
       </div>
       <div id="prog-weekly"></div>
       <div id="prog-exercise" style="display:none"></div>
       <div id="prog-plan" style="display:none"></div>
+      <div id="prog-ai" style="display:none">
+        <div class="card">
+          <h3>🤖 AI nhận xét tuần này</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">AI đọc toàn bộ dữ liệu 7 ngày qua của bạn (buổi tập, volume, calo nạp/đốt, cân nặng) và cho nhận xét + gợi ý cụ thể cho tuần tới.</p>
+          <button class="btn btn-blue" id="aiReviewBtn">🤖 Nhận xét tuần này</button>
+          <div id="aiReviewOut" style="font-size:13px;line-height:1.6;margin-top:10px;white-space:pre-line"></div>
+        </div>
+        <div class="card">
+          <h3>💬 Hỏi AI về tập luyện / ăn uống</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">AI biết giáo án bạn đang theo (PPL, Full Body...) và lịch tập gần đây — hỏi bất cứ điều gì.</p>
+          <div class="form-row">
+            <input type="text" id="aiAsk" placeholder="VD: Tuần này tôi nên tập mấy buổi? Có nên đổi giáo án không?" style="flex:2;min-width:200px">
+            <button class="btn btn-blue" id="aiAskBtn">💬 Hỏi</button>
+          </div>
+          <div id="aiAskOut" style="font-size:13px;line-height:1.6;margin-top:10px;white-space:pre-line"></div>
+        </div>
+      </div>
     </section>
 
     <!-- GUIDE -->
@@ -354,7 +390,7 @@
 </div>
 
 <script src="config.js"></script>
-<script src="data/routine.js?v=15"></script>
-<script src="script.js?v=15"></script>
+<script src="data/routine.js?v=16"></script>
+<script src="script.js?v=16"></script>
 </body>
 </html>
