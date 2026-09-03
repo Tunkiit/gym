@@ -783,17 +783,29 @@ function calcPR(exName){
     .filter(e=>e.name.toLowerCase()===exName.toLowerCase() && e.w>0)
     .reduce((best,e)=> e.w>best.w?e:best, {w:0});
 }
+let weekOff=0;
 function renderWeekly(){
   const el=document.getElementById('prog-weekly');
-  const [ws,we]=weekRange();
-  const days=[...Array(7)].map((_,i)=>{ const d=new Date(ws); d.setDate(new Date(ws).getDate()+i); return localISO(d); });
+  // Tuần T2→CN, offset weekOff (0=tuần này, -1=tuần trước...)
+  const base=new Date();
+  const day=base.getDay()||7;
+  const start=new Date(base); start.setDate(start.getDate()-day+1 + weekOff*7);
+  const ws=localISO(start);
+  const days=[...Array(7)].map((_,i)=>{ const d=new Date(start); d.setDate(d.getDate()+i); return localISO(d); });
+  const we=days[6];
   const wk=workouts.filter(w=>w.date>=ws&&w.date<=we);
   const totalCal=wk.reduce((a,w)=>a+w.cal,0);
   const totalMin=wk.reduce((a,w)=>a+w.dur,0);
   const types={}; wk.forEach(w=>types[w.type]=(types[w.type]||0)+1);
   const cals=days.map(d=>dayTotals(d).cal);
   const avgCal=cals.reduce((a,b)=>a+b,0)/7;
+  const label = weekOff===0 ? `Tuần này (${vnDate(ws)} – ${vnDate(we)})` : `${vnDate(ws)} – ${vnDate(we)}`;
   el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <button class="btn ghost sm" id="wkPrev">←</button>
+      <b style="flex:1;text-align:center">${label}</b>
+      <button class="btn ghost sm" id="wkNext">→</button>
+    </div>
     <div class="grid stats" style="margin-bottom:16px">
       <div class="stat"><div class="ic">🏋️</div><div class="val">${wk.length}</div><div class="lbl">Buổi tập</div></div>
       <div class="stat"><div class="ic">🔥</div><div class="val">${fmt(totalCal)}</div><div class="lbl">Kcal đốt</div></div>
@@ -811,6 +823,9 @@ function renderWeekly(){
     b.innerHTML=`<div class="tip">${d===today()?'Hôm nay':vnDate(d)} · ${fmt(cals[i])} kcal</div><div class="fill" style="height:${cals[i]/max*100}%"></div><div class="bar-label">${d===today()?'Hôm nay':vnDate(d)}</div>`;
     c.appendChild(b);
   });
+  document.getElementById('wkPrev').onclick=()=>{ weekOff--; renderWeekly(); };
+  document.getElementById('wkNext').onclick=()=>{ weekOff++; renderWeekly(); };
+  document.getElementById('wkNext').disabled = weekOff>=0; // không xem tương lai
 }
 function renderExercise(){
   const el=document.getElementById('prog-exercise');
