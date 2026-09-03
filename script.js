@@ -853,18 +853,28 @@ function renderMonth(){
   const mWk=workouts.filter(w=>w.date.startsWith(ym)).length;
   document.getElementById('monthSummary').textContent=`Nạp ${fmt(mWs)} kcal · ${mWk} buổi tập`;
   const daysInMonth=new Date(d0.getFullYear(), d0.getMonth()+1, 0).getDate();
-  const chart=document.getElementById('monthChart'); chart.innerHTML='';
-  const dayCals=[...Array(daysInMonth)].map((_,i)=>{
-    const dd=`${ym}-${String(i+1).padStart(2,'0')}`;
-    return {d:dd, cal:meals.filter(m=>m.date===dd).reduce((a,m)=>a+m.cal,0), w:workouts.filter(w=>w.date===dd).length};
-  });
-  const maxC=Math.max(...dayCals.map(x=>x.cal),1);
-  dayCals.forEach(x=>{
-    const b=document.createElement('div'); b.className='bar'; b.style.height='100%';
-    b.innerHTML=`<div class="tip">${vnDate(x.d)} · ${fmt(x.cal)} kcal${x.w?' · 💪'+x.w:''}</div><div class="fill" style="height:${x.cal/maxC*100}%"></div><div class="bar-label">${x.d.slice(8)}</div>`;
-    chart.appendChild(b);
-  });
-  if(isCur){ const t=new Date(); if(t.getDate()<=daysInMonth) chart.children[t.getDate()-1].style.background='var(--accent)'; }
+  const chart=document.getElementById('monthChart');
+  // ngày đầu tháng rơi vào cột nào (T2=0 ... CN=6)
+  const lead=(new Date(d0.getFullYear(), d0.getMonth(), 1).getDay()+6)%7;
+  const dayData={};
+  for(let i=1;i<=daysInMonth;i++){
+    const dd=`${ym}-${String(i).padStart(2,'0')}`;
+    dayData[i]={cal:meals.filter(m=>m.date===dd).reduce((a,m)=>a+m.cal,0), wk:workouts.filter(w=>w.date===dd).length};
+  }
+  const wd=['T2','T3','T4','T5','T6','T7','CN'];
+  const todayStr=today();
+  let html=`<div class="cal-head">${wd.map(w=>`<div>${w}</div>`).join('')}</div><div class="cal-grid">`;
+  html+=`<div class="cal-empty" style="grid-column:span ${lead}"></div>`;
+  for(let i=1;i<=daysInMonth;i++){
+    const dd=`${ym}-${String(i).padStart(2,'0')}`;
+    const d=dayData[i]; const cls=['cal-cell'];
+    if(dd===todayStr) cls.push('today');
+    if(d.wk) cls.push('has-wk');
+    if(!d.cal&&!d.wk) cls.push('empty-day');
+    html+=`<div class="${cls.join(' ')}"><div class="cal-d">${i}</div>${d.wk?'<div class="cal-dot">💪</div>':''}<div class="cal-kcal">${d.cal?fmt(d.cal):''}</div></div>`;
+  }
+  html+=`</div>`;
+  chart.innerHTML=html;
 }
 document.getElementById('monthPrev').addEventListener('click', ()=>{ monthOff--; renderMonth(); });
 document.getElementById('monthNext').addEventListener('click', ()=>{ monthOff++; renderMonth(); });

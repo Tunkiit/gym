@@ -131,6 +131,20 @@ select{min-width:140px}
 .bar .tip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:.1s;z-index:5}
 .bar:hover .tip{opacity:1}
 .bar-label{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ===== MONTH CALENDAR ===== */
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.cal-head div{font-size:11px;font-weight:700;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.5px;padding:4px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-cell{background:var(--card2);border:1px solid var(--border);border-radius:8px;min-height:56px;padding:5px 6px;display:flex;flex-direction:column;gap:2px;position:relative}
+.cal-cell.today{outline:2px solid var(--accent);outline-offset:-1px}
+.cal-cell.has-wk{background:linear-gradient(160deg,rgba(34,197,94,.16),var(--card2))}
+.cal-cell.empty-day{opacity:.45}
+.cal-d{font-size:13px;font-weight:700;color:var(--fg)}
+.cal-dot{font-size:11px;line-height:1}
+.cal-kcal{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:auto}
+body.light .cal-cell{background:#fff}
+body.light .cal-cell.empty-day{opacity:.4}
+body.light .cal-cell.has-wk{background:linear-gradient(160deg,rgba(34,197,94,.14),#fff)}
 /* ===== ROUTINE CARDS ===== */
 .routine-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:20px}
 .routine-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:.2s}
@@ -253,6 +267,11 @@ tr:last-child td{border-bottom:none}
   .food-suggestions{max-height:160px}
   table{font-size:12px}
   table th,table td{padding:6px 4px}
+  .cal-cell{min-height:44px;padding:3px 4px;border-radius:6px}
+  .cal-d{font-size:11px}
+  .cal-kcal{font-size:9px}
+  .cal-dot{font-size:9px}
+  .cal-head div{font-size:9px;padding:2px 0}
 }
 /* Light theme overrides */
 body.light{
