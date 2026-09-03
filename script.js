@@ -592,9 +592,10 @@ function renderDiet(){
 
   const hist=document.getElementById('dietHistory');
   const days=[...Array(7)].map((_,i)=>daysAgo(6-i));
-  hist.innerHTML = `<table><thead><tr><th>Ngày</th><th>Calo</th><th>Protein</th><th>Carbs</th><th>Fat</th></tr></thead><tbody>`+
-    days.map(d=>{ const x=dayTotals(d); return `<tr><td>${d===today()?'Hôm nay':vnDate(d)}</td><td class="weight-cell">${fmt(x.cal)}</td><td>${fmt(x.pro)}g</td><td>${fmt(x.carb)}g</td><td>${fmt(x.fat)}g</td></tr>`; }).join('')+
-    `</tbody></table>`;
+  const rows=days.map(d=>{ const x=dayTotals(d); return `<tr><td>${d===today()?'Hôm nay':vnDate(d)}</td><td class="weight-cell">${fmt(x.cal)}</td><td>${fmt(x.pro)}g</td><td>${fmt(x.carb)}g</td><td>${fmt(x.fat)}g</td></tr>`; }).join('');
+  const sums=days.reduce((a,d)=>{ const x=dayTotals(d); return {cal:a.cal+x.cal,pro:a.pro+x.pro,carb:a.carb+x.carb,fat:a.fat+x.fat}; },{cal:0,pro:0,carb:0,fat:0});
+  hist.innerHTML = `<table><thead><tr><th>Ngày</th><th>Calo</th><th>Protein</th><th>Carbs</th><th>Fat</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td>Tổng 7 ngày</td><td class="weight-cell">${fmt(sums.cal)}</td><td>${fmt(sums.pro)}g</td><td>${fmt(sums.carb)}g</td><td>${fmt(sums.fat)}g</td></tr></tfoot></table>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Tự động trượt theo ngày hiện tại — luôn hiện 7 ngày gần nhất.</div>`;
 }
 document.getElementById('saveGoals').addEventListener('click',()=>{
   goals={cal:num(document.getElementById('gCal').value,2400),pro:num(document.getElementById('gPro').value,150),carb:num(document.getElementById('gCarb').value,250),fat:num(document.getElementById('gFat').value,70)};
