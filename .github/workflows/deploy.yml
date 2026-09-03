@@ -27,7 +27,7 @@ jobs:
           window.AI_CONFIG = {
             key: '${{ secrets.BAI_KEY }}',
             endpoint: 'https://api.b.ai/v1',
-            model: 'gemini-2.0-flash',
+            model: 'deepseek-v4-flash',
           };
           EOF
 

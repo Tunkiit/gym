@@ -2,5 +2,5 @@
 window.AI_CONFIG = {
   key: 'sk-...',
   endpoint: 'https://api.b.ai/v1',
-  model: 'gemini-2.0-flash',
+  model: 'deepseek-v4-flash',
 };
