@@ -816,7 +816,24 @@ function renderExercise(){
   const el=document.getElementById('prog-exercise');
   const exNames=[...new Set(workouts.flatMap(w=>w.exs).map(e=>e.name))];
   if(!exNames.length){ el.innerHTML='<div class="empty">Chưa có bài tập nào để phân tích</div>'; return; }
-  el.innerHTML = `<table><thead><tr><th>Bài tập</th><th>Lần tập</th><th>PR (max kg)</th><th>Best set</th></tr></thead><tbody>`+
+  // Bài tập trong 7 ngày gần nhất
+  const since=daysAgo(6);
+  const weekExs=workouts.filter(w=>w.date>=since).flatMap(w=>w.exs.map(e=>({date:w.date,name:e.name,sets:e.sets||0,reps:e.reps||0,w:e.w||0})));
+  const weekNames=[...new Set(weekExs.map(e=>e.name))];
+  const volSum=(arr)=>arr.reduce((a,e)=>a+e.sets*e.reps*e.w,0);
+  const bestSet=(arr)=>arr.filter(e=>e.w>0).reduce((b,e)=> (e.w>b.w || (e.w===b.w&&e.reps>b.reps))?e:b, {w:0,reps:0});
+  const rows=weekNames.map(n=>{
+    const arr=weekExs.filter(e=>e.name.toLowerCase()===n.toLowerCase());
+    const bs=bestSet(arr);
+    return {n, count:new Set(arr.map(e=>e.date)).size, vol:volSum(arr), bs};
+  }).sort((a,b)=>b.vol-a.vol);
+  el.innerHTML = (weekNames.length?`
+    <h3 style="margin:4px 0 10px;font-size:15px">📅 Tuần này (7 ngày)</h3>
+    <table><thead><tr><th>Bài tập</th><th>Số lần</th><th>Volume (kg)</th><th>Best set</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.n}</td><td>${r.count}</td><td class="weight-cell">${fmt(r.vol)}</td><td>${r.bs.w?r.bs.w+' kg × '+r.bs.reps:''}</td></tr>`).join('')}
+    </tbody></table>`:'<div class="empty">Chưa có bài tập nào trong 7 ngày qua</div>')+
+  `<h3 style="margin:16px 0 10px;font-size:15px">📚 Tất cả (mọi thời điểm)</h3>
+  <table><thead><tr><th>Bài tập</th><th>Tổng lần</th><th>PR (max kg)</th><th>Best set</th></tr></thead><tbody>`+
     exNames.map(n=>{ const pr=calcPR(n); return `<tr><td>${n}</td><td>${workouts.filter(w=>w.exs.some(e=>e.name.toLowerCase()===n.toLowerCase())).length}</td><td class="weight-cell">${pr.w?pr.w+' kg':'-'}</td><td>${pr.w?`${pr.reps} reps`:''}</td></tr>`; }).join('')+
     `</tbody></table>`;
 }
