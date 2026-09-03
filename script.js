@@ -29,8 +29,8 @@ function weekRange(){
   const d=new Date(); const day=d.getDay()||7; const start=new Date(d); start.setDate(d.getDate()-day+1);
   const end=new Date(d); return [localISO(start), localISO(end)];
 }
-function vnDate(s){ const d=new Date(s+'T00:00:00'); return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'}); }
-function vnDateFull(s){ const d=new Date(s+'T00:00:00'); return d.toLocaleDateString('vi-VN',{weekday:'short',day:'2-digit',month:'2-digit'}); }
+function vnDate(s){ const p=s.split('-'); return `${p[2]}/${p[1]}`; }
+function vnDateFull(s){ const p=s.split('-'); const d=new Date(+p[0],+p[1]-1,+p[2]); return d.toLocaleDateString('vi-VN',{weekday:'short',day:'2-digit',month:'2-digit'}); }
 
 // ====== NAME ======
 let userName = localStorage.getItem(LS.name) || '';
@@ -444,13 +444,18 @@ let FOOD_DB = [];
 // Món yêu thích (lưu localStorage)
 let favFoods = load('gym_fav_foods', []);
 function allFoods(){ return [...FOOD_DB, ...favFoods.map(f=>({...f, fav:true}))]; }
-// Gõ tên món → gợi ý (tối đa 8 kết quả, lọc theo chữ gõ vào)
+// Gõ tên món → gợi ý; bấm vào ô → xổ danh sách sẵn (yêu thích + món phổ biến)
 const foodInput=document.getElementById('mName'), sugBox=document.getElementById('foodSuggestions');
-foodInput.addEventListener('input', ()=>{
-  const v=foodInput.value.trim().toLowerCase();
+function showSugs(v){
   sugBox.innerHTML=''; sugBox.style.display='none';
-  if(!v) return;
-  const hits=allFoods().filter(f=>f.n.toLowerCase().includes(v)).slice(0,8);
+  const q=v.trim().toLowerCase();
+  let hits;
+  if(q){
+    hits=allFoods().filter(f=>f.n.toLowerCase().includes(q)).slice(0,12);
+  }else{
+    // chưa gõ: yêu thích trước, rồi món phổ biến (theo thứ tự db)
+    hits=[...favFoods.map(f=>({...f,fav:true})), ...FOOD_DB.filter(f=>!favFoods.some(x=>x.n===f.n))].slice(0,24);
+  }
   if(!hits.length) return;
   sugBox.style.display='block';
   hits.forEach(f=>{
@@ -462,7 +467,9 @@ foodInput.addEventListener('input', ()=>{
       fillMacros(f); });
     sugBox.appendChild(d);
   });
-});
+}
+foodInput.addEventListener('focus', ()=>showSugs(foodInput.value));
+foodInput.addEventListener('input', ()=>showSugs(foodInput.value));
 // Bấm ✕ → xoá món, xoá macro, focus lại input
 document.getElementById('foodClear').addEventListener('click', ()=>{
   foodInput.value=''; sugBox.style.display='none';
@@ -472,7 +479,13 @@ document.getElementById('foodClear').addEventListener('click', ()=>{
   foodInput.focus();
 });
 document.addEventListener('click', e=>{ if(!e.target.closest('.food-search-wrap')) sugBox.style.display='none'; });
-// Đổi khối lượng/suất → tính lại macro nếu đang chọn món
+// Tự đoán buổi theo giờ hiện tại (tránh quên chọn → sai buổi)
+(function autoMeal(){
+  const h=new Date().getHours();
+  const m=document.getElementById('mMeal');
+  const guess = h>=5&&h<10 ? 'Sáng' : h>=10&&h<14 ? 'Trưa' : h>=14&&h<17 ? 'Chiều' : h>=17&&h<23 ? 'Tối' : 'Ăn vặt';
+  [...m.options].forEach(o=>{ if(o.text===guess) m.value=o.value; });
+})();
 document.getElementById('mQty').addEventListener('input', ()=>{
   const v=foodInput.value.trim().replace(' ⭐','');
   const hit=allFoods().find(f=>f.n.toLowerCase()===v.toLowerCase());
