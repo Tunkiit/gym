@@ -137,7 +137,7 @@ select{min-width:140px}
 .bar .fill{position:absolute;inset:auto 0 0 0;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--accent),#d97706)}
 .bar:hover{transform:scaleY(1.02)}
 .bar .tip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:.1s;z-index:5;top:auto;white-space:normal;width:max-content;max-width:120px}
-.bar:hover .tip{opacity:1}
+.bar:hover .tip,.bar .tip.show{opacity:1}
 .bar-label{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;white-space:normal;overflow:visible;text-overflow:initial;padding:0 2px}
 /* ===== ROUTINE CARDS ===== */
 .routine-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:20px}
@@ -232,7 +232,7 @@ tr:last-child td{border-bottom:none}
   input[type="number"]{width:100%}
   .type-btns{flex-wrap:wrap;gap:4px}
   .type-btns .type-btn{font-size:12px;padding:6px 10px}
-  .chart-wrap{overflow-x:auto;padding-bottom:4px;margin-top:0}
+  .chart-wrap{overflow-x:auto;padding-bottom:4px;margin-top:0;padding-top:44px} /* chừa chỗ trên để tooltip bấm hiện không bị cắt */
   .chart-wrap .bar{min-width:28px}
   .modal{width:95%;padding:16px}
   .card{padding:14px}

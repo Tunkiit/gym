@@ -937,6 +937,12 @@ function renderMonth(){
 }
 document.getElementById('monthPrev').addEventListener('click', ()=>{ monthOff--; renderMonth(); });
 document.getElementById('monthNext').addEventListener('click', ()=>{ monthOff++; renderMonth(); });
+// Bấm vào cột biểu đồ → hiện/ẩn tooltip số kcal + buổi tập (mobile không có hover)
+document.addEventListener('click', e=>{
+  const bar = e.target.closest('.bar');
+  document.querySelectorAll('.bar .tip.show').forEach(t=>{ if(!bar || t.parentElement!==bar) t.classList.remove('show'); });
+  if(bar){ const t=bar.querySelector('.tip'); if(t) t.classList.toggle('show'); }
+});
 
 // ====== PROGRESS ======
 function calcPR(exName){
