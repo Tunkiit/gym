@@ -219,12 +219,12 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
   const hit = wbtns.find(b=>b.dataset.type===dayName);
   const target = hit ? dayName : (curSplit==='PPL' ? (dayName.includes('PUSH')?'Push':dayName.includes('PULL')?'Pull':'Legs') : (curSplit==='FullBody'?'Full Body':curSplit==='UpperLower'?'Upper/Lower':'Bro Split'));
   wbtns.forEach(b=>b.classList.toggle('active', b.dataset.type===target));
-    wType = target;
-    // đồng bộ ẩn/hiện trường cường độ / cardio
-    const isCardioType = wType==='Cardio';
-    document.getElementById('intensityField').style.display = isCardioType?'none':'';
-    document.getElementById('cardioField').style.display = isCardioType?'':'none';
-    updateIntensityHint();
+  wType = target;
+  // đồng bộ ẩn/hiện trường cường độ / cardio
+  const isCardioType = wType==='Cardio';
+  document.getElementById('intensityField').style.display = isCardioType?'none':'';
+  document.getElementById('cardioField').style.display = isCardioType?'':'none';
+  updateIntensityHint();
   const container=document.getElementById('exerciseRows');
   container.innerHTML='';
   exs.forEach(ex=>container.appendChild(exerciseRow(ex)));
