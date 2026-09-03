@@ -789,8 +789,23 @@ function aiAsk(){
   if(!q){ out.textContent='⚠️ Nhập câu hỏi trước'; return; }
   out.textContent='⏳ Đang trả lời...';
   const wk=workouts.slice(-10).reverse();
+  // Hôm nay đã ăn gì (từng bữa) + tổng
+  const tMeals=meals.filter(m=>m.date===today());
+  const tTotal=dayTotals(today());
+  const todayEat = tMeals.length
+    ? tMeals.map(m=>`${m.meal}: ${m.name} (${m.cal} kcal, P ${m.pro}g, C ${m.carb}g, F ${m.fat}g)`).join('; ')
+    : 'chưa ghi bữa nào';
+  // Hôm nay đã tập gì (loại + thời lượng + từng bài)
+  const tWks=workouts.filter(w=>w.date===today());
+  const todayTrain = tWks.length
+    ? tWks.map(w=>`${w.type} ${w.dur||0} phút (${w.cal||0} kcal): ${w.exs.map(e=>isCardio(e.name)
+        ? `${e.name} ${e.w||0} phút${e.speed?' @'+e.speed+'km/h':''}`
+        : `${e.name} ${e.sets||0}×${e.reps||0}${e.w?' @'+e.w+'kg':''}`).join(', ')}`).join('; ')
+    : 'chưa tập';
   const sys='Bạn là huấn luyện viên gym. Trả lời tiếng Việt, ngắn gọn, dễ hiểu, dựa trên dữ liệu người dùng nếu liên quan.';
   const user=`Giáo án đang theo: ${curSplit} (${getDayMeta(curSplit,daySelect.value).label}). Lịch tập gần đây: ${wk.map(w=>`${vnDate(w.date)} ${w.type}`).join('; ')||'chưa có'}. Cân nặng: ${getBodyWeight()} kg. Mục tiêu: ${num(document.getElementById('gCal').value,2400)} kcal/ngày.
+HÔM NAY đã ăn (tổng ${tTotal.cal} kcal): ${todayEat}.
+HÔM NAY đã tập: ${todayTrain}.
 Câu hỏi: ${q}`;
   aiCall(sys,user).then(txt=>{ aiShow(out,txt); }).catch(e=>{ out.textContent='❌ '+e.message; });
 }
