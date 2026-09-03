@@ -219,7 +219,12 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
   const hit = wbtns.find(b=>b.dataset.type===dayName);
   const target = hit ? dayName : (curSplit==='PPL' ? (dayName.includes('PUSH')?'Push':dayName.includes('PULL')?'Pull':'Legs') : (curSplit==='FullBody'?'Full Body':curSplit==='UpperLower'?'Upper/Lower':'Bro Split'));
   wbtns.forEach(b=>b.classList.toggle('active', b.dataset.type===target));
-  wType = target;
+    wType = target;
+    // đồng bộ ẩn/hiện trường cường độ / cardio
+    const isCardioType = wType==='Cardio';
+    document.getElementById('intensityField').style.display = isCardioType?'none':'';
+    document.getElementById('cardioField').style.display = isCardioType?'':'none';
+    updateIntensityHint();
   const container=document.getElementById('exerciseRows');
   container.innerHTML='';
   exs.forEach(ex=>container.appendChild(exerciseRow(ex)));
@@ -533,9 +538,9 @@ document.getElementById('saveFavFood').addEventListener('click',()=>{
   if(favFoods.find(f=>f.n.toLowerCase()===name.toLowerCase())){ alert('Món này đã có trong yêu thích'); return; }
   const cal=num(document.getElementById('mCalV').value), p=num(document.getElementById('mProV').value);
   const c=num(document.getElementById('mCarbV').value), f=num(document.getElementById('mFatV').value);
+  const hit = allFoods().find(f=>f.n.toLowerCase()===name.toLowerCase());
   const qty=num(document.getElementById('mQty').value,100);
-  // lưu theo 100g nếu unit là g, suất nếu unit là suất
-  const unit = qty===1 ? 'suat' : 'g';
+  const unit = hit ? hit.unit : (qty===1 ? 'suat' : 'g');
   const ratio = unit==='g' ? qty/100 : qty;
   const item={n:name, kcal:Math.round(cal/ratio)||1, p:Math.round(p/ratio)||0, c:Math.round(c/ratio)||0, f:Math.round(f/ratio)||0, unit};
   favFoods.push(item); save('gym_fav_foods', favFoods); alert('✅ Đã lưu "'+name+'" vào mục yêu thích ⭐');
