@@ -4,11 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GYM TRACKER</title>
-<link rel="stylesheet" href="style.css?v=18">
+<link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
 <div class="app">
-  <aside class="sidebar">
+  <div class="mob-bar" id="mobBar">
+    <button class="mob-btn" id="mobMenu" title="Mở menu">☰</button>
+    <span class="mob-title" id="mobTitle">Trang chủ</span>
+    <button class="mob-btn" id="mobHome" title="Về trang chủ">🏠</button>
+  </div>
+  <aside class="sidebar" id="sidebar">
     <div class="logo"><span class="icon">🏋️</span><span>GYM TRACKER</span></div>
     <nav class="nav">
       <button class="nav-item active" data-view="home"><span class="ic">🏠</span><span class="lbl">Trang chủ</span></button>
@@ -27,6 +32,7 @@
     <div id="backupMsg" class="data-msg"></div>
     <button class="theme-toggle" id="themeToggle"><span class="ic">🌙</span><span class="lbl">Dark / Light</span></button>
   </aside>
+  <div class="scrim" id="scrim"></div>
 
   <main class="main">
     <!-- HOME -->
@@ -397,7 +403,7 @@
 </div>
 
 <script src="config.js"></script>
-<script src="data/routine.js?v=18"></script>
-<script src="script.js?v=18"></script>
+<script src="data/routine.js?v=19"></script>
+<script src="script.js?v=19"></script>
 </body>
 </html>

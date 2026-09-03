@@ -42,9 +42,17 @@ function askName(){
 askName();
 
 // ====== NAV ======
+const sidebar=document.getElementById('sidebar'), scrim=document.getElementById('scrim'), mobTitle=document.getElementById('mobTitle');
+function openDrawer(){ sidebar.classList.add('open'); scrim.classList.add('open'); }
+function closeDrawer(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+document.getElementById('mobMenu').addEventListener('click', openDrawer);
+scrim.addEventListener('click', closeDrawer);
+document.getElementById('mobHome').addEventListener('click', ()=>switchView('home'));
+const VIEW_NAMES={home:'Trang chủ',workout:'Buổi tập',diet:'Ăn uống',weight:'Cơ thể',progress:'Tiến độ',guide:'Hướng dẫn'};
 document.querySelectorAll('.nav-item').forEach(b=>{
   b.addEventListener('click',()=>{
     switchView(b.dataset.view);
+    closeDrawer();
   });
 });
 
@@ -199,6 +207,8 @@ function switchView(name){
   const nav=document.querySelector('[data-view="'+name+'"]');
   if(nav) nav.classList.add('active');
   window.scrollTo(0,0);
+  // cập nhật tiêu đề thanh mobile
+  if(mobTitle) mobTitle.textContent = VIEW_NAMES[name] || name;
   renderAll();
 }
 
