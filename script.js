@@ -644,24 +644,51 @@ document.getElementById('goalSelect').addEventListener('change', ()=>{
 
 // ====== AI PARSE (bữa ăn) ======
 // Key: chỉ từ config.js (GitHub Actions chèn từ Secret khi deploy). KHÔNG đọc localStorage cũ.
-const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.b.ai/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'deepseek-v4-flash'};
+const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.b.ai/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'deepseek-v4-flash', visionModel:(window.AI_CONFIG&&window.AI_CONFIG.visionModel)||'deepseek-v4-flash-vision-exp'};
 localStorage.removeItem('gym_ai_cfg'); localStorage.removeItem('gym_ai_provs'); // dọn cấu hình cũ gây lỗi
+// Trạng thái ảnh đã chọn (base64 data URL) cho AI phân tích
+let aiPhotoData = null;
+document.getElementById('aiUploadImg').addEventListener('change', e=>{
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const img = new Image();
+  const url = URL.createObjectURL(f);
+  img.onload = ()=>{
+    const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    URL.revokeObjectURL(url);
+    aiPhotoData = cv.toDataURL('image/jpeg', 0.85); // luôn nén về jpeg để gửi nhẹ
+    document.getElementById('aiResult').innerHTML = `📸 Đã chọn ảnh <b>${f.name}</b> (${Math.round(aiPhotoData.length/1024)} KB) — bấm 🤖 Phân tích`;
+  };
+  img.onerror = ()=>{ URL.revokeObjectURL(url); document.getElementById('aiResult').textContent='❌ Không đọc được ảnh'; };
+  img.src = url;
+  e.target.value = ''; // cho phép chọn lại cùng file
+});
 function aiParse(){
   const prompt=document.getElementById('aiPrompt').value.trim();
   const out=document.getElementById('aiResult');
-  if(!prompt){ out.textContent='⚠️ Nhập bữa ăn trước (VD: 1 chén cơm, 300g ức gà)'; return; }
+  if(!prompt && !aiPhotoData){ out.textContent='⚠️ Nhập mô tả bữa ăn hoặc chụp ảnh món ăn trước'; return; }
   if(!AI_CFG.key){ out.textContent='⚠️ Bản này chưa có key AI. Bản deploy từ GitHub sẽ có sẵn.'; return; }
-  out.textContent='⏳ Đang phân tích...';
-  const sys = `Bạn là chuyên gia dinh dưỡng. Người dùng nhập bữa ăn bằng tiếng Việt kiểu "1 chén cơm, 300g ức gà, 2 quả trứng ốp la".
-Hãy trả về CHỈ MỘT JSON array, mỗi phần tử: {"name":"tên món","qty":số lượng,"unit":"g hoặc suat","kcal":số,"p":protein g,"c":carbs g,"f":fat g}.
+  out.textContent='⏳ Đang phân tích'+(aiPhotoData?' ảnh...':'...');
+  const sys = `Bạn là chuyên gia dinh dưỡng. Người dùng gửi ảnh món ăn (hoặc mô tả bằng tiếng Việt kiểu "1 chén cơm, 300g ức gà, 2 quả trứng ốp la").
+Hãy NHẬN DIỆN món ăn trong ảnh và trả về CHỈ MỘT JSON array, mỗi phần tử: {"name":"tên món","qty":số lượng,"unit":"g hoặc suat","kcal":số,"p":protein g,"c":carbs g,"f":fat g}.
 QUAN TRỌNG: kcal/p/c/f là TỔNG giá trị của món đó với ĐÚNG số lượng qty đã cho (không phải per 100g).
+Nếu không chắc khối lượng thì ước lượng suất ăn điển hình (VD 1 tô phở bò ≈ 450 kcal, 20g P, 50g C, 15g F) rồi ghi rõ trong name.
 Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":"g","kcal":495,"p":93,"c":0,"f":9} (vì 100g ức gà ≈ 165 kcal, 31g P → 300g ≈ 495 kcal, 93g P).
 "2 quả trứng ốp la" → {"name":"trứng ốp la","qty":2,"unit":"qua","kcal":180,"p":14,"c":1,"f":13} (1 quả ≈ 90 kcal).
 "1 tô phở bò" → {"name":"phở bò","qty":1,"unit":"suat","kcal":450,"p":20,"c":50,"f":15}.
-Ước lượng dinh dưỡng hợp lý cho tổng khối lượng/suất. KHÔNG thêm text nào ngoài JSON.`;
+Ước lượng dinh dưỡng hợp lý. KHÔNG thêm text nào ngoài JSON.`;
+  const userMsg = aiPhotoData
+    ? [
+        {type:'text', text: prompt || 'Phân tích món ăn trong ảnh này. Trả JSON như hướng dẫn.'},
+        {type:'image_url', image_url:{url: aiPhotoData}}
+      ]
+    : prompt;
   const ep = (AI_CFG.endpoint||'https://api.b.ai/v1').replace(/\/+$/,'');
   fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
-    body:JSON.stringify({model:AI_CFG.model||'deepseek-v4-flash', messages:[{role:'system',content:sys},{role:'user',content:prompt}], temperature:0.2})})
+    body:JSON.stringify({model:aiPhotoData ? (AI_CFG.visionModel||'deepseek-v4-flash-vision-exp') : (AI_CFG.model||'deepseek-v4-flash'), messages:[{role:'system',content:sys},{role:'user',content:userMsg}], temperature:0.2})})
     .then(r=>r.json())
     .then(data=>{
       if(data.error){ out.textContent='❌ Lỗi: '+(data.error.message||data.error); return; }
@@ -680,6 +707,7 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
       save(LS.meals, meals);
       out.innerHTML='✅ Đã thêm <b>'+items.length+'</b> món: '+items.map(x=>x.name+(x.qty?` (${x.qty}${x.unit==='g'?'g':''})`:'')).join(', ');
       document.getElementById('aiPrompt').value='';
+      aiPhotoData = null; // xoá ảnh sau khi thêm thành công
       renderAll();
     })
     .catch(e=>{ out.textContent='❌ Lỗi kết nối: '+e.message; });
