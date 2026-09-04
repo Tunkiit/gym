@@ -9,7 +9,8 @@ const LS = {
 function load(k, fb){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?fb:v }catch(e){ return fb } }
 function save(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch(e){} }
 
-let goals = load(LS.goals, {cal:2400, pro:150, carb:250, fat:70});
+let goals = load(LS.goals, {cal:2400, pro:150, carb:250, fat:70, mode:'maintain'});
+if(!goals.mode) goals.mode='maintain';
 let workouts = load(LS.workouts, []);
 let meals = load(LS.meals, []);
 let weights = load(LS.weights, []);
@@ -626,14 +627,15 @@ function renderDiet(){
   hist.innerHTML = `<table><thead><tr><th>Ngày</th><th>Calo</th><th>Protein</th><th>Carbs</th><th>Fat</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td>Tổng 7 ngày</td><td class="weight-cell">${fmt(sums.cal)}</td><td>${fmt(sums.pro)}g</td><td>${fmt(sums.carb)}g</td><td>${fmt(sums.fat)}g</td></tr></tfoot></table>
   <div style="font-size:11px;color:var(--muted);margin-top:6px">Tự động trượt theo ngày hiện tại — luôn hiện 7 ngày gần nhất.</div>`;
 }
-document.getElementById('saveGoals').addEventListener('click',()=>{
-  goals={cal:num(document.getElementById('gCal').value,2400),pro:num(document.getElementById('gPro').value,150),carb:num(document.getElementById('gCarb').value,250),fat:num(document.getElementById('gFat').value,70)};
-  save(LS.goals, goals); renderAll(); alert('✅ Đã lưu mục tiêu');
-});
-// Đổi mục tiêu (siết/giữ/tăng) → tự điền calo + protein gợi ý + cập nhật ngay
-document.getElementById('goalSelect').addEventListener('change', ()=>{
+const goalSelect=document.getElementById('goalSelect');
+goalSelect.value=goals.mode;
+document.getElementById('gCal').value=goals.cal;
+document.getElementById('gPro').value=goals.pro;
+document.getElementById('gCarb').value=goals.carb;
+document.getElementById('gFat').value=goals.fat;
+goalSelect.addEventListener('change', ()=>{
   const tdee=getTDEE();
-  const g=document.getElementById('goalSelect').value;
+  const g=goalSelect.value;
   const rec = g==='cut' ? Math.round(tdee-400) : g==='bulk' ? Math.round(tdee+250) : Math.round(tdee);
   const kg=getBodyWeight();
   const pro = g==='bulk' ? Math.round(kg*2.2) : g==='cut' ? Math.round(kg*2.2) : Math.round(kg*2);
@@ -641,7 +643,10 @@ document.getElementById('goalSelect').addEventListener('change', ()=>{
   document.getElementById('gPro').value = pro;
   renderDiet();
 });
-
+document.getElementById('saveGoals').addEventListener('click',()=>{
+  goals={mode:goalSelect.value,cal:num(document.getElementById('gCal').value,2400),pro:num(document.getElementById('gPro').value,150),carb:num(document.getElementById('gCarb').value,250),fat:num(document.getElementById('gFat').value,70)};
+  save(LS.goals, goals); renderAll(); alert('✅ Đã lưu mục tiêu');
+});
 // ====== AI PARSE (bữa ăn) ======
 // Key: chỉ từ config.js (GitHub Actions chèn từ Secret khi deploy). KHÔNG đọc localStorage cũ.
 const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.b.ai/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'glm-5.3-flash', visionModel:(window.AI_CONFIG&&window.AI_CONFIG.visionModel)||'glm-5.3-flash'};
