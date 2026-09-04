@@ -922,7 +922,7 @@ function renderHome(){
 
   const tMeals=meals.filter(m=>m.date===today());
   document.getElementById('todayMeals').innerHTML = tMeals.length?
-    tMeals.map(m=>`<div class="list-item"><div class="grow"><div class="name">${m.meal} · ${m.name}</div></div><span class="badge gray">${fmt(m.cal)} kcal</span></div>`).join('')
+    tMeals.map(m=>`<div class="list-item"><div class="grow"><div class="name">${m.meal} · ${m.name}</div><div class="meta">${m.time?'🕒 '+m.time+' · ':''}${mealTiming(m)?mealTiming(m)+' · ':''}${m.pro||0}g protein</div></div><span class="badge gray">${fmt(m.cal)} kcal</span></div>`).join('')
     : '<div class="empty">Chưa có bữa ăn nào</div>';
 }
 
