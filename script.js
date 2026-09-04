@@ -21,7 +21,19 @@ let body = load('gym_body', {height:0, age:0, gender:'male', active:1.4});
 function localISO(d=new Date()){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+const clockNow = () => new Date().toTimeString().slice(0,5);
 const today = () => localISO();
+function mealTiming(m){
+  if(!m.time) return '';
+  const candidates=workouts.filter(w=>w.date===m.date&&w.time);
+  if(!candidates.length) return '';
+  const mt=m.time.split(':').reduce((a,v)=>a*60+Number(v),0);
+  const nearest=candidates.map(w=>({w, diff:w.time.split(':').reduce((a,v)=>a*60+Number(v),0)-mt}))
+    .sort((a,b)=>Math.abs(a.diff)-Math.abs(b.diff))[0];
+  if(Math.abs(nearest.diff)>180) return '';
+  const mins=Math.abs(nearest.diff);
+  return nearest.diff>0 ? `Trước tập ${mins?mins+' phút':'ngay'}` : `Sau tập ${mins?mins+' phút':'ngay'}`;
+}
 const num = (v,d=0) => { const n=parseFloat(v); return isNaN(n)?d:n; };
 const fmt = n => Math.round(n).toLocaleString('vi-VN');
 
@@ -235,6 +247,8 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
 // ====== WORKOUT ======
 let wType = 'Push'; // phải khai báo TRƯỚC khi dùng trong fillWorkoutFromRoutine
 document.getElementById('wDate').value = today();
+document.getElementById('wTime').value = clockNow();
+document.getElementById('mTime').value = clockNow();
 document.querySelectorAll('#wTypeBtns .type-btn').forEach(b=>{
   b.addEventListener('click',()=>{
     document.querySelectorAll('#wTypeBtns .type-btn').forEach(x=>x.classList.remove('active'));
@@ -436,7 +450,7 @@ document.getElementById('saveWorkout').addEventListener('click',()=>{
   if(!exs.length){ alert('Thêm ít nhất 1 bài tập'); return; }
   // calo đốt: tự tính theo chuẩn ACSM (MET × 3.5 × cân nặng × phút ÷ 200)
   const cal = calcWorkoutKcal();
-  workouts.push({id:Date.now(), date, type:wType, dur, cal, exs});
+  workouts.push({id:Date.now(), date, time:document.getElementById('wTime').value, type:wType, dur, cal, exs});
   save(LS.workouts, workouts);
   renderAll();
   alert('✅ Đã lưu buổi tập! Đốt ~'+fmt(cal)+' kcal');
@@ -449,7 +463,7 @@ function renderWorkoutList(){
     <div class="wk-card">
       <div class="wk-head">
         <span class="badge ${w.type==='Push'?'push':w.type==='Pull'?'pull':w.type==='Legs'?'legs':'gray'}">${w.type}</span>
-        <span class="wk-date">${vnDateFull(w.date)}${w.dur?' · '+w.dur+' phút':''}</span>
+        <span class="wk-date">${vnDateFull(w.date)}${w.time?' · '+w.time:''}${w.dur?' · '+w.dur+' phút':''}</span>
         ${w.cal?`<span class="badge green">🔥 ${fmt(w.cal)} kcal</span>`:''}
         <button class="btn danger" data-del="${w.id}">✕</button>
       </div>
@@ -562,11 +576,11 @@ function addMeal(){
   }
   const cal=num(document.getElementById('mCalV').value);
   if(!name&&cal<=0){ alert('Nhập tên món hoặc calo'); return; }
-  const m={id:Date.now(), date, meal:document.getElementById('mMeal').value,
+  const m={id:Date.now(), date, time:document.getElementById('mTime').value||clockNow(), meal:document.getElementById('mMeal').value,
     name:name||'Món ăn', cal, pro:num(document.getElementById('mProV').value),
     carb:num(document.getElementById('mCarbV').value), fat:num(document.getElementById('mFatV').value)};
   meals.push(m); save(LS.meals, meals);
-  document.getElementById('mName').value=''; ['mCalV','mProV','mCarbV','mFatV'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('mName').value=''; document.getElementById('mTime').value=clockNow(); ['mCalV','mProV','mCarbV','mFatV'].forEach(i=>document.getElementById(i).value='');
   renderAll();
 }
 document.getElementById('addMeal').addEventListener('click', addMeal);
@@ -612,7 +626,7 @@ function renderDiet(){
   el.innerHTML = tMeals.length? tMeals.map(m=>`
     <div class="list-item">
       <div class="grow"><div class="name">${m.meal} · ${m.name}</div>
-      <div class="meta">P ${m.pro}g · C ${m.carb}g · F ${m.fat}g</div></div>
+      <div class="meta">${m.time?'🕒 '+m.time+' · ':''}${mealTiming(m)?' '+mealTiming(m)+' · ':''}P ${m.pro}g · C ${m.carb}g · F ${m.fat}g</div></div>
       <span class="badge gray">${fmt(m.cal)} kcal</span>
       <button class="btn danger" data-del="${m.id}">✕</button>
     </div>`).join('') : '<div class="empty">Chưa có bữa ăn nào hôm nay</div>';
@@ -798,12 +812,12 @@ function aiAsk(){
   const tMeals=meals.filter(m=>m.date===today());
   const tTotal=dayTotals(today());
   const todayEat = tMeals.length
-    ? tMeals.map(m=>`${m.meal}: ${m.name} (${m.cal} kcal, P ${m.pro}g, C ${m.carb}g, F ${m.fat}g)`).join('; ')
+    ? tMeals.map(m=>`${m.time||'?'} ${m.meal}: ${m.name} (${m.cal} kcal, P ${m.pro}g, C ${m.carb}g, F ${m.fat}g)`).join('; ')
     : 'chưa ghi bữa nào';
   // Hôm nay đã tập gì (loại + thời lượng + từng bài)
   const tWks=workouts.filter(w=>w.date===today());
   const todayTrain = tWks.length
-    ? tWks.map(w=>`${w.type} ${w.dur||0} phút (${w.cal||0} kcal): ${w.exs.map(e=>isCardio(e.name)
+    ? tWks.map(w=>`${w.time||'?'} ${w.type} ${w.dur||0} phút (${w.cal||0} kcal): ${w.exs.map(e=>isCardio(e.name)
         ? `${e.name} ${e.w||0} phút${e.speed?' @'+e.speed+'km/h':''}`
         : `${e.name} ${e.sets||0}×${e.reps||0}${e.w?' @'+e.w+'kg':''}`).join(', ')}`).join('; ')
     : 'chưa tập';
