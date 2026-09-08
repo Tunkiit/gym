@@ -246,6 +246,8 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
 
 // ====== WORKOUT ======
 let wType = 'Push'; // phải khai báo TRƯỚC khi dùng trong fillWorkoutFromRoutine
+let editingWorkoutId = null;
+let editingMealId = null;
 document.getElementById('wDate').value = today();
 document.getElementById('wTime').value = clockNow();
 document.getElementById('mTime').value = clockNow();
@@ -450,7 +452,9 @@ document.getElementById('saveWorkout').addEventListener('click',()=>{
   if(!exs.length){ alert('Thêm ít nhất 1 bài tập'); return; }
   // calo đốt: tự tính theo chuẩn ACSM (MET × 3.5 × cân nặng × phút ÷ 200)
   const cal = calcWorkoutKcal();
-  workouts.push({id:Date.now(), date, time:document.getElementById('wTime').value, type:wType, dur, cal, exs});
+  const record={id:editingWorkoutId||Date.now(), date, time:document.getElementById('wTime').value, type:wType, dur, cal, exs};
+  if(editingWorkoutId) workouts=workouts.map(w=>w.id===editingWorkoutId?record:w); else workouts.push(record);
+  editingWorkoutId=null;
   save(LS.workouts, workouts);
   renderAll();
   alert('✅ Đã lưu buổi tập! Đốt ~'+fmt(cal)+' kcal');
@@ -465,7 +469,7 @@ function renderWorkoutList(){
         <span class="badge ${w.type==='Push'?'push':w.type==='Pull'?'pull':w.type==='Legs'?'legs':'gray'}">${w.type}</span>
         <span class="wk-date">${vnDateFull(w.date)}${w.time?' · '+w.time:''}${w.dur?' · '+w.dur+' phút':''}</span>
         ${w.cal?`<span class="badge green">🔥 ${fmt(w.cal)} kcal</span>`:''}
-        <button class="btn danger" data-del="${w.id}">✕</button>
+        <button class="btn ghost sm" data-edit-w="${w.id}">✏️</button><button class="btn danger" data-del="${w.id}">✕</button>
       </div>
       <div class="wk-chips">${w.exs.map(e=>{
               const c=isCardio(e.name);
@@ -474,6 +478,13 @@ function renderWorkoutList(){
                 : `<span class="chip">${e.name} ${e.sets}×${e.reps}${e.w?' @'+e.w+'kg':''}</span>`;
             }).join('')}</div>
     </div>`).join('');
+  el.querySelectorAll('[data-edit-w]').forEach(b=>b.addEventListener('click',()=>{
+    const w=workouts.find(x=>String(x.id)===b.dataset.editW); if(!w) return;
+    document.getElementById('wDate').value=w.date; document.getElementById('wTime').value=w.time||''; document.getElementById('wDur').value=w.dur;
+    editingWorkoutId=w.id;
+    document.querySelector(`#wTypeBtns .type-btn[data-type="${w.type}"]`)?.click();
+    const c=document.getElementById('exerciseRows'); c.innerHTML=''; w.exs.forEach(e=>{ const row=exerciseRow(e); c.appendChild(row); }); fillExList(); document.getElementById('wDate').scrollIntoView({behavior:'smooth',block:'center'}); alert('Đã đưa buổi tập lên form — sửa rồi bấm Lưu');
+  }));
   el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
     if(confirm('Xoá buổi tập này?')){ workouts=workouts.filter(w=>w.id!=b.dataset.del); save(LS.workouts,workouts); renderAll(); }
   }));
@@ -579,7 +590,8 @@ function addMeal(){
   const m={id:Date.now(), date, time:document.getElementById('mTime').value||clockNow(), meal:document.getElementById('mMeal').value,
     name:name||'Món ăn', cal, pro:num(document.getElementById('mProV').value),
     carb:num(document.getElementById('mCarbV').value), fat:num(document.getElementById('mFatV').value)};
-  meals.push(m); save(LS.meals, meals);
+  if(editingMealId) meals=meals.map(x=>x.id===editingMealId?{...m,id:editingMealId}:x); else meals.push(m);
+  editingMealId=null; save(LS.meals, meals);
   document.getElementById('mName').value=''; document.getElementById('mTime').value=clockNow(); ['mCalV','mProV','mCarbV','mFatV'].forEach(i=>document.getElementById(i).value='');
   renderAll();
 }
@@ -628,8 +640,14 @@ function renderDiet(){
       <div class="grow"><div class="name">${m.meal} · ${m.name}</div>
       <div class="meta">${m.time?'🕒 '+m.time+' · ':''}${mealTiming(m)?' '+mealTiming(m)+' · ':''}P ${m.pro}g · C ${m.carb}g · F ${m.fat}g</div></div>
       <span class="badge gray">${fmt(m.cal)} kcal</span>
-      <button class="btn danger" data-del="${m.id}">✕</button>
+      <button class="btn ghost sm" data-edit-m="${m.id}">✏️</button><button class="btn danger" data-del="${m.id}">✕</button>
     </div>`).join('') : '<div class="empty">Chưa có bữa ăn nào hôm nay</div>';
+  el.querySelectorAll('[data-edit-m]').forEach(b=>b.addEventListener('click',()=>{
+    const m=meals.find(x=>String(x.id)===b.dataset.editM); if(!m) return;
+    document.getElementById('mMeal').value=m.meal; document.getElementById('mTime').value=m.time||''; document.getElementById('mName').value=m.name;
+    document.getElementById('mCalV').value=m.cal; document.getElementById('mProV').value=m.pro; document.getElementById('mCarbV').value=m.carb; document.getElementById('mFatV').value=m.fat;
+    editingMealId=m.id; document.getElementById('mName').scrollIntoView({behavior:'smooth',block:'center'}); alert('Đã đưa bữa ăn lên form — sửa rồi bấm Thêm');
+  }));
   el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
     if(confirm('Xoá bữa ăn này?')){ meals=meals.filter(m=>m.id!=b.dataset.del); save(LS.meals,meals); renderAll(); }
   }));
@@ -762,22 +780,44 @@ function aiCall(sys, user){
 // Hiện kết quả AI (xuống dòng thành <br>)
 const aiShow = (el, txt) => el.innerHTML = txt.replace(/\n/g,'<br>');
 
-// ====== AI 2: GỢI Ý THỰC ĐƠN HÔM NAY ======
+// ====== AI 2: GỢI Ý NẤU MÓN HÔM NAY ======
+let aiPlanMeal=null;
 document.getElementById('aiPlanBtn').addEventListener('click', ()=>{
   const out=document.getElementById('aiPlanOut');
   const t=dayTotals(today());
   const goalCal=num(document.getElementById('gCal').value,2400);
   const goalPro=num(document.getElementById('gPro').value,150);
-  const tdee=getTDEE();
+  const servings=Math.max(1,Math.min(20,num(document.getElementById('aiServings').value,1)));
+  const ingredients=document.getElementById('aiIngredients').value.trim();
+  const time=document.getElementById('aiPlanTime').value;
+  const now=new Date().getHours();
+  const period=now<10?'sáng':now<14?'trưa':now<17?'chiều':'tối';
+  const eaten=meals.filter(m=>m.date===today()).map(m=>`${m.time||'?'} ${m.meal}: ${m.name} (${m.cal} kcal, P ${m.pro}g)`).join('; ')||'chưa ăn gì';
+  const remaining=Math.max(0,goalCal-t.cal);
   const favs=favFoods.map(f=>f.n).slice(0,15);
-  const time=document.getElementById('aiPlanTime').value; // "17:30" hoặc ""
-  out.textContent='⏳ Đang xếp thực đơn...';
-  const sys='Bạn là chuyên gia dinh dưỡng thể thao. Trả lời bằng tiếng Việt, ngắn gọn, thực tế, không dùng bảng phức tạp.';
-  const user=`Tôi tập gym. Mục tiêu: ${goalCal} kcal/ngày, protein ${goalPro}g. TDEE: ${tdee} kcal. Hôm nay đã nạp ${t.cal} kcal.
-Món tôi hay ăn (ưu tiên chọn trong đây): ${favs.length?favs.join(', '):'chưa có — chọn món Việt phổ biến'}.
-${time?`Hôm nay tôi tập lúc ${time} (${time} giờ).`:''}
-Gợi ý thực đơn hôm nay: bữa Sáng, Trưa, Tối (mỗi bữa: món + khẩu lượng + ~calo), tổng ~${goalCal} kcal, đủ protein. ${time?`Kèm mục "TRƯỚC TẬP": nên ăn gì, ăn cách giờ tập bao lâu (tập lúc ${time}), và sau tập nên nạp gì.`:''}`;
-  aiCall(sys,user).then(txt=>{ aiShow(out,txt); }).catch(e=>{ out.textContent='❌ '+e.message; });
+  out.textContent='⏳ Đang xem nguyên liệu và tính khẩu phần...';
+  document.getElementById('aiPlanSave').style.display='none';
+  const sys=`Bạn là chuyên gia dinh dưỡng thể thao người Việt. Hãy gợi ý món có thể NẤU từ nguyên liệu người dùng có, không bịa nguyên liệu chính. Ưu tiên món Việt, dễ làm. Tránh món đã ăn hôm nay và không vượt kcal còn lại cho người dùng. Số kcal/protein là ước tính, phải ghi rõ.
+Chỉ trả về JSON hợp lệ, không markdown: {"name":"tên món","description":"cách nấu ngắn","totalKcal":0,"totalPro":0,"perPersonKcal":0,"perPersonPro":0,"meal":"Sáng|Trưa|Chiều|Tối|Ăn vặt","kcal":0,"pro":0}. kcal/pro là khẩu phần MỘT NGƯỜI để app có thể lưu bữa ăn.`;
+  const user=`Hiện tại là buổi ${period}. Mục tiêu hôm nay ${goalCal} kcal và ${goalPro}g protein; đã ăn ${t.cal} kcal, còn khoảng ${remaining} kcal. Đã ăn: ${eaten}. Nguyên liệu đang có: ${ingredients||'chưa liệt kê, hãy đề xuất món đơn giản từ nguyên liệu phổ biến'}. Nấu cho ${servings} người. ${time?`Hôm nay tập lúc ${time}, hãy ưu tiên món phù hợp ${time} (trước/sau tập nếu gần giờ).`: 'Chưa có giờ tập.'} Món yêu thích: ${favs.join(', ')||'không có'}.`;
+  aiCall(sys,user).then(txt=>{
+    let parsed;
+    try{ parsed=JSON.parse(txt.replace(/^```(?:json)?\s*|\s*```$/g,'')); }catch(e){ out.textContent=txt; return; }
+    aiPlanMeal=parsed;
+    out.textContent=`🍳 ${parsed.name}\n${parsed.description||''}\n\nTổng nồi: khoảng ${parsed.totalKcal||0} kcal · ${parsed.totalPro||0}g protein\nMỗi người (${servings}): khoảng ${parsed.perPersonKcal||parsed.kcal||0} kcal · ${parsed.perPersonPro||parsed.pro||0}g protein\nBữa: ${parsed.meal||'Chưa xác định'} (ước tính)`;
+    document.getElementById('aiPlanSave').style.display='inline-block';
+  }).catch(e=>{ out.textContent='❌ '+e.message; });
+});
+document.getElementById('aiPlanSave').addEventListener('click',()=>{
+  if(!aiPlanMeal) return;
+  document.getElementById('mName').value=aiPlanMeal.name||'';
+  document.getElementById('mMeal').value=aiPlanMeal.meal||'Chiều';
+  document.getElementById('mTime').value=clockNow();
+  document.getElementById('mCalV').value=Math.round(num(aiPlanMeal.kcal, num(aiPlanMeal.perPersonKcal)));
+  document.getElementById('mProV').value=Math.round(num(aiPlanMeal.pro, num(aiPlanMeal.perPersonPro)));
+  document.getElementById('mCarbV').value=''; document.getElementById('mFatV').value='';
+  document.getElementById('mName').scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('aiPlanSave').textContent='✅ Đã điền — kiểm tra rồi bấm Thêm';
 });
 // Bỏ chọn giờ tập
 document.getElementById('aiPlanNoTime').addEventListener('click', ()=>{
@@ -901,12 +941,18 @@ function renderHome(){
   document.getElementById('stStreak').textContent=getStreak();
   const cal7=workouts.filter(w=>w.date>=daysAgo(6)).reduce((a,w)=>a+w.cal,0);
   document.getElementById('stCal').textContent=fmt(cal7);
-  document.getElementById('stKcalIn').textContent=fmt(dayTotals(today()).cal);
+  const t=dayTotals(today());
+  document.getElementById('stKcalIn').textContent=fmt(t.cal);
+
+  const todayWorkouts=wk.filter(w=>w.date===today());
+  const latestMeal=meals.filter(m=>m.date===today()).sort((a,b)=>(b.time||'').localeCompare(a.time||''))[0];
+  const goalCal=num(document.getElementById('gCal').value,goals.cal||2400);
+  const goalPro=num(document.getElementById('gPro').value,goals.pro||150);
+  document.getElementById('todaySummary').innerHTML=`<div class="today-summary-grid"><div><b>🥗 Calo</b><br>${fmt(t.cal)} / ${fmt(goalCal)} kcal<br><span class="muted">Còn ${fmt(Math.max(0,goalCal-t.cal))} kcal</span></div><div><b>🍗 Protein</b><br>${fmt(t.pro)} / ${fmt(goalPro)}g<br><span class="muted">Còn ${fmt(Math.max(0,goalPro-t.pro))}g</span></div><div><b>💪 Tập hôm nay</b><br>${todayW.length?todayW.map(w=>`${w.type}${w.time?' lúc '+w.time:''}`).join(', '):'Chưa tập'}</div><div><b>🕒 Bữa gần nhất</b><br>${latestMeal?`${latestMeal.time||'?'} · ${latestMeal.name}`:'Chưa ghi'}</div></div>`;
 
   const hour=new Date().getHours();
   const g=hour<12?'Chúc buổi sáng':hour<17?'Chúc buổi chiều':hour<21?'Chúc buổi tối':'Chúc bạn ngủ ngon';
-  const todayW=wk.find(w=>w.date===today());
-  const t=dayTotals(today());
+  const todayW=todayWorkouts[0];
   const msg = todayW? `💪 ${g}! Hôm nay bạn đã tập ${todayW.type} ${todayW.dur?todayW.dur+' phút':''}. ${t.cal?`Đã nạp ${fmt(t.cal)}/${fmt(goals.cal)} kcal.`:''} Cố lên!`
     : `💪 ${g}! Hôm nay bạn chưa tập. ${t.cal?`Đã nạp ${fmt(t.cal)}/${fmt(goals.cal)} kcal.`:''} Xem giáo án và tập ngay nhé!`;
   document.getElementById('greetMsg').textContent=msg;
