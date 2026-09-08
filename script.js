@@ -948,7 +948,7 @@ function renderHome(){
   const latestMeal=meals.filter(m=>m.date===today()).sort((a,b)=>(b.time||'').localeCompare(a.time||''))[0];
   const goalCal=num(document.getElementById('gCal').value,goals.cal||2400);
   const goalPro=num(document.getElementById('gPro').value,goals.pro||150);
-  document.getElementById('todaySummary').innerHTML=`<div class="today-summary-grid"><div><b>🥗 Calo</b><br>${fmt(t.cal)} / ${fmt(goalCal)} kcal<br><span class="muted">Còn ${fmt(Math.max(0,goalCal-t.cal))} kcal</span></div><div><b>🍗 Protein</b><br>${fmt(t.pro)} / ${fmt(goalPro)}g<br><span class="muted">Còn ${fmt(Math.max(0,goalPro-t.pro))}g</span></div><div><b>💪 Tập hôm nay</b><br>${todayW.length?todayW.map(w=>`${w.type}${w.time?' lúc '+w.time:''}`).join(', '):'Chưa tập'}</div><div><b>🕒 Bữa gần nhất</b><br>${latestMeal?`${latestMeal.time||'?'} · ${latestMeal.name}`:'Chưa ghi'}</div></div>`;
+  document.getElementById('todaySummary').innerHTML=`<div class="today-summary-grid"><div><b>🥗 Calo</b><br>${fmt(t.cal)} / ${fmt(goalCal)} kcal<br><span class="muted">Còn ${fmt(Math.max(0,goalCal-t.cal))} kcal</span></div><div><b>🍗 Protein</b><br>${fmt(t.pro)} / ${fmt(goalPro)}g<br><span class="muted">Còn ${fmt(Math.max(0,goalPro-t.pro))}g</span></div><div><b>💪 Tập hôm nay</b><br>${todayWorkouts.length?todayWorkouts.map(w=>`${w.type}${w.time?' lúc '+w.time:''}`).join(', '):'Chưa tập'}</div><div><b>🕒 Bữa gần nhất</b><br>${latestMeal?`${latestMeal.time||'?'} · ${latestMeal.name}`:'Chưa ghi'}</div></div>`;
 
   const hour=new Date().getHours();
   const g=hour<12?'Chúc buổi sáng':hour<17?'Chúc buổi chiều':hour<21?'Chúc buổi tối':'Chúc bạn ngủ ngon';
