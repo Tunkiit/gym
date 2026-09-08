@@ -794,17 +794,18 @@ document.getElementById('aiPlanBtn').addEventListener('click', ()=>{
   const period=now<10?'sáng':now<14?'trưa':now<17?'chiều':'tối';
   const eaten=meals.filter(m=>m.date===today()).map(m=>`${m.time||'?'} ${m.meal}: ${m.name} (${m.cal} kcal, P ${m.pro}g)`).join('; ')||'chưa ăn gì';
   const remaining=Math.max(0,goalCal-t.cal);
+  const remainingPro=Math.max(0,goalPro-t.pro);
   const favs=favFoods.map(f=>f.n).slice(0,15);
   out.textContent='⏳ Đang xem nguyên liệu và tính khẩu phần...';
   document.getElementById('aiPlanSave').style.display='none';
   const sys=`Bạn là chuyên gia dinh dưỡng thể thao người Việt. Hãy gợi ý món có thể NẤU từ nguyên liệu người dùng có, không bịa nguyên liệu chính. Ưu tiên món Việt, dễ làm. Tránh món đã ăn hôm nay và không vượt kcal còn lại cho người dùng. Số kcal/protein là ước tính, phải ghi rõ.
-Chỉ trả về JSON hợp lệ, không markdown: {"name":"tên món","description":"cách nấu ngắn","totalKcal":0,"totalPro":0,"perPersonKcal":0,"perPersonPro":0,"meal":"Sáng|Trưa|Chiều|Tối|Ăn vặt","kcal":0,"pro":0}. kcal/pro là khẩu phần MỘT NGƯỜI để app có thể lưu bữa ăn.`;
-  const user=`Hiện tại là buổi ${period}. Mục tiêu hôm nay ${goalCal} kcal và ${goalPro}g protein; đã ăn ${t.cal} kcal, còn khoảng ${remaining} kcal. Đã ăn: ${eaten}. Nguyên liệu đang có: ${ingredients||'chưa liệt kê, hãy đề xuất món đơn giản từ nguyên liệu phổ biến'}. Nấu cho ${servings} người. ${time?`Hôm nay tập lúc ${time}, hãy ưu tiên món phù hợp ${time} (trước/sau tập nếu gần giờ).`: 'Chưa có giờ tập.'} Món yêu thích: ${favs.join(', ')||'không có'}.`;
+Chỉ trả về JSON hợp lệ, không markdown: {"name":"tên món","description":"cách nấu ngắn","totalKcal":0,"totalPro":0,"perPersonKcal":0,"perPersonPro":0,"meal":"Sáng|Trưa|Chiều|Tối|Ăn vặt","kcal":0,"pro":0,"fruit":"trái cây nên ăn nếu phù hợp","fruitPortion":"khẩu phần trái cây"}. kcal/pro là khẩu phần MỘT NGƯỜI để app có thể lưu bữa ăn. Nếu cần bổ sung protein, ưu tiên thực phẩm dễ kiếm như trứng, ức gà, cá, tôm, thịt nạc, đậu phụ, sữa chua Hy Lạp; nếu thêm trái cây hãy ghi lượng cụ thể, thường 1 phần khoảng 150-200g hoặc 1 quả vừa. Không bắt buộc thêm trái cây nếu món đã đủ kcal.`;
+  const user=`Hiện tại là buổi ${period}. Mục tiêu hôm nay ${goalCal} kcal và ${goalPro}g protein; đã ăn ${t.cal} kcal và ${t.pro}g protein, còn khoảng ${remaining} kcal và ${remainingPro}g protein. Đã ăn: ${eaten}. Nguyên liệu đang có: ${ingredients||'chưa liệt kê, hãy đề xuất món đơn giản từ nguyên liệu phổ biến'}. Nấu cho ${servings} người. ${time?`Hôm nay tập lúc ${time}, hãy ưu tiên món phù hợp ${time} (trước/sau tập nếu gần giờ).`: 'Chưa có giờ tập.'} Món yêu thích: ${favs.join(', ')||'không có'}.`;
   aiCall(sys,user).then(txt=>{
     let parsed;
     try{ parsed=JSON.parse(txt.replace(/^```(?:json)?\s*|\s*```$/g,'')); }catch(e){ out.textContent=txt; return; }
     aiPlanMeal=parsed;
-    out.textContent=`🍳 ${parsed.name}\n${parsed.description||''}\n\nTổng nồi: khoảng ${parsed.totalKcal||0} kcal · ${parsed.totalPro||0}g protein\nMỗi người (${servings}): khoảng ${parsed.perPersonKcal||parsed.kcal||0} kcal · ${parsed.perPersonPro||parsed.pro||0}g protein\nBữa: ${parsed.meal||'Chưa xác định'} (ước tính)`;
+    out.textContent=`🍳 ${parsed.name}\n${parsed.description||''}\n\nTổng nồi: khoảng ${parsed.totalKcal||0} kcal · ${parsed.totalPro||0}g protein\nMỗi người (${servings}): khoảng ${parsed.perPersonKcal||parsed.kcal||0} kcal · ${parsed.perPersonPro||parsed.pro||0}g protein\nBữa: ${parsed.meal||'Chưa xác định'} (ước tính)${parsed.fruit?`\n\n🍎 Trái cây: ${parsed.fruit}${parsed.fruitPortion?' · '+parsed.fruitPortion:''}`:''}`;
     document.getElementById('aiPlanSave').style.display='inline-block';
   }).catch(e=>{ out.textContent='❌ '+e.message; });
 });
