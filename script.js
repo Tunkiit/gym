@@ -494,7 +494,7 @@ function renderWorkoutList(){
 // Nạp database món ăn
 let FOOD_DB = [];
 (async function loadFoods(){
-  try{ const r=await fetch('data/foods.json'); FOOD_DB=await r.json(); }catch(e){ console.log('Không tải được foods.json'); }
+  try{ const r=await fetch('data/foods.json'); FOOD_DB=await r.json(); renderHome(); }catch(e){ console.log('Không tải được foods.json'); }
 })();
 // Món yêu thích (lưu localStorage)
 let favFoods = load('gym_fav_foods', []);
@@ -600,6 +600,31 @@ document.getElementById('mName').addEventListener('keydown', e=>{ if(e.key==='En
 
 function dayTotals(day){
   return meals.filter(m=>m.date===day).reduce((a,m)=>({cal:a.cal+m.cal,pro:a.pro+m.pro,carb:a.carb+m.carb,fat:a.fat+m.fat}),{cal:0,pro:0,carb:0,fat:0});
+}
+let proteinSuggestions=[];
+function renderProteinAlert(t, goalPro){
+  const card=document.getElementById('proteinAlertCard');
+  const out=document.getElementById('proteinAlert');
+  const deficit=Math.max(0,goalPro-t.pro);
+  const hour=new Date().getHours();
+  if(!card||!out||hour<20||deficit<25){ if(card) card.style.display='none'; return; }
+  const eaten=new Set(meals.filter(m=>m.date===today()).map(m=>String(m.name||'').toLowerCase()));
+  proteinSuggestions=allFoods().filter(f=>f.p>10&&!eaten.has(f.n.toLowerCase()))
+    .sort((a,b)=>(b.p/(b.kcal||1))-(a.p/(a.kcal||1))).slice(0,3);
+  card.style.display='block';
+  document.getElementById('proteinAlertTime').textContent='Đã '+String(hour).padStart(2,'0')+'h';
+  out.innerHTML=`<div class="protein-alert-copy"><b>Còn thiếu khoảng ${fmt(deficit)}g protein</b><br><span class="muted">Đã ăn ${fmt(t.pro)} / ${fmt(goalPro)}g hôm nay. Nên bổ sung một bữa giàu đạm.</span></div>`+
+    (proteinSuggestions.length?`<div class="protein-suggestions">${proteinSuggestions.map((f,i)=>{
+      const qty=f.unit==='g'?150:1;
+      const p=Math.round(f.p*(f.unit==='g'?qty/100:qty));
+      const cal=Math.round(f.kcal*(f.unit==='g'?qty/100:qty));
+      return `<div class="protein-suggestion"><div><b>${f.n}</b><span class="muted"> · ${qty}${f.unit==='g'?'g':' suất'} ≈ ${p}g protein · ${cal} kcal</span></div><button class="btn ghost sm" data-protein-sug="${i}">Thêm vào form</button></div>`;
+    }).join('')}</div>`:'<div class="muted" style="margin-top:8px">Chưa tải được danh sách món giàu protein.</div>');
+  out.querySelectorAll('[data-protein-sug]').forEach(btn=>btn.addEventListener('click',()=>{
+    const f=proteinSuggestions[Number(btn.dataset.proteinSug)]; if(!f) return;
+    document.getElementById('mName').value=f.n; document.getElementById('mQty').value=f.unit==='g'?150:1; fillMacros(f);
+    switchView('diet'); document.getElementById('mName').scrollIntoView({behavior:'smooth',block:'center'});
+  }));
 }
 function renderDiet(){
   const t=dayTotals(today());
@@ -952,6 +977,7 @@ function renderHome(){
   document.getElementById('todaySummary').innerHTML=`<div class="today-summary-grid"><div><b>🥗 Calo</b><br>${fmt(t.cal)} / ${fmt(goalCal)} kcal<br><span class="muted">Còn ${fmt(Math.max(0,goalCal-t.cal))} kcal</span></div><div><b>🍗 Protein</b><br>${fmt(t.pro)} / ${fmt(goalPro)}g<br><span class="muted">Còn ${fmt(Math.max(0,goalPro-t.pro))}g</span></div><div><b>💪 Tập hôm nay</b><br>${todayWorkouts.length?todayWorkouts.map(w=>`${w.type}${w.time?' lúc '+w.time:''}`).join(', '):'Chưa tập'}</div><div><b>🕒 Bữa gần nhất</b><br>${latestMeal?`${latestMeal.time||'?'} · ${latestMeal.name}`:'Chưa ghi'}</div></div>`;
 
   const hour=new Date().getHours();
+  renderProteinAlert(t, goalPro);
   const g=hour<12?'Chúc buổi sáng':hour<17?'Chúc buổi chiều':hour<21?'Chúc buổi tối':'Chúc bạn ngủ ngon';
   const todayW=todayWorkouts[0];
   const msg = todayW? `💪 ${g}! Hôm nay bạn đã tập ${todayW.type} ${todayW.dur?todayW.dur+' phút':''}. ${t.cal?`Đã nạp ${fmt(t.cal)}/${fmt(goals.cal)} kcal.`:''} Cố lên!`
