@@ -681,7 +681,7 @@ document.getElementById('saveGoals').addEventListener('click',()=>{
 });
 // ====== AI PARSE (bữa ăn) ======
 // Key: chỉ từ config.js (GitHub Actions chèn từ Secret khi deploy). KHÔNG đọc localStorage cũ.
-const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.b.ai/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'glm-5.3-flash', visionModel:(window.AI_CONFIG&&window.AI_CONFIG.visionModel)||'glm-5.3-flash'};
+const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.apiforcode.com/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'apikey/glm-5.3-flash-cn', visionModel:(window.AI_CONFIG&&window.AI_CONFIG.visionModel)||'apikey/glm-5.3-flash-cn'};
 localStorage.removeItem('gym_ai_cfg'); localStorage.removeItem('gym_ai_provs'); // dọn cấu hình cũ gây lỗi
 // Trạng thái ảnh đã chọn (base64 data URL) cho AI phân tích
 let aiPhotoData = null;
@@ -734,9 +734,9 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
         {type:'image_url', image_url:{url: aiPhotoData}}
       ]
     : prompt;
-  const ep = (AI_CFG.endpoint||'https://api.b.ai/v1').replace(/\/+$/,'');
+  const ep = (AI_CFG.endpoint||'https://api.apiforcode.com/v1').replace(/\/+$/,'');
   fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
-    body:JSON.stringify({model:aiPhotoData ? (AI_CFG.visionModel||'glm-5.3-flash') : (AI_CFG.model||'glm-5.3-flash'), messages:[{role:'system',content:sys},{role:'user',content:userMsg}], temperature:0.2})})
+    body:JSON.stringify({model:aiPhotoData ? (AI_CFG.visionModel||'apikey/glm-5.3-flash-cn') : (AI_CFG.model||'apikey/glm-5.3-flash-cn'), messages:[{role:'system',content:sys},{role:'user',content:userMsg}], temperature:0.2})})
     .then(r=>r.json())
     .then(data=>{
       if(data.error){ out.textContent='❌ Lỗi: '+(data.error.message||data.error); return; }
@@ -766,9 +766,9 @@ document.getElementById('aiPrompt').addEventListener('keydown', e=>{ if(e.key===
 // ====== AI CHUNG (gọi 1 lần, dùng cho thực đơn / nhận xét / hỏi đáp) ======
 function aiCall(sys, user){
   if(!AI_CFG.key) return Promise.reject(new Error('Bản này chưa có key AI. Bản deploy từ GitHub sẽ có sẵn.'));
-  const ep=(AI_CFG.endpoint||'https://api.b.ai/v1').replace(/\/+$/,'');
+  const ep=(AI_CFG.endpoint||'https://api.apiforcode.com/v1').replace(/\/+$/,'');
   return fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
-    body:JSON.stringify({model:AI_CFG.model||'glm-5.3-flash', messages:[{role:'system',content:sys},{role:'user',content:user}], temperature:0.4})})
+    body:JSON.stringify({model:AI_CFG.model||'apikey/glm-5.3-flash-cn', messages:[{role:'system',content:sys},{role:'user',content:user}], temperature:0.4})})
     .then(r=>r.json())
     .then(data=>{
       if(data.error) throw new Error(data.error.message||data.error);

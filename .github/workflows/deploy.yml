@@ -20,15 +20,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Tạo config.js từ Secret BAI_KEY (key không bao giờ nằm trong repo)
+      # Tạo config.js từ Secret APIKEY (key không bao giờ nằm trong repo)
       - name: Inject API key
         run: |
           cat > config.js <<EOF
           window.AI_CONFIG = {
-            key: '${{ secrets.BAI_KEY }}',
-            endpoint: 'https://api.b.ai/v1',
-            model: 'glm-5.3-flash',
-            visionModel: 'glm-5.3-flash',
+            key: '${{ secrets.APIKEY }}',
+            endpoint: 'https://api.apiforcode.com/v1',
+            model: 'apikey/glm-5.3-flash-cn',
+            visionModel: 'apikey/glm-5.3-flash-cn',
           };
           EOF
 
