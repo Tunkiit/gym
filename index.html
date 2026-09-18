@@ -99,6 +99,15 @@
         <div class="routine-grid" id="routineGrid" style="margin-bottom:0"></div>
       </div>
       <div class="card">
+        <h3>🏠 Tập tại nhà</h3>
+        <p class="muted" style="margin-bottom:10px">45 giây tập · 15 giây nghỉ · 10 bài · không tự lưu trước khi hoàn thành.</p>
+        <div class="form-row">
+          <div class="field"><label>Số vòng</label><select id="homeRounds"><option value="1">1 vòng · 10 phút</option><option value="2">2 vòng · 20 phút</option><option value="3">3 vòng · 30 phút</option></select></div>
+          <button class="btn btn-blue" id="startHiit">🔥 HIIT đốt mỡ — 10 phút</button>
+          <button class="btn ghost" id="startAbs">🧠 Bụng — 10 phút</button>
+        </div>
+      </div>
+      <div class="card">
         <h3>＋ Ghi buổi tập mới</h3>
         <div class="form-row">
           <div class="field"><label>Ngày</label><input type="date" id="wDate"></div>
@@ -400,6 +409,23 @@
       </div>
     </section>
   </main>
+</div>
+
+<div class="modal-overlay" id="homeTimerModal">
+  <div class="modal home-timer-modal">
+    <button class="close" id="timerClose">✕</button>
+    <h2 id="timerTitle">HIIT đốt mỡ</h2>
+    <div class="timer-status" id="timerStatus">TẬP</div>
+    <div class="timer-clock" id="timerClock">45</div>
+    <div class="timer-meta" id="timerMeta">Bài 1/10 · Vòng 1/1</div>
+    <div class="timer-name" id="timerExercise">Jumping Jack</div>
+    <div class="timer-progress"><div id="timerProgressBar"></div></div>
+    <div class="form-row timer-actions">
+      <button class="btn ghost" id="timerPause">Tạm dừng</button>
+      <button class="btn ghost" id="timerSkip">Bỏ qua</button>
+      <button class="btn danger" id="timerStop">Kết thúc</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL -->

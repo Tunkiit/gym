@@ -473,6 +473,7 @@ function renderWorkoutList(){
       </div>
       <div class="wk-chips">${w.exs.map(e=>{
               const c=isCardio(e.name);
+              if(w.preset) return `<span class="chip">${e.name}</span>`;
               return c
                 ? `<span class="chip">${e.name} ${e.w||0} phút${e.speed?' @'+e.speed+'km/h':''}${e.incline?' dốc'+e.incline+'%':''}</span>`
                 : `<span class="chip">${e.name} ${e.sets}×${e.reps}${e.w?' @'+e.w+'kg':''}</span>`;
@@ -489,6 +490,62 @@ function renderWorkoutList(){
     if(confirm('Xoá buổi tập này?')){ workouts=workouts.filter(w=>w.id!=b.dataset.del); save(LS.workouts,workouts); renderAll(); }
   }));
 }
+
+// ====== HOME WORKOUT TIMER ======
+const HOME_PRESETS={
+  hiit:{title:'HIIT đốt mỡ',type:'HIIT tại nhà',met:8,exs:['Jumping Jack','High Knee Taps','Burpee','Jump Squat','Bicycle','Flutter Kicks','Side to Side Plank','Mountain Climber','Plank to Push-up','Plank In & Out']},
+  abs:{title:'Bụng',type:'Bụng tại nhà',met:0,exs:['Plank Knee to Elbow','Plank Up & Down','Plank Jack','Seated In & Out','Russian Twist','Chair Sit-up','Lying Windshield Wiper','Abs Scissors','Flutter Kicks','Reverse Plank']}
+};
+let homeTimer=null;
+function renderHomeTimer(){
+  if(!homeTimer) return;
+  const phase=homeTimer.phase==='work';
+  const ex=HOME_PRESETS[homeTimer.preset].exs[homeTimer.exercise];
+  document.getElementById('timerTitle').textContent=HOME_PRESETS[homeTimer.preset].title;
+  document.getElementById('timerStatus').textContent=phase?'TẬP':'NGHỈ';
+  document.getElementById('timerStatus').classList.toggle('rest',!phase);
+  document.getElementById('timerClock').textContent=homeTimer.left;
+  document.getElementById('timerMeta').textContent=`Bài ${homeTimer.exercise+1}/10 · Vòng ${homeTimer.round}/${homeTimer.rounds}`;
+  document.getElementById('timerExercise').textContent=phase?ex:'Chuẩn bị bài tiếp theo';
+  const total=phase?45:15;
+  document.getElementById('timerProgressBar').style.width=((total-homeTimer.left)/total*100)+'%';
+  document.getElementById('timerPause').textContent=homeTimer.paused?'Tiếp tục':'Tạm dừng';
+}
+function finishHomeTimer(savePartial){
+  if(!homeTimer) return;
+  const done=homeTimer.completedSeconds;
+  if(savePartial&&done>0){
+    const preset=HOME_PRESETS[homeTimer.preset];
+    const duration=Math.max(1,Math.round(done/60));
+    const cal=preset.met?Math.round(preset.met*3.5*getBodyWeight()*duration/200):0;
+    workouts.push({id:Date.now(),date:today(),time:clockNow(),type:preset.type,preset:preset.title,rounds:homeTimer.rounds,completedRounds:homeTimer.completedRounds,exercisesDone:homeTimer.exercise+ (homeTimer.phase==='rest'?1:0),dur:duration,cal,exs:preset.exs.slice(0,homeTimer.exercise+1).map(name=>({name,sets:0,reps:0,w:0}))});
+    save(LS.workouts,workouts); renderAll();
+  }
+  clearInterval(homeTimer.interval); homeTimer=null;
+  document.getElementById('homeTimerModal').classList.remove('open');
+}
+function advanceHomeTimer(){
+  if(!homeTimer) return;
+  if(homeTimer.phase==='work') homeTimer.completedSeconds+=45; else homeTimer.completedSeconds+=15;
+  if(homeTimer.phase==='work'){ homeTimer.phase='rest'; homeTimer.left=15; renderHomeTimer(); return; }
+  if(homeTimer.exercise===9){
+    if(homeTimer.round===homeTimer.rounds){ homeTimer.completedRounds=homeTimer.rounds; finishHomeTimer(true); alert('✅ Đã hoàn thành '+HOME_PRESETS[homeTimer.preset].title+' · '+homeTimer.rounds+' vòng'); return; }
+    homeTimer.round++; homeTimer.exercise=0;
+  }else homeTimer.exercise++;
+  homeTimer.phase='work'; homeTimer.left=45; homeTimer.completedRounds=Math.max(homeTimer.completedRounds,homeTimer.round-1); renderHomeTimer();
+}
+function startHomeTimer(preset){
+  if(homeTimer) return;
+  homeTimer={preset,rounds:Number(document.getElementById('homeRounds').value),round:1,exercise:0,phase:'work',left:45,paused:false,completedSeconds:0,completedRounds:0,interval:null};
+  document.getElementById('homeTimerModal').classList.add('open'); renderHomeTimer();
+  homeTimer.interval=setInterval(()=>{ if(!homeTimer||homeTimer.paused) return; homeTimer.left--; if(homeTimer.left<=0) advanceHomeTimer(); else renderHomeTimer(); },1000);
+}
+document.getElementById('startHiit').addEventListener('click',()=>startHomeTimer('hiit'));
+document.getElementById('startAbs').addEventListener('click',()=>startHomeTimer('abs'));
+document.getElementById('timerPause').addEventListener('click',()=>{ if(homeTimer){homeTimer.paused=!homeTimer.paused; renderHomeTimer();} });
+document.getElementById('timerSkip').addEventListener('click',()=>{ if(homeTimer){homeTimer.left=1; homeTimer.phase==='work'?homeTimer.completedSeconds+=44:homeTimer.completedSeconds+=14; renderHomeTimer();} });
+document.getElementById('timerStop').addEventListener('click',()=>{ if(homeTimer&&confirm('Dừng buổi tập? Có lưu phần đã tập không?')) finishHomeTimer(true); });
+document.getElementById('timerClose').addEventListener('click',()=>{ if(homeTimer&&confirm('Đóng timer và bỏ buổi tập?')) finishHomeTimer(false); });
 
 // ====== MEALS ======
 // Nạp database món ăn
@@ -739,6 +796,29 @@ document.getElementById('aiPhotoClear').addEventListener('click', ()=>{
   document.getElementById('aiPhotoThumb').src = '';
   document.getElementById('aiResult').textContent = '';
 });
+function parseNutritionJson(txt){
+  const clean=String(txt).replace(/```(?:json)?/gi,'').replace(/```/g,'').trim();
+  const starts=[clean.indexOf('['),clean.indexOf('{')].filter(i=>i>=0).sort((a,b)=>a-b);
+  for(const start of starts){
+    const open=clean[start], close=open==='['?']':'}';
+    let depth=0, quoted=false, escaped=false;
+    for(let i=start;i<clean.length;i++){
+      const ch=clean[i];
+      if(quoted){ if(escaped) escaped=false; else if(ch==='\\\\') escaped=true; else if(ch==='"') quoted=false; continue; }
+      if(ch==='"'){ quoted=true; continue; }
+      if(ch===open) depth++;
+      if(ch===close && --depth===0){
+        try{
+          const value=JSON.parse(clean.slice(start,i+1));
+          const items=Array.isArray(value)?value:(Array.isArray(value.items)?value.items:[value]);
+          if(items.length&&items.every(x=>x&&typeof x==='object')) return items;
+        }catch(e){}
+        break;
+      }
+    }
+  }
+  throw new Error('Không tìm thấy JSON hợp lệ trong phản hồi AI');
+}
 function aiParse(){
   const prompt=document.getElementById('aiPrompt').value.trim();
   const out=document.getElementById('aiResult');
@@ -762,14 +842,19 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
   const ep = (AI_CFG.endpoint||'https://api.apiforcode.com/v1').replace(/\/+$/,'');
   fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
     body:JSON.stringify({model:aiPhotoData ? (AI_CFG.visionModel||'glm-5.3-flash-cn') : (AI_CFG.model||'glm-5.3-flash-cn'), messages:[{role:'system',content:sys},{role:'user',content:userMsg}], temperature:0.2})})
-    .then(r=>r.json())
+    .then(async r=>{
+      const raw=await r.text();
+      let data;
+      try{ data=JSON.parse(raw); }catch(e){ throw new Error('API trả về dữ liệu không hợp lệ: '+raw.slice(0,160)); }
+      if(!r.ok||data.error) throw new Error(data.error?.message||`HTTP ${r.status}`);
+      return data;
+    })
     .then(data=>{
-      if(data.error){ out.textContent='❌ Lỗi: '+(data.error.message||data.error); return; }
       const txt=data.choices?.[0]?.message?.content || data.choices?.[0]?.text || '';
       if(!txt){ out.textContent='❌ Không nhận được kết quả từ AI'; return; }
-      const m=txt.match(/\[[\s\S]*\]/);
-      if(!m){ out.textContent='❌ AI trả về không phải JSON: '+txt.slice(0,120); return; }
-      const items=JSON.parse(m[0]);
+      let items;
+      try{ items=parseNutritionJson(txt); }
+      catch(e){ out.textContent='❌ AI trả JSON lỗi: '+e.message; return; }
       if(!items.length){ out.textContent='❌ Không nhận diện được món nào'; return; }
       items.forEach(it=>{
         // AI đã trả TỔNG kcal/p/c/f cho đúng số lượng → dùng thẳng, không nhân ratio nữa

@@ -192,6 +192,13 @@ select{min-width:140px}
 .modal .detail-item{background:var(--card2);border-radius:8px;padding:8px 12px;text-align:center}
 .modal .detail-item .v{font-weight:800;font-size:16px}
 .modal .detail-item .l{font-size:11px;color:var(--muted)}
+.home-timer-modal{text-align:center;max-width:460px}
+.timer-status{display:inline-block;margin:18px 0 6px;padding:6px 14px;border-radius:20px;background:rgba(245,158,11,.16);color:var(--accent);font-size:12px;font-weight:800;letter-spacing:1px}
+.timer-status.rest{background:rgba(34,197,94,.16);color:var(--accent2)}
+.timer-clock{font-size:76px;font-weight:800;line-height:1;margin:4px 0 10px;font-variant-numeric:tabular-nums}
+.timer-meta,.timer-name{color:var(--muted);font-size:13px}.timer-name{font-size:20px;color:var(--fg);font-weight:700;margin:8px 0 18px}
+.timer-progress{height:8px;background:var(--card2);border-radius:20px;overflow:hidden}.timer-progress div{height:100%;width:0;background:var(--accent);transition:width .2s linear}
+.timer-actions{justify-content:center;margin-top:20px}.timer-actions .btn{min-width:92px}
 /* ===== VIEWS ===== */
 .view{display:none}
 .view.active{display:block}
