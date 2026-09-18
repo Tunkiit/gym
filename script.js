@@ -674,7 +674,7 @@ function renderProteinAlert(t, goalPro){
   const out=document.getElementById('proteinAlert');
   const deficit=Math.max(0,goalPro-t.pro);
   const hour=new Date().getHours();
-  if(!card||!out||hour<20||deficit<25){ if(card) card.style.display='none'; return; }
+  if(!card||!out||hour<20||deficit<=0){ if(card) card.style.display='none'; return; }
   const eaten=new Set(meals.filter(m=>m.date===today()).map(m=>String(m.name||'').toLowerCase()));
   proteinSuggestions=allFoods().filter(f=>f.p>10&&!eaten.has(f.n.toLowerCase()))
     .sort((a,b)=>(b.p/(b.kcal||1))-(a.p/(a.kcal||1))).slice(0,3);
