@@ -496,6 +496,10 @@ const HOME_PRESETS={
   hiit:{title:'HIIT đốt mỡ',type:'HIIT tại nhà',met:8,exs:['Jumping Jack','High Knee Taps','Burpee','Jump Squat','Bicycle','Flutter Kicks','Side to Side Plank','Mountain Climber','Plank to Push-up','Plank In & Out']},
   abs:{title:'Bụng',type:'Bụng tại nhà',met:0,exs:['Plank Knee to Elbow','Plank Up & Down','Plank Jack','Seated In & Out','Russian Twist','Chair Sit-up','Lying Windshield Wiper','Abs Scissors','Flutter Kicks','Reverse Plank']}
 };
+const HOME_IMAGE_SOURCE={
+  'Jumping Jack':'Star_Jump','High Knee Taps':'Step_up_with_Knee_Raise','Burpee':'Rocket_Jump','Jump Squat':'Freehand_Jump_Squat','Bicycle':'Jackknife_Sit-Up','Flutter Kicks':'Flutter_Kicks','Side to Side Plank':'Plank','Mountain Climber':'Mountain_Climbers','Plank to Push-up':'Push_Up_to_Side_Plank','Plank In & Out':'Plank','Plank Knee to Elbow':'Plank','Plank Up & Down':'Plank','Plank Jack':'Plank','Seated In & Out':'Seated_Leg_Tucks','Russian Twist':'Russian_Twist','Chair Sit-up':'Sit-Up','Lying Windshield Wiper':'Plank','Abs Scissors':'Scissor_Kick','Reverse Plank':'Plank'
+};
+const homeImageFile=(preset,name,idx)=>`img/home/${preset}_${name.replaceAll(' ','_').replaceAll('-','_')}_${idx}.jpg`;
 let homeTimer=null;
 function renderHomeTimer(){
   if(!homeTimer) return;
@@ -507,6 +511,12 @@ function renderHomeTimer(){
   document.getElementById('timerClock').textContent=homeTimer.left;
   document.getElementById('timerMeta').textContent=`Bài ${homeTimer.exercise+1}/10 · Vòng ${homeTimer.round}/${homeTimer.rounds}`;
   document.getElementById('timerExercise').textContent=phase?ex:'Chuẩn bị bài tiếp theo';
+  const imagePreset=homeTimer.preset;
+  [0,1].forEach(idx=>{
+    const image=document.getElementById('timerImg'+idx);
+    image.src=homeImageFile(imagePreset,ex,idx);
+    image.alt=(idx?'Kết thúc: ':'Bắt đầu: ')+ex;
+  });
   const total=phase?45:15;
   document.getElementById('timerProgressBar').style.width=((total-homeTimer.left)/total*100)+'%';
   document.getElementById('timerPause').textContent=homeTimer.paused?'Tiếp tục':'Tạm dừng';

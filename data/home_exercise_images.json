@@ -1,0 +1,102 @@
+{
+  "hiit:Jumping Jack": {
+    "source_name": "Star Jump",
+    "id": "Star_Jump",
+    "exact": false
+  },
+  "hiit:High Knee Taps": {
+    "source_name": "Step-up with Knee Raise",
+    "id": "Step-up_with_Knee_Raise",
+    "exact": false
+  },
+  "hiit:Burpee": {
+    "source_name": "Rocket Jump",
+    "id": "Rocket_Jump",
+    "exact": false
+  },
+  "hiit:Jump Squat": {
+    "source_name": "Freehand Jump Squat",
+    "id": "Freehand_Jump_Squat",
+    "exact": false
+  },
+  "hiit:Bicycle": {
+    "source_name": "Jackknife Sit-Up",
+    "id": "Jackknife_Sit-Up",
+    "exact": false
+  },
+  "hiit:Flutter Kicks": {
+    "source_name": "Flutter Kicks",
+    "id": "Flutter_Kicks",
+    "exact": true
+  },
+  "hiit:Side to Side Plank": {
+    "source_name": "Plank",
+    "id": "Plank",
+    "exact": false
+  },
+  "hiit:Mountain Climber": {
+    "source_name": "Mountain Climbers",
+    "id": "Mountain_Climbers",
+    "exact": false
+  },
+  "hiit:Plank to Push-up": {
+    "source_name": "Push Up to Side Plank",
+    "id": "Push_Up_to_Side_Plank",
+    "exact": false
+  },
+  "hiit:Plank In & Out": {
+    "source_name": "Plank",
+    "id": "Plank",
+    "exact": false
+  },
+  "abs:Plank Knee to Elbow": {
+    "source_name": "Plank",
+    "id": "Plank",
+    "exact": false
+  },
+  "abs:Plank Up & Down": {
+    "source_name": "Plank",
+    "id": "Plank",
+    "exact": false
+  },
+  "abs:Plank Jack": {
+    "source_name": "Plank",
+    "id": "Plank",
+    "exact": false
+  },
+  "abs:Seated In & Out": {
+    "source_name": "Seated Leg Tucks",
+    "id": "Seated_Leg_Tucks",
+    "exact": false
+  },
+  "abs:Russian Twist": {
+    "source_name": "Russian Twist",
+    "id": "Russian_Twist",
+    "exact": true
+  },
+  "abs:Chair Sit-up": {
+    "source_name": "Sit-Up",
+    "id": "Sit-Up",
+    "exact": false
+  },
+  "abs:Lying Windshield Wiper": {
+    "source_name": "Plank",
+    "id": "Plank",
+    "exact": false
+  },
+  "abs:Abs Scissors": {
+    "source_name": "Scissor Kick",
+    "id": "Scissor_Kick",
+    "exact": false
+  },
+  "abs:Flutter Kicks": {
+    "source_name": "Flutter Kicks",
+    "id": "Flutter_Kicks",
+    "exact": true
+  },
+  "abs:Reverse Plank": {
+    "source_name": "Plank",
+    "id": "Plank",
+    "exact": false
+  }
+}
