@@ -286,13 +286,17 @@ document.querySelectorAll('#intensityBtns .type-btn').forEach(b=>{
 });
 updateIntensityHint(); // hiện hint mặc định khi load
 // Đổi môn cardio → tính calo lại
-document.getElementById('cardioSelect').addEventListener('change', updateCalPreview);
+document.getElementById('cardioSelect').addEventListener('change', ()=>{
+  const first=document.querySelector('#exerciseRows .ex-name');
+  if(wType==='Cardio' && first){ first.value=document.getElementById('cardioSelect').value; first.dispatchEvent(new Event('input')); }
+  updateCalPreview();
+});
 // Gõ thời lượng → tính calo live
 document.getElementById('wDur').addEventListener('input', updateCalPreview);
 
 // Danh sách gợi ý bài tập (gộp tất cả giáo án + cardio)
 const ALL_EX = (()=>{
-  const names=new Set(['Chạy bộ','Đi bộ','Đạp xe','Máy chèo','Jump Rope']);
+  const names=new Set(['Chạy bộ','Đi bộ','Đạp xe','Máy chèo','Jump Rope','Cầu lông nhẹ','Cầu lông vừa','Cầu lông nặng']);
   Object.values(ROUTINE).forEach(g=>g.exs.forEach(e=>names.add(e.name)));
   Object.values(EXTRA_SPLITS).forEach(s=>s.days.forEach(d=>d.exs.forEach(e=>names.add(e.name))));
   return [...names];
@@ -315,7 +319,7 @@ const SPLIT_EX = (()=>{
   return o;
 })();
 // Cardio: MET từng môn (chuẩn ACSM)
-const CARDIO_MET = {'Chạy bộ':9,'Đi bộ':3.5,'Đạp xe':6.5,'Máy chèo':7,'Jump Rope':11};
+const CARDIO_MET = {'Chạy bộ':9,'Đi bộ':3.5,'Đạp xe':6.5,'Máy chèo':7,'Jump Rope':11,'Cầu lông nhẹ':5.5,'Cầu lông vừa':7,'Cầu lông nặng':8};
 const isCardio = n => !!CARDIO_MET[n];
 // Cân nặng cơ thể: lấy mục gần nhất từ tab Cân nặng (localStorage), chưa có → 60
 function getBodyWeight(){
@@ -422,7 +426,11 @@ function fillExList(){
   const seen=new Set();
   // lọc theo loại buổi đang chọn: Push → chỉ bài Push; Full Body → chỉ bài trong giáo án đó; Cardio → bài cardio
   let pool=ALL_EX;
-  if(wType==='Cardio') pool=['Chạy bộ','Đi bộ','Đạp xe','Máy chèo','Jump Rope'];
+  if(wType==='Cardio'){
+    pool=['Chạy bộ','Đi bộ','Đạp xe','Máy chèo','Jump Rope','Cầu lông nhẹ','Cầu lông vừa','Cầu lông nặng'];
+    const first=document.querySelector('#exerciseRows .ex-name');
+    if(first&&!first.value) first.value=document.getElementById('cardioSelect').value;
+  }
   else if(SPLIT_EX[wType]) pool=[...SPLIT_EX[wType]];
   else if(wType==='Push'||wType==='Pull'||wType==='Legs') pool=ALL_EX.filter(n=>GROUP[n]===wType);
   pool.forEach(e=>{ const o=document.createElement('option'); o.value=e; dl.appendChild(o); seen.add(e); });
