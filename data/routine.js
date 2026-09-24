@@ -48,8 +48,44 @@ const ROUTINE = {
 };
 
 // ====== GIÁO ÁN THÊM ======
-// Các buổi tập khác. exs dùng lại bài từ ROUTINE (nếu trùng tên) hoặc định nghĩa mới
+// Lịch chốt: PPL → Rest → Upper → Lower → Rest
 const EXTRA_SPLITS = {
+  PPLUpperLower: {
+    emoji: '🔴', name: 'PPL + UPPER / LOWER — 5 buổi/tuần',
+    days: [
+      { name: 'Push', exs: ROUTINE.Push.exs },
+      { name: 'Pull', exs: ROUTINE.Pull.exs },
+      { name: 'Legs + Abs', exs: [
+        { name: 'Hack Squat', sets: 4, reps: '8–10', kcal: 15 },
+        { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
+        { name: 'Glute Drive', sets: 3, reps: '8–12', kcal: 10 },
+        { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
+        { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
+        { name: 'Abductor', sets: 3, reps: '12–15', kcal: 5 },
+        { name: 'Abdominal Crunch Machine', sets: 3, reps: '12–15', kcal: 4 },
+        { name: 'Leg Raise', sets: 3, reps: '10–15', kcal: 4 }
+      ]},
+      { name: 'Upper', exs: [
+        { name: 'Chest Press Machine', sets: 3, reps: '8–10', kcal: 10 },
+        { name: 'Lat Pulldown', sets: 3, reps: '8–10', kcal: 8 },
+        { name: 'Seated Cable Row', sets: 3, reps: '8–10', kcal: 8 },
+        { name: 'Incline Dumbbell Press', sets: 3, reps: '8–10', kcal: 10 },
+        { name: 'Lateral Raise', sets: 3, reps: '12–15', kcal: 5 },
+        { name: 'Preacher Curl', sets: 2, reps: '10–12', kcal: 5 },
+        { name: 'Tricep Pushdown', sets: 2, reps: '10–15', kcal: 5 }
+      ]},
+      { name: 'Lower + Abs', exs: [
+        { name: 'Hack Squat', sets: 3, reps: '8–10', kcal: 15 },
+        { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
+        { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
+        { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
+        { name: 'Glute Drive', sets: 2, reps: '8–12', kcal: 10 },
+        { name: 'Abductor', sets: 2, reps: '12–15', kcal: 5 },
+        { name: 'Abdominal Crunch Machine', sets: 3, reps: '12–15', kcal: 4 },
+        { name: 'Leg Raise', sets: 2, reps: '10–15', kcal: 4 }
+      ]}
+    ]
+  },
   FullBody: {
     emoji: '🟡', name: 'FULL BODY — 3 buổi/tuần (A/B/C)',
     days: [

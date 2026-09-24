@@ -139,11 +139,11 @@ document.getElementById('modalClose').addEventListener('click',()=>document.getE
 document.getElementById('exModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) e.target.classList.remove('open'); });
 
 // ====== SPLIT SELECTOR (Giáo án + buổi) ======
-let curSplit = localStorage.getItem('gym_split') || 'PPL';
+let curSplit = ['PPLUpperLower','PPL'].includes(localStorage.getItem('gym_split')) ? localStorage.getItem('gym_split') : 'PPLUpperLower';
 // Cấu trúc danh sách buổi theo giáo án: PPL dùng ROUTINE, còn lại dùng EXTRA_SPLITS
 function getSplitDays(key){
   if(key==='PPL') return ['Push','Pull','Legs'];
-  return (EXTRA_SPLITS[key]||EXTRA_SPLITS.FullBody).days.map((d,i)=>key+'_'+i);
+  return (EXTRA_SPLITS[key]||EXTRA_SPLITS.PPLUpperLower).days.map((d,i)=>key+'_'+i);
 }
 function getDayMeta(key, dayKey){
   if(key==='PPL'){ const rt=ROUTINE[dayKey]; return {label:rt.emoji+' '+rt.name, exs:rt.exs, emoji:rt.emoji, name:rt.name, sets:rt.sets}; }
@@ -230,7 +230,7 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
   // đồng bộ nút loại buổi: PPL → Push/Pull/Legs; giáo án khác → tên giáo án
   const wbtns=[...document.querySelectorAll('#wTypeBtns .type-btn')];
   const hit = wbtns.find(b=>b.dataset.type===dayName);
-  const target = hit ? dayName : (curSplit==='PPL' ? (dayName.includes('PUSH')?'Push':dayName.includes('PULL')?'Pull':'Legs') : (curSplit==='FullBody'?'Full Body':curSplit==='UpperLower'?'Upper/Lower':'Bro Split'));
+  const target = hit ? dayName : (curSplit==='PPL' ? (dayName.includes('PUSH')?'Push':dayName.includes('PULL')?'Pull':'Legs') : dayName.startsWith('Legs')?'Legs':dayName.startsWith('Upper')?'Upper':'Lower');
   wbtns.forEach(b=>b.classList.toggle('active', b.dataset.type===target));
   wType = target;
   // đồng bộ ẩn/hiện trường cường độ / cardio
@@ -310,7 +310,7 @@ const GROUP = (()=>{
 })();
 // bài thuộc từng giáo án thêm (theo tên giáo án đang chọn trong ô loại buổi)
 const SPLIT_EX = (()=>{
-  const map={'Full Body':'FullBody','Upper/Lower':'UpperLower','Bro Split':'BroSplit'};
+  const map={'Upper':'PPLUpperLower','Lower':'PPLUpperLower'};
   const o={};
   Object.entries(map).forEach(([label,key])=>{
     o[label]=new Set();
@@ -1219,7 +1219,7 @@ function renderPlan(){
   const [ws,we]=weekRange();
   const wk=workouts.filter(w=>w.date>=ws&&w.date<=we);
   const split={}; wk.forEach(w=>split[w.type]=(split[w.type]||0)+1);
-  const order=['Push','Pull','Legs','Cardio','Full body'];
+  const order=['Push','Pull','Legs','Upper','Lower','Cardio'];
   const avgCal=dayTotals(today()).cal;
   const deficit=goals.cal-avgCal;
   const wTarget = deficit>250 ? '🥗 Calo hôm nay thấp hơn mục tiêu ' + fmt(deficit)+' kcal → hôm sau ăn thêm hoặc giảm tập' : deficit<-250 ? '🔥 Ăn vượt '+fmt(-deficit)+' kcal → tăng thêm cardio hoặc siết lại phần ăn vặt' : '✅ Calo đang cân bằng tốt, giữ nhịp!';

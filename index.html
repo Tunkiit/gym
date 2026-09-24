@@ -83,10 +83,8 @@
         <div class="form-row" style="margin-bottom:10px">
           <div class="field" style="min-width:200px"><label>Chọn giáo án</label>
             <select id="splitSelect" style="width:100%">
+              <option value="PPLUpperLower">PPL + Upper / Lower (5 buổi/tuần)</option>
               <option value="PPL">Push/Pull/Legs (PPL)</option>
-              <option value="FullBody">Full Body (3 buổi/tuần)</option>
-              <option value="UpperLower">Upper / Lower (4 buổi/tuần)</option>
-              <option value="BroSplit">Bro Split (5 buổi/tuần)</option>
             </select>
           </div>
           <div class="field" style="min-width:200px"><label>Chọn buổi</label>
@@ -116,9 +114,8 @@
               <button class="type-btn active" data-type="Push">🔴 Push</button>
               <button class="type-btn" data-type="Pull">🔵 Pull</button>
               <button class="type-btn" data-type="Legs">🟢 Legs</button>
-              <button class="type-btn" data-type="Full Body">🟡 Full Body</button>
-              <button class="type-btn" data-type="Upper/Lower">🔵 Upper/Lower</button>
-              <button class="type-btn" data-type="Bro Split">🔴 Bro Split</button>
+              <button class="type-btn" data-type="Upper">🟣 Upper</button>
+              <button class="type-btn" data-type="Lower">🟡 Lower</button>
               <button class="type-btn" data-type="Cardio">🏃 Cardio</button>
             </div>
           </div>
@@ -325,7 +322,7 @@
         </div>
         <div class="card">
           <h3>💬 Hỏi AI về tập luyện / ăn uống</h3>
-          <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">AI biết giáo án bạn đang theo (PPL, Full Body...) và lịch tập gần đây — hỏi bất cứ điều gì.</p>
+          <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">AI biết giáo án bạn đang theo (PPL + Upper/Lower) và lịch tập gần đây — hỏi bất cứ điều gì.</p>
           <div class="form-row" style="margin-bottom:8px">
             <input type="text" id="aiAsk" placeholder="VD: Tuần này tôi nên tập mấy buổi? Có nên đổi giáo án không?" style="flex:2;min-width:200px">
             <button class="btn btn-blue" id="aiAskBtn">💬 Hỏi</button>
@@ -357,7 +354,7 @@
       <div class="card">
         <h3>💪 Buổi tập</h3>
         <ul class="guide-list">
-          <li><b>1. Chọn giáo án</b> — PPL, Full Body, Upper/Lower hoặc Bro Split.</li>
+          <li><b>1. Chọn giáo án</b> — PPL + Upper/Lower.</li>
           <li><b>2. Chọn buổi</b> — ví dụ chọn giáo án PPL thì có Push / Pull / Legs.</li>
           <li><b>3. Bấm "📋 Điền bài tập"</b> — app tự điền danh sách bài + sets/reps gợi ý. Bấm vào 1 bài để xem ảnh minh hoạ &amp; mẹo tập.</li>
           <li><b>4. Sửa số sets / reps / kg</b> — theo mức tạ bạn dùng hôm đó.</li>
@@ -450,7 +447,7 @@
 </div>
 
 <script src="config.js"></script>
-<script src="data/routine.js?v=36"></script>
+<script src="data/routine.js?v=37"></script>
 <script src="script.js?v=39"></script>
 </body>
 </html>
