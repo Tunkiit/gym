@@ -3,5 +3,5 @@ window.AI_CONFIG = {
   key: 'sk-...',
   endpoint: 'https://api.apiforcode.com/v1',
   model: 'deepseek-v4-pro-cn',
-  visionModel: 'deepseek-v4-flash-vision-exp',
+  visionModel: 'deepseek-v4-flash-cn',
 };

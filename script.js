@@ -784,7 +784,7 @@ document.getElementById('saveGoals').addEventListener('click',()=>{
 });
 // ====== AI PARSE (bữa ăn) ======
 // Key: chỉ từ config.js (GitHub Actions chèn từ Secret khi deploy). KHÔNG đọc localStorage cũ.
-const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.apiforcode.com/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'deepseek-v4-pro-cn', visionModel:(window.AI_CONFIG&&window.AI_CONFIG.visionModel)||'deepseek-v4-flash-vision-exp'};
+const AI_CFG = {key:(window.AI_CONFIG&&window.AI_CONFIG.key)||'', endpoint:(window.AI_CONFIG&&window.AI_CONFIG.endpoint)||'https://api.apiforcode.com/v1', model:(window.AI_CONFIG&&window.AI_CONFIG.model)||'deepseek-v4-pro-cn', visionModel:(window.AI_CONFIG&&window.AI_CONFIG.visionModel)||'deepseek-v4-flash-cn'};
 localStorage.removeItem('gym_ai_cfg'); localStorage.removeItem('gym_ai_provs'); // dọn cấu hình cũ gây lỗi
 // Trạng thái ảnh đã chọn (base64 data URL) cho AI phân tích
 let aiPhotoData = null;
@@ -862,7 +862,7 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
     : prompt;
   const ep = (AI_CFG.endpoint||'https://api.apiforcode.com/v1').replace(/\/+$/,'');
   fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
-    body:JSON.stringify({model:aiPhotoData ? (AI_CFG.visionModel||'deepseek-v4-flash-vision-exp') : (AI_CFG.model||'deepseek-v4-pro-cn'), messages:[{role:'system',content:sys},{role:'user',content:userMsg}], temperature:0.2})})
+    body:JSON.stringify({model:aiPhotoData ? (AI_CFG.visionModel||'deepseek-v4-flash-cn') : (AI_CFG.model||'deepseek-v4-pro-cn'), messages:[{role:'system',content:sys},{role:'user',content:userMsg}], temperature:0.2})})
     .then(async r=>{
       const raw=await r.text();
       let data;
