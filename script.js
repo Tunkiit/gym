@@ -96,15 +96,18 @@ document.getElementById('themeToggle').addEventListener('click',()=>{
 // ====== MODAL ======
 function showExerciseModalEx(ex, dayName, emoji){
   document.getElementById('modalTitle').textContent = ex.name;
-  document.getElementById('modalMG').textContent = ex.muscle;
+  const muscle = ex.muscle||'Nhóm cơ chính';
+  const icon = ex.icon||'🏋️';
+  const tip = ex.tip||'Giữ form ổn định, tập có kiểm soát.';
+  document.getElementById('modalMG').textContent = muscle;
   const color = emoji==='🔴'?'var(--push)':emoji==='🔵'?'var(--pull)':emoji==='🟢'?'var(--legs)':'var(--accent)';
   document.getElementById('modalMG').style.background = color.replace('var(--push)','rgba(239,68,68,.15)').replace('var(--pull)','rgba(59,130,246,.15)').replace('var(--legs)','rgba(34,197,94,.15)').replace('var(--accent)','rgba(245,158,11,.15)');
   document.getElementById('modalMG').style.color = color;
   document.getElementById('modalSets').textContent = ex.sets;
   document.getElementById('modalReps').textContent = ex.reps;
-  document.getElementById('modalMuscle').textContent = ex.muscle;
+  document.getElementById('modalMuscle').textContent = muscle;
   document.getElementById('modalDay').textContent = (emoji||'')+' '+(dayName||'');
-  document.getElementById('modalTips').textContent = '💡 Mẹo: '+ex.tip;
+  document.getElementById('modalTips').textContent = '💡 Mẹo: '+tip;
 
   // images: support multiple options (main + alt) + 0/1
   const opts = getExImgs(ex);
@@ -113,14 +116,14 @@ function showExerciseModalEx(ex, dayName, emoji){
   function renderOpt(optIdx) {
     const opt = opts[optIdx];
     if (!opt || !opt.imgs.length) {
-      wrap.innerHTML = `<div class="placeholder"><span class="big">${ex.icon}</span><span>${ex.name}<br><small>Không có ảnh minh hoạ</small></span></div>`;
+      wrap.innerHTML = `<div class="placeholder"><span class="big">${icon}</span><span>${ex.name}<br><small>Không có ảnh minh hoạ</small></span></div>`;
       return;
     }
     // show 2 images side by side
     const imgs = opt.imgs.map((src, i) => {
       const cls = i === 0 ? 'img-start' : 'img-end';
       const lbl = i === 0 ? 'Bắt đầu' : 'Kết thúc';
-      return `<div class="img-col"><div class="img-frame"><img src="${src}" alt="${ex.name}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\' style=\\'height:160px\\'><span class=\\'big\\' style=\\'font-size:32px\\'>${ex.icon}</span><span style=\\'font-size:12px\\'>Không tải được</span></div>'"></div><div class="img-label">${lbl}</div></div>`;
+      return `<div class="img-col"><div class="img-frame"><img src="${src}" alt="${ex.name}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\' style=\\'height:160px\\'><span class=\\'big\\' style=\\'font-size:32px\\'>${icon}</span><span style=\\'font-size:12px\\'>Không tải được</span></div>'"></div><div class="img-label">${lbl}</div></div>`;
     }).join('');
     const tabs = opts.length > 1 ? `<div class="modal-tabs">${opts.map((o, i) => `<button class="modal-tab ${i === optIdx ? 'active' : ''}" data-oi="${i}">${o.label}</button>`).join('')}</div>` : '';
     wrap.innerHTML = tabs + `<div class="img-pair">${imgs}</div>`;
@@ -189,12 +192,12 @@ function renderRoutine(){
     <div class="routine-body">
       ${m.exs.map((ex,i)=>`
         <div class="routine-ex" data-key="${curSplit}" data-idx="${i}">
-          <span class="ex-icon">${ex.icon}</span>
+          <span class="ex-icon">${ex.icon||'🏋️'}</span>
           <div class="ex-info">
             <div class="ex-name">${ex.name}</div>
-            <div class="ex-meta">${ex.sets}×${ex.reps} · ${ex.muscle}</div>
+            <div class="ex-meta">${ex.sets}×${ex.reps} · ${ex.muscle||'Nhóm cơ chính'}</div>
           </div>
-          <span class="ex-mg">${ex.muscle}</span>
+          <span class="ex-mg">${ex.muscle||'Tập sức mạnh'}</span>
           <button class="ex-view">🔍</button>
         </div>
       `).join('')}

@@ -56,7 +56,7 @@ const EXTRA_SPLITS = {
       { name: 'Push', exs: ROUTINE.Push.exs },
       { name: 'Pull', exs: ROUTINE.Pull.exs },
       { name: 'Legs + Abs', exs: [
-        { name: 'Hack Squat', sets: 4, reps: '8–10', kcal: 15, img: 'Smith_Machine_Squat', tip: 'Tựa lưng vào máy, hạ sâu có kiểm soát, đẩy bằng gót' },
+        { name: 'Hack Squat', icon: '🦵', muscle: 'Đùi trước', sets: 4, reps: '8–10', kcal: 15, img: 'Smith_Machine_Squat', tip: 'Tựa lưng vào máy, hạ sâu có kiểm soát, đẩy bằng gót' },
         { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
         { name: 'Glute Drive', sets: 3, reps: '8–12', kcal: 10 },
         { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
@@ -75,7 +75,7 @@ const EXTRA_SPLITS = {
         { name: 'Tricep Pushdown', sets: 2, reps: '10–15', kcal: 5 }
       ]},
       { name: 'Lower + Abs', exs: [
-        { name: 'Hack Squat', sets: 3, reps: '8–10', kcal: 15, img: 'Smith_Machine_Squat', tip: 'Tựa lưng vào máy, hạ sâu có kiểm soát, đẩy bằng gót' },
+        { name: 'Hack Squat', icon: '🦵', muscle: 'Đùi trước', sets: 3, reps: '8–10', kcal: 15, img: 'Smith_Machine_Squat', tip: 'Tựa lưng vào máy, hạ sâu có kiểm soát, đẩy bằng gót' },
         { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
         { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
         { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
