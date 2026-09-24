@@ -2,6 +2,6 @@
 window.AI_CONFIG = {
   key: 'sk-...',
   endpoint: 'https://api.apiforcode.com/v1',
-  model: 'glm-5.3-flash-cn',
-  visionModel: 'glm-5.3-flash-cn',
+  model: 'deepseek-v4-pro-cn',
+  visionModel: 'deepseek-v4-pro-cn',
 };
