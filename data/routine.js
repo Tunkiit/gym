@@ -58,7 +58,7 @@ const EXTRA_SPLITS = {
       { name: 'Legs + Abs', exs: [
         { name: 'Hack Squat', icon: '🦵', muscle: 'Đùi trước', sets: 4, reps: '8–10', kcal: 15, img: 'Smith_Machine_Squat', tip: 'Tựa lưng vào máy, hạ sâu có kiểm soát, đẩy bằng gót' },
         { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
-        { name: 'Glute Drive', sets: 3, reps: '8–12', kcal: 10 },
+        { name: 'Glute Drive', icon: '🍑', muscle: 'Mông', sets: 3, reps: '8–12', kcal: 10, tip: 'Đẩy hông lên, siết mông ở đỉnh, không ưỡn lưng' },
         { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
         { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
         { name: 'Abductor', sets: 3, reps: '12–15', kcal: 5 },
@@ -79,7 +79,7 @@ const EXTRA_SPLITS = {
         { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
         { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
         { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Glute Drive', sets: 2, reps: '8–12', kcal: 10 },
+        { name: 'Glute Drive', icon: '🍑', muscle: 'Mông', sets: 2, reps: '8–12', kcal: 10, tip: 'Đẩy hông lên, siết mông ở đỉnh, không ưỡn lưng' },
         { name: 'Abductor', sets: 2, reps: '12–15', kcal: 5 },
         { name: 'Abdominal Crunch Machine', sets: 3, reps: '12–15', kcal: 4 },
         { name: 'Leg Raise', sets: 2, reps: '10–15', kcal: 4 }
