@@ -877,11 +877,9 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
       try{ items=parseNutritionJson(txt); }
       catch(e){ out.textContent='❌ AI trả JSON lỗi: '+e.message; return; }
       if(!items.length){ out.textContent='⚠️ AI không nhận diện rõ món trong ảnh. Thử ảnh sáng hơn hoặc thêm mô tả món ăn.'; return; }
-      const mealTime=document.getElementById('mTime').value||clockNow();
-      document.getElementById('mTime').value=mealTime;
       items.forEach(it=>{
         // AI đã trả TỔNG kcal/p/c/f cho đúng số lượng → dùng thẳng, không nhân ratio nữa
-        meals.push({id:Date.now()+Math.random(), date:today(), time:mealTime, meal:document.getElementById('mMeal').value,
+        meals.push({id:Date.now()+Math.random(), date:today(), meal:document.getElementById('mMeal').value,
           name:it.name||'Món ăn', cal:Math.round(num(it.kcal,0)), pro:Math.round(num(it.p,0)),
           carb:Math.round(num(it.c,0)), fat:Math.round(num(it.f,0))});
       });
