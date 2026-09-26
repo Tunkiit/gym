@@ -794,7 +794,7 @@ document.getElementById('aiUploadImg').addEventListener('change', e=>{
   const img = new Image();
   const url = URL.createObjectURL(f);
   img.onload = ()=>{
-    const scale = Math.min(1, 1280 / Math.max(img.width, img.height));
+    const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
     const cv = document.createElement('canvas');
     cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
     cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
@@ -847,8 +847,7 @@ function aiParse(){
   if(!AI_CFG.key){ out.textContent='⚠️ Bản này chưa có key AI. Bản deploy từ GitHub sẽ có sẵn.'; return; }
   out.textContent='⏳ Đang phân tích'+(aiPhotoData?' ảnh...':'...');
   const sys = `Bạn là chuyên gia dinh dưỡng. Người dùng gửi ảnh món ăn (hoặc mô tả bằng tiếng Việt kiểu "1 chén cơm, 300g ức gà, 2 quả trứng ốp la").
-Hãy NHÌN ẢNH trước, nhận diện món ăn thật sự nhìn thấy, rồi trả về CHỈ MỘT JSON array, mỗi phần tử: {"name":"tên món","qty":số lượng,"unit":"g hoặc suat","kcal":số,"p":protein g,"c":carbs g,"f":fat g}.
-Nếu không nhìn thấy ảnh hoặc ảnh không đủ rõ, trả về [] — KHÔNG được bịa món, khối lượng hay câu "không đọc được ảnh".
+Hãy NHẬN DIỆN món ăn trong ảnh và trả về CHỈ MỘT JSON array, mỗi phần tử: {"name":"tên món","qty":số lượng,"unit":"g hoặc suat","kcal":số,"p":protein g,"c":carbs g,"f":fat g}.
 QUAN TRỌNG: kcal/p/c/f là TỔNG giá trị của món đó với ĐÚNG số lượng qty đã cho (không phải per 100g).
 Nếu không chắc khối lượng thì ước lượng suất ăn điển hình (VD 1 tô phở bò ≈ 450 kcal, 20g P, 50g C, 15g F) rồi ghi rõ trong name.
 Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":"g","kcal":495,"p":93,"c":0,"f":9} (vì 100g ức gà ≈ 165 kcal, 31g P → 300g ≈ 495 kcal, 93g P).
@@ -857,8 +856,8 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
 Ước lượng dinh dưỡng hợp lý. KHÔNG thêm text nào ngoài JSON.`;
   const userMsg = aiPhotoData
     ? [
-        {type:'image_url', image_url:{url: aiPhotoData, detail:'high'}},
-        {type:'text', text: prompt || 'Phân tích món ăn trong ảnh này. Trả JSON như hướng dẫn.'}
+        {type:'text', text: prompt || 'Phân tích món ăn trong ảnh này. Trả JSON như hướng dẫn.'},
+        {type:'image_url', image_url:{url: aiPhotoData}}
       ]
     : prompt;
   const ep = (AI_CFG.endpoint||'https://api.apiforcode.com/v1').replace(/\/+$/,'');
