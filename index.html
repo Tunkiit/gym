@@ -97,15 +97,6 @@
         <div class="routine-grid" id="routineGrid" style="margin-bottom:0"></div>
       </div>
       <div class="card">
-        <h3>🏠 Tập tại nhà</h3>
-        <p class="muted" style="margin-bottom:10px">45 giây tập · 15 giây nghỉ · 10 bài · không tự lưu trước khi hoàn thành.</p>
-        <div class="form-row">
-          <div class="field"><label>Số vòng</label><select id="homeRounds"><option value="1">1 vòng · 10 phút</option><option value="2">2 vòng · 20 phút</option><option value="3">3 vòng · 30 phút</option></select></div>
-          <button class="btn btn-blue" id="startHiit">🔥 HIIT đốt mỡ — 10 phút</button>
-          <button class="btn ghost" id="startAbs">🧠 Bụng — 10 phút</button>
-        </div>
-      </div>
-      <div class="card">
         <h3>＋ Ghi buổi tập mới</h3>
         <div class="form-row">
           <div class="field"><label>Ngày</label><input type="date" id="wDate"></div>
@@ -131,16 +122,15 @@
           </div>
           <div class="field" id="cardioField" style="display:none"><label>Môn cardio</label>
             <select id="cardioSelect">
+              <option value="Đi bộ trên máy">Đi bộ trên máy</option>
+              <option value="Đi bộ ngoài trời">Đi bộ ngoài trời</option>
               <option value="Chạy bộ">Chạy bộ</option>
-              <option value="Đi bộ">Đi bộ</option>
-              <option value="Đạp xe">Đạp xe</option>
-              <option value="Máy chèo">Máy chèo</option>
-              <option value="Jump Rope">Nhảy dây</option>
-              <option value="Cầu lông nhẹ">Cầu lông nhẹ</option>
-              <option value="Cầu lông vừa">Cầu lông vừa</option>
-              <option value="Cầu lông nặng">Cầu lông nặng</option>
+              <option value="Cầu lông">Cầu lông</option>
+              <option value="Bơi">Bơi</option>
             </select>
           </div>
+          <div class="field cardio-extra" style="display:none"><label>Quãng đường (km)</label><input type="number" id="cardioDistance" min="0" step="0.01" placeholder="9.63"></div>
+          <div class="field cardio-extra" style="display:none"><label>Độ cao tăng (m)</label><input type="number" id="cardioElevation" min="0" step="1" placeholder="631"></div>
           <div class="field"><label>Calo đốt (tự tính)</label><div id="calPreview" class="cal-preview">—</div></div>
         </div>
         <h3 style="margin-top:18px">📝 Bài tập trong buổi</h3>
@@ -360,9 +350,10 @@
           <li><b>4. Sửa số sets / reps / kg</b> — theo mức tạ bạn dùng hôm đó.</li>
           <li><b>5. Điền "Thời lượng (phút)"</b> — <b>bắt buộc</b>, không nhập thì không lưu được.</li>
           <li><b>6. Chọn "Cường độ"</b> — 🟢 Nhẹ (thở đều, nói chuyện thoải mái, nghỉ 2-3 phút) / 🟡 Vừa (thở gấp nhẹ, nói ngắt quãng, nghỉ 1-2 phút) / 🔴 Nặng (thở gấp, nói từng từ, nghỉ dưới 1 phút). Mỗi mức có hướng dẫn hiện ngay dưới nút chọn. Tập càng nặng → calo càng cao.</li>
-          <li><b>7. Chọn "🏃 Cardio"</b> — nếu hôm đó tập cardio (chạy bộ, đạp xe, máy chèo, nhảy dây), app tự dùng bảng MET phù hợp thay vì cường độ.</li>
-          <li><b>8. "Calo đốt"</b> — app <b>tự tính</b> theo công thức chuẩn ACSM: MET × 3.5 × cân nặng × phút ÷ 200. Bạn không cần nhập, nhìn số hiển thị là biết.</li>
-          <li><b>9. Bấm "Lưu buổi tập"</b> — app báo lại số kcal đã đốt ngay sau khi lưu.</li>
+          <li><b>7. Chọn "🏃 Cardio"</b> — chọn Đi bộ trên máy, Đi bộ ngoài trời, Chạy bộ, Cầu lông hoặc Bơi. Tên cardio khóa theo lựa chọn, không bị nhảy về Chạy bộ khi xoá/gõ.</li>
+          <li><b>8. Cardio</b> — nhập thời lượng; có thể thêm quãng đường (km) và độ cao tăng (m). Tốc độ/dốc là tuỳ chọn.</li>
+          <li><b>9. "Calo đốt"</b> — app <b>tự tính</b> theo MET × 3.5 × cân nặng × phút ÷ 200.</li>
+          <li><b>10. Bấm "Lưu buổi tập"</b> — lịch sử giữ lại loại cardio, km và độ cao.</li>
         </ul>
       </div>
       <div class="card">
@@ -411,24 +402,6 @@
   </main>
 </div>
 
-<div class="modal-overlay" id="homeTimerModal">
-  <div class="modal home-timer-modal">
-    <button class="close" id="timerClose">✕</button>
-    <h2 id="timerTitle">HIIT đốt mỡ</h2>
-    <div class="timer-status" id="timerStatus">TẬP</div>
-    <div class="timer-clock" id="timerClock">45</div>
-    <div class="timer-meta" id="timerMeta">Bài 1/10 · Vòng 1/1</div>
-    <div class="timer-name" id="timerExercise">Jumping Jack</div>
-    <div class="timer-home-images"><div><img id="timerImg0" alt="Tư thế bắt đầu"></div><div><img id="timerImg1" alt="Tư thế kết thúc"></div></div>
-    <div class="timer-progress"><div id="timerProgressBar"></div></div>
-    <div class="form-row timer-actions">
-      <button class="btn ghost" id="timerPause">Tạm dừng</button>
-      <button class="btn ghost" id="timerSkip">Bỏ qua</button>
-      <button class="btn danger" id="timerStop">Kết thúc</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL -->
 <div class="modal-overlay" id="exModal">
   <div class="modal">
@@ -448,6 +421,6 @@
 
 <script src="config.js"></script>
 <script src="data/routine.js?v=39"></script>
-<script src="script.js?v=48"></script>
+<script src="script.js?v=50"></script>
 </body>
 </html>

@@ -251,6 +251,8 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
 let wType = 'Push'; // phải khai báo TRƯỚC khi dùng trong fillWorkoutFromRoutine
 let editingWorkoutId = null;
 let editingMealId = null;
+let mealBaseMacros = null;
+let aiPendingMeals = [];
 document.getElementById('wDate').value = today();
 document.getElementById('wTime').value = clockNow();
 document.getElementById('mTime').value = clockNow();
@@ -263,6 +265,11 @@ document.querySelectorAll('#wTypeBtns .type-btn').forEach(b=>{
     const isCardioType = wType==='Cardio';
     document.getElementById('intensityField').style.display = isCardioType?'none':'';
     document.getElementById('cardioField').style.display = isCardioType?'':'none';
+    document.querySelectorAll('.cardio-extra').forEach(x=>x.style.display=isCardioType?'':'none');
+    if(isCardioType){
+      const first=document.querySelector('#exerciseRows .ex-name');
+      if(first&&!first.value) first.value=document.getElementById('cardioSelect').value;
+    }
     updateCalPreview();
   });
 });
@@ -294,12 +301,14 @@ document.getElementById('cardioSelect').addEventListener('change', ()=>{
   if(wType==='Cardio' && first){ first.value=document.getElementById('cardioSelect').value; first.dispatchEvent(new Event('input')); }
   updateCalPreview();
 });
+document.querySelectorAll('.cardio-extra input').forEach(i=>i.addEventListener('input', updateCalPreview));
 // Gõ thời lượng → tính calo live
 document.getElementById('wDur').addEventListener('input', updateCalPreview);
 
 // Danh sách gợi ý bài tập (gộp tất cả giáo án + cardio)
+const CARDIO_OPTIONS = ['Đi bộ trên máy','Đi bộ ngoài trời','Chạy bộ','Cầu lông','Bơi'];
 const ALL_EX = (()=>{
-  const names=new Set(['Chạy bộ','Đi bộ','Đạp xe','Máy chèo','Jump Rope','Cầu lông nhẹ','Cầu lông vừa','Cầu lông nặng']);
+  const names=new Set(CARDIO_OPTIONS);
   Object.values(ROUTINE).forEach(g=>g.exs.forEach(e=>names.add(e.name)));
   Object.values(EXTRA_SPLITS).forEach(s=>s.days.forEach(d=>d.exs.forEach(e=>names.add(e.name))));
   return [...names];
@@ -322,7 +331,7 @@ const SPLIT_EX = (()=>{
   return o;
 })();
 // Cardio: MET từng môn (chuẩn ACSM)
-const CARDIO_MET = {'Chạy bộ':9,'Đi bộ':3.5,'Đạp xe':6.5,'Máy chèo':7,'Jump Rope':11,'Cầu lông nhẹ':5.5,'Cầu lông vừa':7,'Cầu lông nặng':8};
+const CARDIO_MET = {'Đi bộ trên máy':4.5,'Đi bộ ngoài trời':3.5,'Chạy bộ':9,'Cầu lông':7,'Bơi':8,'Đi bộ':3.5,'Đạp xe':6.5,'Máy chèo':7,'Jump Rope':11,'Cầu lông nhẹ':5.5,'Cầu lông vừa':7,'Cầu lông nặng':8};
 const isCardio = n => !!CARDIO_MET[n];
 // Cân nặng cơ thể: lấy mục gần nhất từ tab Cân nặng (localStorage), chưa có → 60
 function getBodyWeight(){
@@ -407,8 +416,7 @@ function exerciseRow(ex){
       <div class="field ex-sets-field" style="${cardio?'display:none':''}"><label>Sets</label><input type="number" class="ex-sets" min="1" value="${(ex&&ex.sets)||3}" style="width:60px"></div>
       <div class="field ex-reps-field" style="${cardio?'display:none':''}"><label>Reps</label><input type="number" class="ex-reps" min="1" value="${parseInt((ex&&ex.reps)||10)||10}" style="width:70px"></div>
       <div class="field ex-w-field"><label class="w-lbl">${cardio?'Phút':'Kg'}</label><input type="number" class="ex-w" min="0" step="0.5" value="${(ex&&ex.w)||0}" style="width:70px"></div>
-      <div class="field ex-speed-field" style="${cardio?'':'display:none'}"><label>Km/h</label><input type="number" class="ex-speed" min="0" step="0.5" value="${(ex&&ex.speed)||0}" style="width:65px"></div>
-      <div class="field ex-incline-field" style="${cardio?'':'display:none'}"><label>Dốc %</label><input type="number" class="ex-incline" min="0" step="0.5" value="${(ex&&ex.incline)||0}" style="width:65px"></div>
+
     </div>
     <button class="btn danger ex-del">✕</button>`;
   const sync = ()=>{
@@ -416,10 +424,9 @@ function exerciseRow(ex){
     const c = isCardio(name);
     d.querySelector('.ex-sets-field').style.display = c ? 'none' : '';
     d.querySelector('.ex-reps-field').style.display = c ? 'none' : '';
-    d.querySelector('.ex-speed-field').style.display = c ? '' : 'none';
-    d.querySelector('.ex-incline-field').style.display = c ? '' : 'none';
     d.querySelector('.w-lbl').textContent = c ? 'Phút' : 'Kg';
   };
+  d.sync=sync;
   d.querySelector('.ex-del').addEventListener('click',()=>{ d.remove(); });
   d.querySelector('.ex-name').addEventListener('input',()=>{ sync(); fillExList(); });
   return d;
@@ -429,12 +436,12 @@ function fillExList(){
   const seen=new Set();
   // lọc theo loại buổi đang chọn: Push → chỉ bài Push; Full Body → chỉ bài trong giáo án đó; Cardio → bài cardio
   let pool=ALL_EX;
+  document.querySelectorAll('#exerciseRows .ex-name').forEach(i=>i.readOnly=wType==='Cardio');
   if(wType==='Cardio'){
-    pool=['Chạy bộ','Đi bộ','Đạp xe','Máy chèo','Jump Rope','Cầu lông nhẹ','Cầu lông vừa','Cầu lông nặng'];
+    pool=CARDIO_OPTIONS;
     const first=document.querySelector('#exerciseRows .ex-name');
-    if(first&&!first.value) first.value=document.getElementById('cardioSelect').value;
-  }
-  else if(SPLIT_EX[wType]) pool=[...SPLIT_EX[wType]];
+    if(first){ first.value=document.getElementById('cardioSelect').value; first.dispatchEvent(new Event('input')); }
+  } else if(SPLIT_EX[wType]) pool=[...SPLIT_EX[wType]];
   else if(wType==='Push'||wType==='Pull'||wType==='Legs') pool=ALL_EX.filter(n=>GROUP[n]===wType);
   pool.forEach(e=>{ const o=document.createElement('option'); o.value=e; dl.appendChild(o); seen.add(e); });
   document.querySelectorAll('.ex-name').forEach(i=>{ const v=i.value.trim(); if(v&&!seen.has(v)){ const o=document.createElement('option'); o.value=v; dl.appendChild(o); seen.add(v); } });
@@ -458,7 +465,7 @@ document.getElementById('saveWorkout').addEventListener('click',()=>{
   const dur=num(document.getElementById('wDur').value);
   if(!dur||dur<=0){ alert('Bắt buộc nhập thời lượng (phút)'); document.getElementById('wDur').focus(); return; }
   const exs=[...document.querySelectorAll('#exerciseRows .form-row')]
-      .map(r=>({name:r.querySelector('.ex-name').value.trim(),sets:num(r.querySelector('.ex-sets').value),reps:num(r.querySelector('.ex-reps').value),w:num(r.querySelector('.ex-w').value),speed:num(r.querySelector('.ex-speed')?.value),incline:num(r.querySelector('.ex-incline')?.value)}))
+      .map(r=>({name:r.querySelector('.ex-name').value.trim(),sets:num(r.querySelector('.ex-sets').value),reps:num(r.querySelector('.ex-reps').value),w:num(r.querySelector('.ex-w').value),speed:num(r.querySelector('.ex-speed')?.value),incline:num(r.querySelector('.ex-incline')?.value),distance:num(document.getElementById('cardioDistance')?.value),elevation:num(document.getElementById('cardioElevation')?.value)}))
       .filter(e=>e.name);
   if(!exs.length){ alert('Thêm ít nhất 1 bài tập'); return; }
   // calo đốt: tự tính theo chuẩn ACSM (MET × 3.5 × cân nặng × phút ÷ 200)
@@ -486,7 +493,7 @@ function renderWorkoutList(){
               const c=isCardio(e.name);
               if(w.preset) return `<span class="chip">${e.name}</span>`;
               return c
-                ? `<span class="chip">${e.name} ${e.w||0} phút${e.speed?' @'+e.speed+'km/h':''}${e.incline?' dốc'+e.incline+'%':''}</span>`
+                ? `<span class="chip">${e.name} ${e.w||0} phút${e.distance?' · '+e.distance+' km':''}${e.elevation?' · +'+e.elevation+' m':''}${e.speed?' @'+e.speed+'km/h':''}${e.incline?' dốc'+e.incline+'%':''}</span>`
                 : `<span class="chip">${e.name} ${e.sets}×${e.reps}${e.w?' @'+e.w+'kg':''}</span>`;
             }).join('')}</div>
     </div>`).join('');
@@ -494,6 +501,11 @@ function renderWorkoutList(){
     const w=workouts.find(x=>String(x.id)===b.dataset.editW); if(!w) return;
     document.getElementById('wDate').value=w.date; document.getElementById('wTime').value=w.time||''; document.getElementById('wDur').value=w.dur;
     editingWorkoutId=w.id;
+    if(w.type==='Cardio'&&w.exs[0]){
+      document.getElementById('cardioSelect').value=w.exs[0].name;
+      document.getElementById('cardioDistance').value=w.exs[0].distance||'';
+      document.getElementById('cardioElevation').value=w.exs[0].elevation||'';
+    }
     document.querySelector(`#wTypeBtns .type-btn[data-type="${w.type}"]`)?.click();
     const c=document.getElementById('exerciseRows'); c.innerHTML=''; w.exs.forEach(e=>{ const row=exerciseRow(e); c.appendChild(row); }); fillExList(); document.getElementById('wDate').scrollIntoView({behavior:'smooth',block:'center'}); alert('Đã đưa buổi tập lên form — sửa rồi bấm Lưu');
   }));
@@ -502,71 +514,6 @@ function renderWorkoutList(){
   }));
 }
 
-// ====== HOME WORKOUT TIMER ======
-const HOME_PRESETS={
-  hiit:{title:'HIIT đốt mỡ',type:'HIIT tại nhà',met:8,exs:['Jumping Jack','High Knee Taps','Burpee','Jump Squat','Bicycle','Flutter Kicks','Side to Side Plank','Mountain Climber','Plank to Push-up','Plank In & Out']},
-  abs:{title:'Bụng',type:'Bụng tại nhà',met:0,exs:['Plank Knee to Elbow','Plank Up & Down','Plank Jack','Seated In & Out','Russian Twist','Chair Sit-up','Lying Windshield Wiper','Abs Scissors','Flutter Kicks','Reverse Plank']}
-};
-const HOME_IMAGE_SOURCE={
-  'Jumping Jack':'Star_Jump','High Knee Taps':'Step_up_with_Knee_Raise','Burpee':'Rocket_Jump','Jump Squat':'Freehand_Jump_Squat','Bicycle':'Jackknife_Sit-Up','Flutter Kicks':'Flutter_Kicks','Side to Side Plank':'Plank','Mountain Climber':'Mountain_Climbers','Plank to Push-up':'Push_Up_to_Side_Plank','Plank In & Out':'Plank','Plank Knee to Elbow':'Plank','Plank Up & Down':'Plank','Plank Jack':'Plank','Seated In & Out':'Seated_Leg_Tucks','Russian Twist':'Russian_Twist','Chair Sit-up':'Sit-Up','Lying Windshield Wiper':'Plank','Abs Scissors':'Scissor_Kick','Reverse Plank':'Plank'
-};
-const homeImageFile=(preset,name,idx)=>`img/home/${preset}_${name.replaceAll(' ','_').replaceAll('-','_')}_${idx}.jpg`;
-let homeTimer=null;
-function renderHomeTimer(){
-  if(!homeTimer) return;
-  const phase=homeTimer.phase==='work';
-  const ex=HOME_PRESETS[homeTimer.preset].exs[homeTimer.exercise];
-  document.getElementById('timerTitle').textContent=HOME_PRESETS[homeTimer.preset].title;
-  document.getElementById('timerStatus').textContent=phase?'TẬP':'NGHỈ';
-  document.getElementById('timerStatus').classList.toggle('rest',!phase);
-  document.getElementById('timerClock').textContent=homeTimer.left;
-  document.getElementById('timerMeta').textContent=`Bài ${homeTimer.exercise+1}/10 · Vòng ${homeTimer.round}/${homeTimer.rounds}`;
-  document.getElementById('timerExercise').textContent=phase?ex:'Chuẩn bị bài tiếp theo';
-  const imagePreset=homeTimer.preset;
-  [0,1].forEach(idx=>{
-    const image=document.getElementById('timerImg'+idx);
-    image.src=homeImageFile(imagePreset,ex,idx);
-    image.alt=(idx?'Kết thúc: ':'Bắt đầu: ')+ex;
-  });
-  const total=phase?45:15;
-  document.getElementById('timerProgressBar').style.width=((total-homeTimer.left)/total*100)+'%';
-  document.getElementById('timerPause').textContent=homeTimer.paused?'Tiếp tục':'Tạm dừng';
-}
-function finishHomeTimer(savePartial){
-  if(!homeTimer) return;
-  const done=homeTimer.completedSeconds;
-  if(savePartial&&done>0){
-    const preset=HOME_PRESETS[homeTimer.preset];
-    const duration=Math.max(1,Math.round(done/60));
-    const cal=preset.met?Math.round(preset.met*3.5*getBodyWeight()*duration/200):0;
-    workouts.push({id:Date.now(),date:today(),time:clockNow(),type:preset.type,preset:preset.title,rounds:homeTimer.rounds,completedRounds:homeTimer.completedRounds,exercisesDone:homeTimer.exercise+ (homeTimer.phase==='rest'?1:0),dur:duration,cal,exs:preset.exs.slice(0,homeTimer.exercise+1).map(name=>({name,sets:0,reps:0,w:0}))});
-    save(LS.workouts,workouts); renderAll();
-  }
-  clearInterval(homeTimer.interval); homeTimer=null;
-  document.getElementById('homeTimerModal').classList.remove('open');
-}
-function advanceHomeTimer(){
-  if(!homeTimer) return;
-  if(homeTimer.phase==='work') homeTimer.completedSeconds+=45; else homeTimer.completedSeconds+=15;
-  if(homeTimer.phase==='work'){ homeTimer.phase='rest'; homeTimer.left=15; renderHomeTimer(); return; }
-  if(homeTimer.exercise===9){
-    if(homeTimer.round===homeTimer.rounds){ homeTimer.completedRounds=homeTimer.rounds; finishHomeTimer(true); alert('✅ Đã hoàn thành '+HOME_PRESETS[homeTimer.preset].title+' · '+homeTimer.rounds+' vòng'); return; }
-    homeTimer.round++; homeTimer.exercise=0;
-  }else homeTimer.exercise++;
-  homeTimer.phase='work'; homeTimer.left=45; homeTimer.completedRounds=Math.max(homeTimer.completedRounds,homeTimer.round-1); renderHomeTimer();
-}
-function startHomeTimer(preset){
-  if(homeTimer) return;
-  homeTimer={preset,rounds:Number(document.getElementById('homeRounds').value),round:1,exercise:0,phase:'work',left:45,paused:false,completedSeconds:0,completedRounds:0,interval:null};
-  document.getElementById('homeTimerModal').classList.add('open'); renderHomeTimer();
-  homeTimer.interval=setInterval(()=>{ if(!homeTimer||homeTimer.paused) return; homeTimer.left--; if(homeTimer.left<=0) advanceHomeTimer(); else renderHomeTimer(); },1000);
-}
-document.getElementById('startHiit').addEventListener('click',()=>startHomeTimer('hiit'));
-document.getElementById('startAbs').addEventListener('click',()=>startHomeTimer('abs'));
-document.getElementById('timerPause').addEventListener('click',()=>{ if(homeTimer){homeTimer.paused=!homeTimer.paused; renderHomeTimer();} });
-document.getElementById('timerSkip').addEventListener('click',()=>{ if(homeTimer){homeTimer.left=1; homeTimer.phase==='work'?homeTimer.completedSeconds+=44:homeTimer.completedSeconds+=14; renderHomeTimer();} });
-document.getElementById('timerStop').addEventListener('click',()=>{ if(homeTimer&&confirm('Dừng buổi tập? Có lưu phần đã tập không?')) finishHomeTimer(true); });
-document.getElementById('timerClose').addEventListener('click',()=>{ if(homeTimer&&confirm('Đóng timer và bỏ buổi tập?')) finishHomeTimer(false); });
 
 // ====== MEALS ======
 // Nạp database món ăn
@@ -605,7 +552,7 @@ foodInput.addEventListener('focus', ()=>showSugs(foodInput.value));
 foodInput.addEventListener('input', ()=>showSugs(foodInput.value));
 // Bấm ✕ → xoá món, xoá macro, focus lại input
 document.getElementById('foodClear').addEventListener('click', ()=>{
-  foodInput.value=''; sugBox.style.display='none';
+  foodInput.value=''; mealBaseMacros=null; sugBox.style.display='none';
   document.getElementById('mCalV').value=''; document.getElementById('mProV').value='';
   document.getElementById('mCarbV').value=''; document.getElementById('mFatV').value='';
   document.getElementById('mQty').value=1; document.getElementById('mQtyLbl').textContent='Số suất';
@@ -620,18 +567,28 @@ document.addEventListener('click', e=>{ if(!e.target.closest('.food-search-wrap'
   [...m.options].forEach(o=>{ if(o.text===guess) m.value=o.value; });
 })();
 document.getElementById('mQty').addEventListener('input', ()=>{
+  if(mealBaseMacros){
+    const q=Math.max(0,num(document.getElementById('mQty').value,1));
+    setMealMacros(mealBaseMacros,q);
+    return;
+  }
   const v=foodInput.value.trim().replace(' ⭐','');
   const hit=allFoods().find(f=>f.n.toLowerCase()===v.toLowerCase());
   if(hit) fillMacros(hit);
 });
-// Điền macro theo món + khối lượng
+function setMealMacros(base, qty){
+  document.getElementById('mCalV').value=Math.round(base.cal*qty);
+  document.getElementById('mProV').value=Math.round(base.pro*qty);
+  document.getElementById('mCarbV').value=Math.round(base.carb*qty);
+  document.getElementById('mFatV').value=Math.round(base.fat*qty);
+}
+// Điền macro theo món + khối lượng/số suất
 function fillMacros(hit){
   const qty=num(document.getElementById('mQty').value,100);
   const ratio=hit.unit==='g' ? qty/100 : qty;
-  document.getElementById('mCalV').value=Math.round(hit.kcal*ratio);
-  document.getElementById('mProV').value=Math.round(hit.p*ratio);
-  document.getElementById('mCarbV').value=Math.round(hit.c*ratio);
-  document.getElementById('mFatV').value=Math.round(hit.f*ratio);
+  const factor=hit.unit==='g'?100:1;
+  mealBaseMacros={cal:hit.kcal/factor,pro:hit.p/factor,carb:hit.c/factor,fat:hit.f/factor};
+  setMealMacros(mealBaseMacros,qty);
   document.getElementById('mQtyLbl').textContent=hit.unit==='g' ? 'Khối lượng (g)' : 'Số suất';
 }
 // Lưu món yêu thích
@@ -669,7 +626,7 @@ function addMeal(){
     name:name||'Món ăn', cal, pro:num(document.getElementById('mProV').value),
     carb:num(document.getElementById('mCarbV').value), fat:num(document.getElementById('mFatV').value)};
   if(editingMealId) meals=meals.map(x=>x.id===editingMealId?{...m,id:editingMealId}:x); else meals.push(m);
-  editingMealId=null; save(LS.meals, meals);
+  editingMealId=null; mealBaseMacros=null; save(LS.meals, meals);
   document.getElementById('mName').value=''; document.getElementById('mTime').value=clockNow(); ['mCalV','mProV','mCarbV','mFatV'].forEach(i=>document.getElementById(i).value='');
   renderAll();
 }
@@ -877,17 +834,19 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
       try{ items=parseNutritionJson(txt); }
       catch(e){ out.textContent='❌ AI trả JSON lỗi: '+e.message; return; }
       if(!items.length){ out.textContent='⚠️ AI không nhận diện rõ món trong ảnh. Thử ảnh sáng hơn hoặc thêm mô tả món ăn.'; return; }
-      items.forEach(it=>{
-        // AI đã trả TỔNG kcal/p/c/f cho đúng số lượng → dùng thẳng, không nhân ratio nữa
-        meals.push({id:Date.now()+Math.random(), date:today(), meal:document.getElementById('mMeal').value,
-          name:it.name||'Món ăn', cal:Math.round(num(it.kcal,0)), pro:Math.round(num(it.p,0)),
-          carb:Math.round(num(it.c,0)), fat:Math.round(num(it.f,0))});
-      });
-      save(LS.meals, meals);
-      out.innerHTML='✅ Đã thêm <b>'+items.length+'</b> món: '+items.map(x=>x.name+(x.qty?` (${x.qty}${x.unit==='g'?'g':''})`:'')).join(', ');
+      const it=items[0];
+      aiPendingMeals=items.slice(1);
+      document.getElementById('mName').value=it.name||'Món ăn';
+      document.getElementById('mQty').value=it.unit==='g'?num(it.qty,100):num(it.qty,1);
+      document.getElementById('mQtyLbl').textContent=it.unit==='g'?'Khối lượng (g)':'Số suất';
+      const aiQty=Math.max(0.001,num(it.qty,it.unit==='g'?100:1));
+      mealBaseMacros={cal:num(it.kcal)/aiQty,pro:num(it.p)/aiQty,carb:num(it.c)/aiQty,fat:num(it.f)/aiQty};
+      setMealMacros(mealBaseMacros,aiQty);
+      out.innerHTML='✅ Đã điền món vào form. Sửa Số suất/khối lượng rồi bấm <b>＋ Thêm</b>.'+
+        (items.length>1?`<br>⚠️ Còn ${items.length-1} món AI nhận diện — thêm từng món để kiểm tra khẩu phần.`:'');
       document.getElementById('aiPrompt').value='';
-      aiPhotoData = null; // xoá ảnh sau khi thêm thành công
-      renderAll();
+      aiPhotoData = null;
+      document.getElementById('mName').scrollIntoView({behavior:'smooth',block:'center'});
     })
     .catch(e=>{ out.textContent='❌ Lỗi phân tích ảnh: '+(e.message||'Không kết nối được API')+'\n\nNếu lỗi là "Load failed", kiểm tra API/CORS hoặc model vision.'; });
 }
