@@ -397,21 +397,34 @@ function updateCardioPreview(){
   const el=document.getElementById('cCalPreview'); if(!el) return;
   const k=calcCardioKcal(); el.textContent=k?'🔥 '+fmt(k)+' kcal':'—'; el.classList.toggle('has',!!k);
 }
-['cType','cDur','cDistance','cElevation'].forEach(id=>document.getElementById(id).addEventListener('input',updateCardioPreview));
+function updateCardioFields(){
+  const fields={
+    'Đi bộ trên máy':['distance','speed','incline'],
+    'Đi bộ ngoài trời':['distance','speed','elevation'],
+    'Chạy bộ':['distance','pace','elevation'],
+    'Cầu lông':['intensity'],
+    'Bơi':['distance','pool','laps']
+  };
+  const active=new Set(fields[document.getElementById('cType').value]||[]);
+  document.querySelectorAll('.cardio-field').forEach(el=>el.style.display=active.has(el.dataset.cardio)?'':'none');
+  document.getElementById('cPoolOtherWrap').style.display=document.getElementById('cType').value==='Bơi'&&document.getElementById('cPool').value==='other'?'':'none';
+}
+['cType','cDur','cDistance','cSpeed','cIncline','cElevation','cPace','cIntensity','cPool','cPoolOther','cLaps'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{updateCardioFields();updateCardioPreview();}));
 document.getElementById('cDate').value=today();
+updateCardioFields();
 document.getElementById('cTime').value=clockNow();
 document.getElementById('saveCardio').addEventListener('click',()=>{
   const dur=num(document.getElementById('cDur').value);
   if(dur<=0){ alert('Nhập thời lượng cardio'); document.getElementById('cDur').focus(); return; }
   const name=document.getElementById('cType').value;
-  const ex={name,sets:0,reps:0,w:dur,distance:num(document.getElementById('cDistance').value),elevation:num(document.getElementById('cElevation').value)};
+  const ex={name,sets:0,reps:0,w:dur,distance:num(document.getElementById('cDistance').value),speed:num(document.getElementById('cSpeed').value),incline:num(document.getElementById('cIncline').value),elevation:num(document.getElementById('cElevation').value),pace:num(document.getElementById('cPace').value),intensity:document.getElementById('cIntensity').value,poolLength:document.getElementById('cPool').value==='other'?num(document.getElementById('cPoolOther').value):num(document.getElementById('cPool').value),laps:num(document.getElementById('cLaps').value)};
   const cal=calcCardioKcal();
   const record={id:editingCardioId||Date.now(),date:document.getElementById('cDate').value||today(),time:document.getElementById('cTime').value||clockNow(),type:'Cardio',dur,cal,exs:[ex]};
   if(editingCardioId) workouts=workouts.map(w=>w.id===editingCardioId?record:w); else workouts.push(record);
   editingCardioId=null;
   save(LS.workouts,workouts); renderAll();
   alert('✅ Đã lưu cardio! Đốt ~'+fmt(cal)+' kcal');
-  document.getElementById('cDur').value=''; document.getElementById('cDistance').value=''; document.getElementById('cElevation').value=''; updateCardioPreview();
+  ['cDur','cDistance','cSpeed','cIncline','cElevation','cPace','cLaps','cPoolOther'].forEach(id=>document.getElementById(id).value=''); updateCardioPreview();
 });
 function exerciseRow(ex){
   const cardio = ex && isCardio(ex.name);
@@ -500,7 +513,7 @@ function renderWorkoutList(){
               const c=isCardio(e.name);
               if(w.preset) return `<span class="chip">${e.name}</span>`;
               return c
-                ? `<span class="chip">${e.name} ${e.w||0} phút${e.distance?' · '+e.distance+' km':''}${e.elevation?' · +'+e.elevation+' m':''}${e.speed?' @'+e.speed+'km/h':''}${e.incline?' dốc'+e.incline+'%':''}</span>`
+                ? `<span class="chip">${e.name} ${e.w||0} phút${e.distance?' · '+e.distance+' km':''}${e.speed?' · '+e.speed+' km/h':''}${e.pace?' · pace '+e.pace:''}${e.incline?' · dốc '+e.incline+'%':''}${e.elevation?' · +'+e.elevation+' m':''}${e.intensity?' · '+e.intensity:''}${e.poolLength?' · hồ '+e.poolLength+'m':''}${e.laps?' · '+e.laps+' vòng':''}</span>`
                 : `<span class="chip">${e.name} ${e.sets}×${e.reps}${e.w?' @'+e.w+'kg':''}</span>`;
             }).join('')}</div>
     </div>`).join('');

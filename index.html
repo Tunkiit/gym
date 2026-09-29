@@ -145,8 +145,15 @@
             </select>
           </div>
           <div class="field"><label>Thời lượng (phút) *</label><input type="number" id="cDur" min="1" placeholder="60"></div>
-          <div class="field"><label>Quãng đường (km)</label><input type="number" id="cDistance" min="0" step="0.01" placeholder="9.63"></div>
-          <div class="field"><label>Độ cao tăng (m)</label><input type="number" id="cElevation" min="0" step="1" placeholder="631"></div>
+          <div class="field cardio-field" data-cardio="distance"><label id="cDistanceLabel">Quãng đường (km)</label><input type="number" id="cDistance" min="0" step="0.01" placeholder="3.2"></div>
+          <div class="field cardio-field" data-cardio="speed"><label>Tốc độ (km/h)</label><input type="number" id="cSpeed" min="0" step="0.1" placeholder="4.0"></div>
+          <div class="field cardio-field" data-cardio="incline"><label>Độ dốc (%)</label><input type="number" id="cIncline" min="0" step="0.5" placeholder="4"></div>
+          <div class="field cardio-field" data-cardio="elevation"><label>Độ cao tăng (m)</label><input type="number" id="cElevation" min="0" step="1" placeholder="631"></div>
+          <div class="field cardio-field" data-cardio="pace"><label>Pace (phút/km)</label><input type="number" id="cPace" min="0" step="0.01" placeholder="6.30"></div>
+          <div class="field cardio-field" data-cardio="intensity"><label>Cường độ</label><select id="cIntensity"><option value="Nhẹ">Nhẹ</option><option value="Vừa" selected>Vừa</option><option value="Nặng">Nặng</option></select></div>
+          <div class="field cardio-field" data-cardio="pool"><label>Độ dài hồ (m)</label><select id="cPool"><option value="25">25 m</option><option value="50">50 m</option><option value="other">Khác</option></select></div>
+          <div class="field cardio-field" id="cPoolOtherWrap" data-cardio="pool" style="display:none"><label>Hồ dài (m)</label><input type="number" id="cPoolOther" min="1" step="1" placeholder="33"></div>
+          <div class="field cardio-field" data-cardio="laps"><label>Số vòng</label><input type="number" id="cLaps" min="0" step="1" placeholder="20"></div>
           <div class="field"><label>Calo đốt</label><div id="cCalPreview" class="cal-preview">—</div></div>
           <button class="btn" id="saveCardio">Lưu cardio</button>
         </div>
@@ -430,6 +437,6 @@
 
 <script src="config.js"></script>
 <script src="data/routine.js?v=39"></script>
-<script src="script.js?v=51"></script>
+<script src="script.js?v=52"></script>
 </body>
 </html>
