@@ -107,7 +107,6 @@
               <button class="type-btn" data-type="Legs">🟢 Legs</button>
               <button class="type-btn" data-type="Upper">🟣 Upper</button>
               <button class="type-btn" data-type="Lower">🟡 Lower</button>
-              <button class="type-btn" data-type="Cardio">🏃 Cardio</button>
             </div>
           </div>
           <div class="field"><label>Giờ bắt đầu</label><input type="time" id="wTime"></div>
@@ -120,17 +119,6 @@
             </div>
             <span id="intensityHint" style="font-size:11px;color:var(--muted);line-height:1.4"></span>
           </div>
-          <div class="field" id="cardioField" style="display:none"><label>Môn cardio</label>
-            <select id="cardioSelect">
-              <option value="Đi bộ trên máy">Đi bộ trên máy</option>
-              <option value="Đi bộ ngoài trời">Đi bộ ngoài trời</option>
-              <option value="Chạy bộ">Chạy bộ</option>
-              <option value="Cầu lông">Cầu lông</option>
-              <option value="Bơi">Bơi</option>
-            </select>
-          </div>
-          <div class="field cardio-extra" style="display:none"><label>Quãng đường (km)</label><input type="number" id="cardioDistance" min="0" step="0.01" placeholder="9.63"></div>
-          <div class="field cardio-extra" style="display:none"><label>Độ cao tăng (m)</label><input type="number" id="cardioElevation" min="0" step="1" placeholder="631"></div>
           <div class="field"><label>Calo đốt (tự tính)</label><div id="calPreview" class="cal-preview">—</div></div>
         </div>
         <h3 style="margin-top:18px">📝 Bài tập trong buổi</h3>
@@ -140,6 +128,27 @@
           <button class="btn ghost sm" id="addExercise">＋ Thêm bài tập</button>
           <button class="btn ghost sm danger-btn" id="resetWorkout">🗑️ Reset buổi tập</button>
           <button class="btn" id="saveWorkout">Lưu buổi tập</button>
+        </div>
+      </div>
+      <div class="card" id="cardioCard">
+        <h3>🏃 Ghi cardio</h3>
+        <div class="form-row">
+          <div class="field"><label>Ngày</label><input type="date" id="cDate"></div>
+          <div class="field"><label>Giờ bắt đầu</label><input type="time" id="cTime"></div>
+          <div class="field"><label>Môn cardio</label>
+            <select id="cType">
+              <option value="Đi bộ trên máy">Đi bộ trên máy</option>
+              <option value="Đi bộ ngoài trời">Đi bộ ngoài trời</option>
+              <option value="Chạy bộ">Chạy bộ</option>
+              <option value="Cầu lông">Cầu lông</option>
+              <option value="Bơi">Bơi</option>
+            </select>
+          </div>
+          <div class="field"><label>Thời lượng (phút) *</label><input type="number" id="cDur" min="1" placeholder="60"></div>
+          <div class="field"><label>Quãng đường (km)</label><input type="number" id="cDistance" min="0" step="0.01" placeholder="9.63"></div>
+          <div class="field"><label>Độ cao tăng (m)</label><input type="number" id="cElevation" min="0" step="1" placeholder="631"></div>
+          <div class="field"><label>Calo đốt</label><div id="cCalPreview" class="cal-preview">—</div></div>
+          <button class="btn" id="saveCardio">Lưu cardio</button>
         </div>
       </div>
       <div class="card">
@@ -421,6 +430,6 @@
 
 <script src="config.js"></script>
 <script src="data/routine.js?v=39"></script>
-<script src="script.js?v=50"></script>
+<script src="script.js?v=51"></script>
 </body>
 </html>

@@ -236,10 +236,7 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
   const target = hit ? dayName : (curSplit==='PPL' ? (dayName.includes('PUSH')?'Push':dayName.includes('PULL')?'Pull':'Legs') : dayName.startsWith('Legs')?'Legs':dayName.startsWith('Upper')?'Upper':'Lower');
   wbtns.forEach(b=>b.classList.toggle('active', b.dataset.type===target));
   wType = target;
-  // đồng bộ ẩn/hiện trường cường độ / cardio
-  const isCardioType = wType==='Cardio';
-  document.getElementById('intensityField').style.display = isCardioType?'none':'';
-  document.getElementById('cardioField').style.display = isCardioType?'':'none';
+  document.getElementById('intensityField').style.display = '';
   updateIntensityHint();
   const container=document.getElementById('exerciseRows');
   container.innerHTML='';
@@ -250,6 +247,7 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
 // ====== WORKOUT ======
 let wType = 'Push'; // phải khai báo TRƯỚC khi dùng trong fillWorkoutFromRoutine
 let editingWorkoutId = null;
+let editingCardioId = null;
 let editingMealId = null;
 let mealBaseMacros = null;
 let aiPendingMeals = [];
@@ -261,15 +259,6 @@ document.querySelectorAll('#wTypeBtns .type-btn').forEach(b=>{
     document.querySelectorAll('#wTypeBtns .type-btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active'); wType=b.dataset.type;
     fillExList(); // cập nhật gợi ý bài tập theo loại buổi vừa chọn
-    // Cardio: ẩn cường độ, hiện chọn môn; còn lại: ngược lại
-    const isCardioType = wType==='Cardio';
-    document.getElementById('intensityField').style.display = isCardioType?'none':'';
-    document.getElementById('cardioField').style.display = isCardioType?'':'none';
-    document.querySelectorAll('.cardio-extra').forEach(x=>x.style.display=isCardioType?'':'none');
-    if(isCardioType){
-      const first=document.querySelector('#exerciseRows .ex-name');
-      if(first&&!first.value) first.value=document.getElementById('cardioSelect').value;
-    }
     updateCalPreview();
   });
 });
@@ -295,13 +284,6 @@ document.querySelectorAll('#intensityBtns .type-btn').forEach(b=>{
   });
 });
 updateIntensityHint(); // hiện hint mặc định khi load
-// Đổi môn cardio → tính calo lại
-document.getElementById('cardioSelect').addEventListener('change', ()=>{
-  const first=document.querySelector('#exerciseRows .ex-name');
-  if(wType==='Cardio' && first){ first.value=document.getElementById('cardioSelect').value; first.dispatchEvent(new Event('input')); }
-  updateCalPreview();
-});
-document.querySelectorAll('.cardio-extra input').forEach(i=>i.addEventListener('input', updateCalPreview));
 // Gõ thời lượng → tính calo live
 document.getElementById('wDur').addEventListener('input', updateCalPreview);
 
@@ -406,6 +388,31 @@ function updateCalPreview(){
   el.textContent = k>0 ? '🔥 '+fmt(k)+' kcal' : '—';
   el.classList.toggle('has', k>0);
 }
+function calcCardioKcal(){
+  const dur=num(document.getElementById('cDur').value);
+  const met=CARDIO_MET[document.getElementById('cType').value]||0;
+  return dur>0?Math.round(met*3.5*getBodyWeight()*dur/200):0;
+}
+function updateCardioPreview(){
+  const el=document.getElementById('cCalPreview'); if(!el) return;
+  const k=calcCardioKcal(); el.textContent=k?'🔥 '+fmt(k)+' kcal':'—'; el.classList.toggle('has',!!k);
+}
+['cType','cDur','cDistance','cElevation'].forEach(id=>document.getElementById(id).addEventListener('input',updateCardioPreview));
+document.getElementById('cDate').value=today();
+document.getElementById('cTime').value=clockNow();
+document.getElementById('saveCardio').addEventListener('click',()=>{
+  const dur=num(document.getElementById('cDur').value);
+  if(dur<=0){ alert('Nhập thời lượng cardio'); document.getElementById('cDur').focus(); return; }
+  const name=document.getElementById('cType').value;
+  const ex={name,sets:0,reps:0,w:dur,distance:num(document.getElementById('cDistance').value),elevation:num(document.getElementById('cElevation').value)};
+  const cal=calcCardioKcal();
+  const record={id:editingCardioId||Date.now(),date:document.getElementById('cDate').value||today(),time:document.getElementById('cTime').value||clockNow(),type:'Cardio',dur,cal,exs:[ex]};
+  if(editingCardioId) workouts=workouts.map(w=>w.id===editingCardioId?record:w); else workouts.push(record);
+  editingCardioId=null;
+  save(LS.workouts,workouts); renderAll();
+  alert('✅ Đã lưu cardio! Đốt ~'+fmt(cal)+' kcal');
+  document.getElementById('cDur').value=''; document.getElementById('cDistance').value=''; document.getElementById('cElevation').value=''; updateCardioPreview();
+});
 function exerciseRow(ex){
   const cardio = ex && isCardio(ex.name);
   const d=document.createElement('div');
