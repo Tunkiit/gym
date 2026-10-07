@@ -644,7 +644,9 @@ function addMeal(){
   if(!name&&cal<=0){ alert('Nhập tên món hoặc calo'); return; }
   const m={id:Date.now(), date, time:document.getElementById('mTime').value||clockNow(), meal:document.getElementById('mMeal').value,
     name:name||'Món ăn', cal, pro:num(document.getElementById('mProV').value),
-    carb:num(document.getElementById('mCarbV').value), fat:num(document.getElementById('mFatV').value)};
+    carb:num(document.getElementById('mCarbV').value), fat:num(document.getElementById('mFatV').value),
+    qty:num(document.getElementById('mQty').value,1), unit:hit?.unit||'suat',
+    base:{cal:cal/Math.max(0.001,num(document.getElementById('mQty').value,1)),pro:num(document.getElementById('mProV').value)/Math.max(0.001,num(document.getElementById('mQty').value,1)),carb:num(document.getElementById('mCarbV').value)/Math.max(0.001,num(document.getElementById('mQty').value,1)),fat:num(document.getElementById('mFatV').value)/Math.max(0.001,num(document.getElementById('mQty').value,1))}};
   if(editingMealId) meals=meals.map(x=>x.id===editingMealId?{...m,id:editingMealId}:x); else meals.push(m);
   editingMealId=null; mealBaseMacros=null; save(LS.meals, meals);
   document.getElementById('mName').value=''; document.getElementById('mTime').value=clockNow(); ['mCalV','mProV','mCarbV','mFatV'].forEach(i=>document.getElementById(i).value='');
@@ -854,19 +856,20 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
       try{ items=parseNutritionJson(txt); }
       catch(e){ out.textContent='❌ AI trả JSON lỗi: '+e.message; return; }
       if(!items.length){ out.textContent='⚠️ AI không nhận diện rõ món trong ảnh. Thử ảnh sáng hơn hoặc thêm mô tả món ăn.'; return; }
-      const it=items[0];
-      aiPendingMeals=items.slice(1);
-      document.getElementById('mName').value=it.name||'Món ăn';
-      document.getElementById('mQty').value=it.unit==='g'?num(it.qty,100):num(it.qty,1);
-      document.getElementById('mQtyLbl').textContent=it.unit==='g'?'Khối lượng (g)':'Số suất';
-      const aiQty=Math.max(0.001,num(it.qty,it.unit==='g'?100:1));
-      mealBaseMacros={cal:num(it.kcal)/aiQty,pro:num(it.p)/aiQty,carb:num(it.c)/aiQty,fat:num(it.f)/aiQty};
-      setMealMacros(mealBaseMacros,aiQty);
-      out.innerHTML='✅ Đã điền món vào form. Sửa Số suất/khối lượng rồi bấm <b>＋ Thêm</b>.'+
-        (items.length>1?`<br>⚠️ Còn ${items.length-1} món AI nhận diện — thêm từng món để kiểm tra khẩu phần.`:'');
+      const mealType=document.getElementById('mMeal').value;
+      const mealTime=document.getElementById('mTime').value||clockNow();
+      items.forEach((it,i)=>{
+        const qty=Math.max(0.001,num(it.qty,it.unit==='g'?100:1));
+        meals.push({id:Date.now()+i+Math.random(),date:today(),time:mealTime,meal:mealType,
+          name:it.name||'Món ăn',cal:Math.round(num(it.kcal)),pro:Math.round(num(it.p)),
+          carb:Math.round(num(it.c)),fat:Math.round(num(it.f)),qty,unit:it.unit||'suat',
+          base:{cal:num(it.kcal)/qty,pro:num(it.p)/qty,carb:num(it.c)/qty,fat:num(it.f)/qty}});
+      });
+      save(LS.meals,meals);
+      out.innerHTML='✅ Đã thêm <b>'+items.length+'</b> món: '+items.map(x=>x.name+(x.qty?` (${x.qty}${x.unit==='g'?'g':' suất'})`:'')).join(', ');
       document.getElementById('aiPrompt').value='';
-      aiPhotoData = null;
-      document.getElementById('mName').scrollIntoView({behavior:'smooth',block:'center'});
+      aiPhotoData=null;
+      renderAll();
     })
     .catch(e=>{ out.textContent='❌ Lỗi phân tích ảnh: '+(e.message||'Không kết nối được API')+'\n\nNếu lỗi là "Load failed", kiểm tra API/CORS hoặc model vision.'; });
 }
