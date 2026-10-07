@@ -728,6 +728,9 @@ function renderDiet(){
     const m=meals.find(x=>String(x.id)===b.dataset.editM); if(!m) return;
     document.getElementById('mMeal').value=m.meal; document.getElementById('mTime').value=m.time||''; document.getElementById('mName').value=m.name;
     document.getElementById('mCalV').value=m.cal; document.getElementById('mProV').value=m.pro; document.getElementById('mCarbV').value=m.carb; document.getElementById('mFatV').value=m.fat;
+    document.getElementById('mQty').value=m.qty||1;
+    document.getElementById('mQtyLbl').textContent=m.unit==='g'?'Khối lượng (g)':'Số suất';
+    mealBaseMacros=m.base||{cal:num(m.cal)/(m.qty||1),pro:num(m.pro)/(m.qty||1),carb:num(m.carb)/(m.qty||1),fat:num(m.fat)/(m.qty||1)};
     editingMealId=m.id; document.getElementById('mName').scrollIntoView({behavior:'smooth',block:'center'}); alert('Đã đưa bữa ăn lên form — sửa rồi bấm Thêm');
   }));
   el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
