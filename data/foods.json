@@ -1,5 +1,5 @@
 [
-  {"n":"Cơm trắng","kcal":130,"p":2.7,"c":28,"f":0.3,"unit":"g"},
+  {"n":"Cơm trắng (cân chín)","kcal":130,"p":2.7,"c":28,"f":0.3,"unit":"g"},
   {"n":"Cơm tấm sườn","kcal":650,"p":25,"c":70,"f":28,"unit":"suat"},
   {"n":"Cơm gà xối mỡ","kcal":750,"p":28,"c":75,"f":35,"unit":"suat"},
   {"n":"Cơm chiên dương châu","kcal":580,"p":15,"c":70,"f":25,"unit":"suat"},
@@ -32,7 +32,7 @@
   {"n":"Cháo lòng","kcal":350,"p":14,"c":40,"f":14,"unit":"suat"},
   {"n":"Cháo gà","kcal":280,"p":15,"c":40,"f":6,"unit":"suat"},
   {"n":"Cháo trai","kcal":250,"p":12,"c":35,"f":7,"unit":"suat"},
-  {"n":"Ức gà (luộc/nướng)","kcal":165,"p":31,"c":0,"f":3.6,"unit":"g"},
+  {"n":"Ức gà (cân sống)","kcal":120,"p":23,"c":0,"f":2.6,"unit":"g"},
   {"n":"Đùi gà (nướng)","kcal":210,"p":26,"c":0,"f":11,"unit":"g"},
   {"n":"Thịt heo nạc (luộc)","kcal":240,"p":27,"c":0,"f":14,"unit":"g"},
   {"n":"Ba chỉ heo (luộc)","kcal":330,"p":18,"c":0,"f":28,"unit":"g"},

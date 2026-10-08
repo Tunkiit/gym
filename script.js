@@ -604,6 +604,7 @@ function setMealMacros(base, qty){
 }
 // Điền macro theo món + khối lượng/số suất
 function fillMacros(hit){
+  if(/cơm/i.test(hit.n)) document.getElementById('mMeal').value='Bữa chính';
   const qty=num(document.getElementById('mQty').value,100);
   const ratio=hit.unit==='g' ? qty/100 : qty;
   const factor=hit.unit==='g'?100:1;
@@ -832,7 +833,9 @@ function aiParse(){
 Hãy NHẬN DIỆN món ăn trong ảnh và trả về CHỈ MỘT JSON array, mỗi phần tử: {"name":"tên món","qty":số lượng,"unit":"g hoặc suat","kcal":số,"p":protein g,"c":carbs g,"f":fat g}.
 QUAN TRỌNG: kcal/p/c/f là TỔNG giá trị của món đó với ĐÚNG số lượng qty đã cho (không phải per 100g).
 Nếu không chắc khối lượng thì ước lượng suất ăn điển hình (VD 1 tô phở bò ≈ 450 kcal, 20g P, 50g C, 15g F) rồi ghi rõ trong name.
-Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":"g","kcal":495,"p":93,"c":0,"f":9} (vì 100g ức gà ≈ 165 kcal, 31g P → 300g ≈ 495 kcal, 93g P).
+Quy ước cân: ức gà tính theo gram lúc sống; cơm tính theo gram sau khi nấu chín. Ghi rõ "cân sống" hoặc "cân chín" trong name khi phù hợp.
+Ví dụ: "300g ức gà sống" → {"name":"Ức gà (cân sống)","qty":300,"unit":"g","kcal":360,"p":69,"c":0,"f":8} (100g ức gà sống ≈ 120 kcal, 23g P).
+"300g cơm chín" → {"name":"Cơm trắng (cân chín)","qty":300,"unit":"g","kcal":390,"p":8,"c":84,"f":1} (100g cơm chín ≈ 130 kcal).
 "2 quả trứng ốp la" → {"name":"trứng ốp la","qty":2,"unit":"qua","kcal":180,"p":14,"c":1,"f":13} (1 quả ≈ 90 kcal).
 "1 tô phở bò" → {"name":"phở bò","qty":1,"unit":"suat","kcal":450,"p":20,"c":50,"f":15}.
 Ước lượng dinh dưỡng hợp lý. KHÔNG thêm text nào ngoài JSON.`;
@@ -859,11 +862,11 @@ Ví dụ: "300g ức gà luộc" → {"name":"ức gà luộc","qty":300,"unit":
       try{ items=parseNutritionJson(txt); }
       catch(e){ out.textContent='❌ AI trả JSON lỗi: '+e.message; return; }
       if(!items.length){ out.textContent='⚠️ AI không nhận diện rõ món trong ảnh. Thử ảnh sáng hơn hoặc thêm mô tả món ăn.'; return; }
-      const mealType=document.getElementById('mMeal').value;
-      const mealTime=document.getElementById('mTime').value||clockNow();
+      const selectedMeal=document.getElementById('mMeal').value;
+            const mealTime=document.getElementById('mTime').value||clockNow();
       items.forEach((it,i)=>{
         const qty=Math.max(0.001,num(it.qty,it.unit==='g'?100:1));
-        meals.push({id:Date.now()+i+Math.random(),date:today(),time:mealTime,meal:mealType,
+        meals.push({id:Date.now()+i+Math.random(),date:today(),time:mealTime,meal:/cơm/i.test(it.name||'')?'Bữa chính':selectedMeal,
           name:it.name||'Món ăn',cal:Math.round(num(it.kcal)),pro:Math.round(num(it.p)),
           carb:Math.round(num(it.c)),fat:Math.round(num(it.f)),qty,unit:it.unit||'suat',
           base:{cal:num(it.kcal)/qty,pro:num(it.p)/qty,carb:num(it.c)/qty,fat:num(it.f)/qty}});
