@@ -774,23 +774,30 @@ let aiPhotoData = null;
 document.getElementById('aiUploadImg').addEventListener('change', e=>{
   const f = e.target.files && e.target.files[0];
   if(!f) return;
-  const img = new Image();
-  const url = URL.createObjectURL(f);
-  img.onload = ()=>{
-    const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
-    const cv = document.createElement('canvas');
-    cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
-    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-    URL.revokeObjectURL(url);
-    aiPhotoData = cv.toDataURL('image/jpeg', 0.85);
-    // hiện thumbnail
-    document.getElementById('aiPhotoThumb').src = aiPhotoData;
-    document.getElementById('aiPhotoName').textContent = f.name;
-    document.getElementById('aiPhotoBox').style.display = 'flex';
-    document.getElementById('aiResult').textContent = '';
+  if(!/^image\/(jpeg|png|webp)$/i.test(f.type)){
+    document.getElementById('aiResult').textContent='❌ Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP';
+    e.target.value=''; return;
+  }
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      if(!img.naturalWidth||!img.naturalHeight){ document.getElementById('aiResult').textContent='❌ Ảnh không có kích thước hợp lệ'; return; }
+      const scale=Math.min(1,1200/Math.max(img.naturalWidth,img.naturalHeight));
+      const cv=document.createElement('canvas');
+      cv.width=Math.max(1,Math.round(img.naturalWidth*scale)); cv.height=Math.max(1,Math.round(img.naturalHeight*scale));
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      aiPhotoData=cv.toDataURL('image/jpeg',0.72);
+      document.getElementById('aiPhotoThumb').src=aiPhotoData;
+      document.getElementById('aiPhotoName').textContent=f.name;
+      document.getElementById('aiPhotoBox').style.display='flex';
+      document.getElementById('aiResult').textContent='';
+    };
+    img.onerror=()=>{ document.getElementById('aiResult').textContent='❌ Không giải mã được ảnh. Chọn JPG/PNG/WEBP khác.'; };
+    img.src=reader.result;
   };
-  img.onerror = ()=>{ URL.revokeObjectURL(url); document.getElementById('aiResult').textContent='❌ Không đọc được ảnh'; };
-  img.src = url;
+  reader.onerror=()=>{ document.getElementById('aiResult').textContent='❌ Không đọc được file ảnh'; };
+  reader.readAsDataURL(f);
   e.target.value = '';
 });
 // Nút bỏ ảnh
@@ -846,8 +853,11 @@ Ví dụ: "300g ức gà sống" → {"name":"Ức gà (cân sống)","qty":300,
       ]
     : prompt;
   const ep = (AI_CFG.endpoint||'https://api.apiforcode.com/v1').replace(/\/+$/,'');
-  fetch(ep+'/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),90000);
+  fetch(ep+'/chat/completions', {method:'POST', signal:controller.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_CFG.key},
     body:JSON.stringify({model:aiPhotoData ? (AI_CFG.visionModel||'glm-5.3-flash-cn') : (AI_CFG.model||'glm-5.3-flash-cn'), messages:[{role:'system',content:sys},{role:'user',content:userMsg}], temperature:0.2})})
+    .finally(()=>clearTimeout(timeout))
     .then(async r=>{
       const raw=await r.text();
       let data;
@@ -877,7 +887,10 @@ Ví dụ: "300g ức gà sống" → {"name":"Ức gà (cân sống)","qty":300,
       aiPhotoData=null;
       renderAll();
     })
-    .catch(e=>{ out.textContent='❌ Lỗi phân tích ảnh: '+(e.message||'Không kết nối được API')+'\n\nNếu lỗi là "Load failed", kiểm tra API/CORS hoặc model vision.'; });
+    .catch(e=>{
+      const msg=e.name==='AbortError'?'API xử lý quá lâu (quá 90 giây)':(e.message||'Không kết nối được API');
+      out.textContent='❌ Lỗi phân tích ảnh: '+msg+'\n\nNếu text chạy nhưng ảnh lỗi, kiểm tra model vision hoặc API/CORS.';
+    });
 }
 document.getElementById('aiParseBtn').addEventListener('click', aiParse);
 document.getElementById('aiPrompt').addEventListener('keydown', e=>{ if(e.key==='Enter') aiParse(); });
