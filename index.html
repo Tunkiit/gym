@@ -266,6 +266,17 @@
         <h3>📋 Lịch sử</h3>
         <div id="weightList"></div>
       </div>
+      <div class="card">
+        <h3>📐 Vòng bụng</h3>
+        <div class="form-row">
+          <div class="field"><label>Ngày</label><input type="date" id="waistDate"></div>
+          <div class="field"><label>Vòng bụng (cm)</label><input type="number" id="waistVal" step="0.5" min="30" max="200" placeholder="85"></div>
+          <button class="btn" id="saveWaist">Lưu</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px">Đo ngang rốn, buổi sáng trước khi ăn, thả lỏng bụng (không hóp). Mỗi tuần 1 lần là đủ. Cân đứng yên mà vòng bụng giảm = đang giảm mỡ, tăng cơ.</div>
+        <div id="waistChart" style="margin-top:12px"></div>
+        <div id="waistList" style="margin-top:10px"></div>
+      </div>
     </section>
 
     <!-- PROGRESS -->
@@ -326,6 +337,7 @@
           <li>Ghi cân nặng mỗi sáng (sau khi đi vệ sinh, trước ăn — cho đều).</li>
           <li>App vẽ biểu đồ để xem xu hướng dài hạn. Cân dao động ±1kg trong ngày là bình thường — nhìn xu hướng tuần/tháng, đừng nhìn từng ngày.</li>
           <li>Không cần ghi mỗi ngày — 3-4 lần/tuần là đủ.</li>
+          <li><b>📐 Vòng bụng</b> — đo ngang rốn mỗi tuần 1 lần, sáng trước khi ăn. Đây là chỉ số rõ nhất để biết đang giảm mỡ bụng.</li>
         </ul>
       </div>
       <div class="card">
@@ -373,6 +385,6 @@
 </div>
 
 <script src="data/routine.js?v=41"></script>
-<script src="script.js?v=58"></script>
+<script src="script.js?v=59"></script>
 </body>
 </html>

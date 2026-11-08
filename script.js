@@ -4,7 +4,7 @@
 // ====== STATE ======
 const LS = {
   goals:'gym_goals', workouts:'gym_workouts', meals:'gym_meals',
-  weights:'gym_weights', name:'gym_name', theme:'gym_theme'
+  weights:'gym_weights', waist:'gym_waist', name:'gym_name', theme:'gym_theme'
 };
 function load(k, fb){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?fb:v }catch(e){ return fb } }
 function save(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch(e){} }
@@ -825,6 +825,7 @@ document.getElementById('bAge').value = body.age||'';
 document.getElementById('bGender').value = body.gender||'male';
 document.getElementById('bActive').value = String(body.active||1.4);
 document.getElementById('wtDate').value = today();
+document.getElementById('waistDate').value = today();
 document.getElementById('saveWeight').addEventListener('click',()=>{
   const date=document.getElementById('wtDate').value||today();
   const v=num(document.getElementById('wtVal').value);
@@ -832,9 +833,21 @@ document.getElementById('saveWeight').addEventListener('click',()=>{
   weights=weights.filter(w=>w.date!==date);
   weights.push({date, v}); save(LS.weights, weights); renderAll();
 });
-function renderWeight(){
-  const sorted=[...weights].sort((a,b)=>a.date.localeCompare(b.date));
-  const el=document.getElementById('weightChart');
+// Vòng bụng (cm) — đo ngang rốn, buổi sáng trước khi ăn, mỗi tuần 1 lần
+let waists = load(LS.waist, []);
+document.getElementById('saveWaist').addEventListener('click',()=>{
+  const date=document.getElementById('waistDate').value||today();
+  const v=num(document.getElementById('waistVal').value);
+  if(v<=0){ alert('Nhập vòng bụng hợp lệ (cm)'); return; }
+  waists=waists.filter(w=>w.date!==date);
+  waists.push({date, v}); save(LS.waist, waists);
+  document.getElementById('waistVal').value='';
+  renderAll();
+});
+// Vẽ biểu đồ cột + danh sách cho 1 chuỗi số đo {date, v}. Giảm = xanh (tốt cho cả cân nặng lẫn vòng bụng)
+function renderSeries(arr, chartId, listId, unit, onDelete){
+  const sorted=[...arr].sort((a,b)=>a.date.localeCompare(b.date));
+  const el=document.getElementById(chartId);
   if(sorted.length<2){ el.innerHTML='<div class="empty">Nhập ít nhất 2 lần để xem biểu đồ</div>'; }
   else{
     const vals=sorted.map(w=>w.v); const min=Math.min(...vals), max=Math.max(...vals);
@@ -845,24 +858,30 @@ function renderWeight(){
         const h=((w.v-base)/range*100)+4;
         const color=w.v<=vals[0]? 'linear-gradient(180deg,var(--accent2),#15803d)' : 'linear-gradient(180deg,var(--accent),#d97706)';
         return `<div class="bar" style="display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%">
-          <div class="tip">${w.v} kg · ${vnDate(w.date)}</div>
+          <div class="tip">${w.v} ${unit} · ${vnDate(w.date)}</div>
           <div style="height:${h}%;width:100%;border-radius:6px 6px 0 0;background:${color}"></div>
         </div>`;
       }).join('')+'</div>';
     el.innerHTML += `<div class="chart-wrap" style="height:auto;padding-top:0">${sorted.map(w=>`<div class="bar-label">${w.date===today()?'Hôm nay':vnDate(w.date)}</div>`).join('')}</div>`;
   }
   const list=[...sorted].reverse();
-  document.getElementById('weightList').innerHTML = list.length?
-    list.map((w,i)=>`
+  const listEl=document.getElementById(listId);
+  const first=sorted[0];
+  listEl.innerHTML = (list.length>=2?`<div class="list-item" style="border-color:var(--accent)"><div class="grow"><div class="name">Tổng thay đổi từ ${vnDate(first.date)}</div></div><span class="badge ${list[0].v<=first.v?'green':'red'}">${list[0].v<=first.v?'▼':'▲'} ${Math.abs(list[0].v-first.v).toFixed(1)} ${unit}</span></div>`:'')+
+    (list.length? list.map((w,i)=>`
       <div class="list-item">
         <div class="grow"><div class="name">${vnDateFull(w.date)}${w.date===today()?' (hôm nay)':''}</div></div>
-        <span class="weight-cell" style="font-size:16px">${w.v} kg</span>
+        <span class="weight-cell" style="font-size:16px">${w.v} ${unit}</span>
         ${i<list.length-1?`<span class="badge ${w.v<=list[i+1].v?'green':'red'}">${w.v<=list[i+1].v?'▼':'▲'} ${Math.abs(w.v-list[i+1].v).toFixed(1)}</span>`:''}
-        <button class="btn danger" data-del="${w.id||w.date}">✕</button>
-      </div>`).join('') : '<div class="empty">Chưa có dữ liệu</div>';
-  document.querySelectorAll('#weightList [data-del]').forEach(b=>b.addEventListener('click',()=>{
-    if(confirm('Xoá mục này?')){ weights=weights.filter(w=>(w.id||w.date)!=b.dataset.del); save(LS.weights,weights); renderAll(); }
+        <button class="btn danger" data-del="${esc(w.id||w.date)}">✕</button>
+      </div>`).join('') : '<div class="empty">Chưa có dữ liệu</div>');
+  listEl.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
+    if(confirm('Xoá mục này?')) onDelete(b.dataset.del);
   }));
+}
+function renderWeight(){
+  renderSeries(weights,'weightChart','weightList','kg', key=>{ weights=weights.filter(w=>(w.id||w.date)!=key); save(LS.weights,weights); renderAll(); });
+  renderSeries(waists,'waistChart','waistList','cm', key=>{ waists=waists.filter(w=>(w.id||w.date)!=key); save(LS.waist,waists); renderAll(); });
 }
 
 // ====== HOME ======
@@ -1074,7 +1093,7 @@ function collectData(){
     app:'gym-tracker', version:1, exported:new Date().toISOString(),
     workouts:load(LS.workouts,[]), meals:load(LS.meals,[]), weights:load(LS.weights,[]),
     goals:load(LS.goals,{cal:2400,pro:150,carb:250,fat:70}), name:localStorage.getItem(LS.name)||'',
-    favFoods:load('gym_fav_foods',[]), body:load('gym_body',null)
+    favFoods:load('gym_fav_foods',[]), body:load('gym_body',null), waist:load(LS.waist,[])
   };
 }
 document.getElementById('exportBtn').addEventListener('click',()=>{
@@ -1099,7 +1118,7 @@ document.getElementById('importFile').addEventListener('change',e=>{
       save(LS.workouts,d.workouts||[]); save(LS.meals,d.meals||[]); save(LS.weights,d.weights||[]);
       save(LS.goals,d.goals||{cal:2400,pro:150,carb:250,fat:70});
       if(d.name) localStorage.setItem(LS.name,d.name);
-      save('gym_fav_foods',d.favFoods||[]); if(d.body) save('gym_body',d.body);
+      save('gym_fav_foods',d.favFoods||[]); if(d.body) save('gym_body',d.body); save(LS.waist,d.waist||[]);
       location.reload();
     }catch(err){ showMsg('❌ '+err.message); }
   };
@@ -1113,7 +1132,7 @@ document.getElementById('resetAllBtn').addEventListener('click',()=>{
   localStorage.removeItem(LS.workouts); localStorage.removeItem(LS.meals);
   localStorage.removeItem(LS.weights); localStorage.removeItem(LS.goals);
   localStorage.removeItem(LS.name); localStorage.removeItem('gym_fav_foods');
-  localStorage.removeItem('gym_body');
+  localStorage.removeItem('gym_body'); localStorage.removeItem(LS.waist);
   alert('✅ Đã xoá sạch toàn bộ dữ liệu. Trang sẽ tải lại.');
   location.reload();
 });
