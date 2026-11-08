@@ -21,7 +21,6 @@ const EX = {
   'Seated Cable Row':       { icon:'➡️', muscle:'Lưng giữa',          tip:'Kéo cáp về bụng, ép hai bả vai lại, lưng thẳng',                      img:'Seated_Cable_Rows' },
   'One-Arm Cable Lat Pulldown': { icon:'↘️', muscle:'Xô',             tip:'Từng tay, kéo khuỷu xuống sát hông, siết xô',                         img:'One_Arm_Lat_Pulldown' },
   'Face Pull':              { icon:'🎯', muscle:'Vai sau, cầu vai',   tip:'Dây thừng ngang mặt, kéo về trán, khuỷu cao, xoay tay ra sau',        img:'Face_Pull' },
-  'Rear Delt Fly':          { icon:'🔻', muscle:'Vai sau',            tip:'Cáp hoặc máy fly ngược, tay gần thẳng, mở rộng sang hai bên',         img:'Cable_Rear_Delt_Fly' },
   'Preacher Curl':          { icon:'💪', muscle:'Tay trước',          tip:'Ghế preacher, khuỷu cố định, hạ gần thẳng tay',                       img:'Preacher_Curl', alt:'Machine_Preacher_Curls' },
   'Hammer Curl':            { icon:'🔨', muscle:'Tay trước, cẳng tay', tip:'Tạ đơn, lòng bàn tay hướng vào nhau, không vung người',             img:'Alternate_Hammer_Curl', alt:'Machine_Bicep_Curl' },
   // --- Chân / mông / bụng ---
@@ -29,10 +28,10 @@ const EX = {
   'Hack Squat':             { icon:'🦵', muscle:'Đùi trước',          tip:'Tựa lưng vào máy, hạ sâu có kiểm soát, đẩy bằng cả bàn chân',         img:'Smith_Machine_Squat' },
   'Leg Press':              { icon:'🦿', muscle:'Đùi trước, mông',    tip:'Hạ đến khi gối gần ngực, không nhấc mông khỏi ghế, không khoá gối',   img:'Leg_Press' },
   'Bulgarian Split Squat':  { icon:'🦵', muscle:'Đùi trước, mông',    tip:'Chân sau gác ghế, hạ thẳng xuống, tạ đơn hai tay. Số rep tính MỖI chân', img:'Split_Squat_with_Dumbbells', alt:'Smith_Single-Leg_Split_Squat' },
-  'Romanian Deadlift':      { icon:'🏋️', muscle:'Đùi sau, mông',      tip:'Gối hơi chùng, đẩy hông ra sau, tạ trượt dọc đùi, lưng luôn thẳng',   img:'Romanian_Deadlift' },
+  'Back Extension':         { icon:'🙇', muscle:'Đùi sau, mông, lưng dưới', tip:'Ghế 45°, gập ở hông (không gù lưng), lên đến khi người thẳng hàng chân, siết mông. Nhẹ quá thì ôm bánh tạ', img:'Hyperextensions_Back_Extensions' },
   'Leg Extension':          { icon:'⬆️', muscle:'Đùi trước',          tip:'Duỗi thẳng chân, siết đùi 1 giây ở đỉnh, hạ chậm',                    img:'Leg_Extensions' },
   'Leg Curl':               { icon:'⬇️', muscle:'Đùi sau',            tip:'Nằm sấp, cuộn gót về mông, hạ chậm',                                  img:'Lying_Leg_Curls' },
-  'Glute Drive':            { icon:'🍑', muscle:'Mông',               tip:'Máy hoặc hip thrust tạ đòn: đẩy hông lên, siết mông ở đỉnh, không ưỡn lưng', img:'Barbell_Hip_Thrust' },
+  'Walking Lunge':          { icon:'🚶', muscle:'Mông, đùi trước',    tip:'Tạ đơn hai tay, bước dài, gối sau gần chạm sàn, đẩy bằng gót chân trước. Số rep tính MỖI chân', img:'Dumbbell_Lunges' },
   'Abductor':               { icon:'🦵', muscle:'Mông bên',           tip:'Máy, đẩy hai chân ra ngoài, giữ 1 giây',                              img:'Thigh_Abductor' },
   'Calf Raise':             { icon:'🦶', muscle:'Bắp chân',           tip:'Kiễng gót hết cỡ, giữ 1 giây, hạ sâu dưới mặt bậc',                   img:'Standing_Calf_Raises' },
   'Abdominal Crunch Machine': { icon:'🎯', muscle:'Bụng',             tip:'Gập bụng, thở ra khi gập, không kéo bằng tay',                        img:'Ab_Crunch_Machine' },
@@ -88,15 +87,15 @@ const UPPER = day([
   ['Seated Cable Row',       3, '10–12'],
   ['Incline Dumbbell Press', 2, '10–12'],
   ['Lateral Raise',          4, '12–15'],
-  ['Rear Delt Fly',          2, '15–20'],
+  ['Face Pull',              2, '15–20'],
   ['Preacher Curl',          2, '10–12'],
   ['Tricep Pushdown',        2, '10–12'],
 ]);
 const LOWER = day([
-  ['Romanian Deadlift', 3, '8–10'],
+  ['Back Extension',    3, '10–15'],
   ['Hack Squat',        3, '8–10'],
   ['Leg Curl',          3, '10–12'],
-  ['Glute Drive',       3, '8–12'],
+  ['Walking Lunge',     3, '10–12'],
   ['Abductor',          2, '12–15'],
   ['Calf Raise',        4, '12–15'],
   ['Leg Raise',         3, '10–15'],
@@ -117,10 +116,9 @@ const EXTRA_SPLITS = {
 // Nhóm Push/Pull/Legs cho bài chỉ có trong Upper/Lower — dùng để lọc gợi ý khi gõ tên bài
 const _G = {
   'Chest Press Machine':'Push',
-  'Rear Delt Fly':'Pull',
-  'Romanian Deadlift':'Legs',
+  'Back Extension':'Legs',
   'Hack Squat':'Legs',
-  'Glute Drive':'Legs',
+  'Walking Lunge':'Legs',
   'Abductor':'Legs',
   'Leg Raise':'Legs',
 };
