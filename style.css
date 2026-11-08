@@ -117,7 +117,7 @@ select{min-width:140px}
 .food-sug:last-child{border-bottom:none}
 .food-sug:hover{background:var(--accent-dim, rgba(255,193,7,.12))}
 /* ===== RING CHART ===== */
-.ring-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
+.ring-grid{display:grid;grid-template-columns:repeat(2,minmax(0,200px));justify-content:center;gap:12px;margin-top:6px}
 .ring-box{position:relative;width:100%;aspect-ratio:1;max-width:130px;justify-self:center}
 .ring-box svg{width:100%;height:100%}
 .ring-bg{fill:none;stroke:var(--card2);stroke-width:10}

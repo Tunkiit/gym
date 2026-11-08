@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GYM TRACKER</title>
-<link rel="stylesheet" href="style.css?v=39">
+<link rel="stylesheet" href="style.css?v=40">
 </head>
 <body>
 <div class="app">
@@ -40,20 +40,14 @@
       <h1 class="page-title">Chào <span id="greetName">bạn</span> 👋</h1>
       <p class="greeting" id="greetMsg"></p>
       <div class="grid stats">
-        <div class="stat"><div class="ic">🔥</div><div class="val" id="stStreak">0</div><div class="lbl">Ngày tập liên tiếp</div></div>
-        <div class="stat"><div class="ic">💪</div><div class="val" id="stWorkouts">0</div><div class="lbl">Buổi tập tuần này</div></div>
+        <div class="stat"><div class="ic">💪</div><div class="val" id="stWorkouts">0/5</div><div class="lbl">Buổi tạ tuần này</div></div>
+        <div class="stat"><div class="ic">🍗</div><div class="val" id="stPro">0g</div><div class="lbl">Protein hôm nay</div></div>
         <div class="stat"><div class="ic">⚡</div><div class="val" id="stCal">0</div><div class="lbl">Calo đã đốt (7 ngày)</div></div>
         <div class="stat"><div class="ic">🥗</div><div class="val" id="stKcalIn">0</div><div class="lbl">Calo nạp hôm nay</div></div>
       </div>
-      <div class="grid" style="grid-template-columns:repeat(2,1fr)">
-        <div class="card">
-          <h3>📅 Buổi tập tuần này</h3>
-          <div id="weekWorkouts"></div>
-        </div>
-        <div class="card">
-          <h3>🍎 Bữa ăn hôm nay</h3>
-          <div id="todayMeals"></div>
-        </div>
+      <div class="card">
+        <h3>📅 Buổi tập tuần này</h3>
+        <div id="weekWorkouts"></div>
       </div>
       <div class="card" id="todaySummaryCard">
         <h3>📌 Tổng quan hôm nay</h3>
@@ -62,15 +56,6 @@
       <div class="card" id="proteinAlertCard" style="display:none">
         <h3>🍗 Nhắc protein <span class="sub" id="proteinAlertTime"></span></h3>
         <div id="proteinAlert"></div>
-      </div>
-      <div class="card">
-        <h3 style="display:flex;align-items:center;gap:8px">🏆 Tiến độ tháng
-          <button class="btn ghost sm" id="monthPrev">←</button>
-          <span id="monthLabel" style="min-width:90px;text-align:center"></span>
-          <button class="btn ghost sm" id="monthNext">→</button>
-          <span class="sub" id="monthSummary" style="margin-left:auto"></span>
-        </h3>
-        <div id="monthChart" class="chart-wrap"></div>
       </div>
     </section>
 
@@ -161,7 +146,7 @@
     <!-- DIET -->
     <section class="view" id="view-diet">
       <h1 class="page-title">🥗 Ăn uống</h1>
-      <p class="subtitle">Theo dõi calo &amp; dinh dưỡng mỗi ngày</p>
+      <p class="subtitle">Chỉ cần ghi calo &amp; protein — đủ protein + thâm hụt nhẹ là đúng hướng</p>
       <div class="card">
         <h3>🎯 Mục tiêu hàng ngày</h3>
         <div class="form-row">
@@ -174,8 +159,6 @@
           </div>
           <div class="field"><label>Calo</label><input type="number" id="gCal" value="2400"></div>
           <div class="field"><label>Protein (g)</label><input type="number" id="gPro" value="150"></div>
-          <div class="field"><label>Carbs (g)</label><input type="number" id="gCarb" value="250"></div>
-          <div class="field"><label>Chất béo (g)</label><input type="number" id="gFat" value="70"></div>
           <button class="btn sm" id="saveGoals">Lưu</button>
         </div>
         <div id="goalSug" style="font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5"></div>
@@ -185,8 +168,6 @@
         <div class="ring-grid" id="ringGrid">
           <div class="ring-box" data-ring="cal"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"/></svg><div class="ring-c"><div class="v" id="mCal">0</div><div class="l">Calo</div><div class="g" id="mCalG">0</div></div></div>
           <div class="ring-box" data-ring="pro"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"/></svg><div class="ring-c"><div class="v" id="mPro">0</div><div class="l">Protein</div><div class="g" id="mProG">0</div></div></div>
-          <div class="ring-box" data-ring="carb"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"/></svg><div class="ring-c"><div class="v" id="mCarb">0</div><div class="l">Carbs</div><div class="g" id="mCarbG">0</div></div></div>
-          <div class="ring-box" data-ring="fat"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"/></svg><div class="ring-c"><div class="v" id="mFat">0</div><div class="l">Chất béo</div><div class="g" id="mFatG">0</div></div></div>
         </div>
       </div>
       <div class="card">
@@ -206,8 +187,6 @@
           <div class="field"><label id="mQtyLbl">Số suất</label><input type="number" id="mQty" min="0" step="1" value="1"></div>
           <div class="field"><label>Calo</label><input type="number" id="mCalV" min="0" placeholder="450"></div>
           <div class="field"><label>Protein</label><input type="number" id="mProV" min="0" placeholder="30"></div>
-          <div class="field"><label>Carbs</label><input type="number" id="mCarbV" min="0" placeholder="50"></div>
-          <div class="field"><label>Fat</label><input type="number" id="mFatV" min="0" placeholder="15"></div>
           <button class="btn" id="addMeal">＋ Thêm</button>
           <button class="btn ghost sm" id="saveFavFood" title="Lưu món đang gõ vào mục yêu thích">⭐ Lưu món</button>
         </div>
@@ -216,10 +195,6 @@
       <div class="card">
         <h3>🍽️ Bữa ăn hôm nay</h3>
         <div id="mealList"></div>
-      </div>
-      <div class="card">
-        <h3>📅 Lịch sử ăn uống (7 ngày)</h3>
-        <div id="dietHistory"></div>
       </div>
     </section>
 
@@ -282,7 +257,7 @@
     <!-- PROGRESS -->
     <section class="view" id="view-progress">
       <h1 class="page-title">📊 Tiến độ</h1>
-      <p class="subtitle">Phân tích &amp; đề xuất lịch tập + meal plan</p>
+      <p class="subtitle">Phân tích tuần, mức tạ từng bài &amp; lịch tập</p>
       <div class="tabs" id="progTabs">
         <button class="tab active" data-tab="weekly">Tuần này</button>
         <button class="tab" data-tab="exercise">Theo bài tập</button>
@@ -300,8 +275,8 @@
       <div class="card">
         <h3>🏠 Trang chủ</h3>
         <ul class="guide-list">
-          <li><b>Ngày tập liên tiếp</b> — số ngày bạn tập liên tục không nghỉ.</li>
-          <li><b>Buổi tập tuần này</b> — số buổi đã ghi trong tuần (thứ 2 → Chủ nhật).</li>
+          <li><b>Buổi tạ tuần này</b> — số buổi tạ đã tập / 5 buổi theo lịch (thứ 2 → Chủ nhật, không tính cardio).</li>
+          <li><b>Protein hôm nay</b> — tổng protein đã ăn hôm nay. Mục tiêu ~2g × cân nặng.</li>
           <li><b>Calo đã đốt (7 ngày)</b> — tổng calo app tự tính từ các buổi tập (công thức ACSM).</li>
           <li><b>Calo nạp hôm nay</b> — tổng calo bữa ăn hôm nay.</li>
         </ul>
@@ -324,7 +299,7 @@
       <div class="card">
         <h3>🥗 Ăn uống</h3>
         <ul class="guide-list">
-          <li><b>Mục tiêu hàng ngày</b> — chọn mục tiêu ⚡ Siết / ⚖️ Giữ / 💪 Tăng cơ → app gợi ý calo dựa trên TDEE của bạn.</li>
+          <li><b>Mục tiêu hàng ngày</b> — chọn ⚡ Siết (TDEE − 400 kcal, hợp với tăng cơ giảm mỡ) / ⚖️ Giữ / 💪 Tăng cơ → app gợi ý calo và protein (~2g × cân nặng). Chỉ cần theo dõi <b>calo + protein</b>.</li>
           <li><b>Thêm bữa ăn</b> — gõ tên món, chọn từ dropdown (65+ món Việt có sẵn, không cần internet). Nhập khối lượng gram hoặc số suất → app tự nhân ra calo. VD: gõ "500g Ức gà" là ra ~825 kcal.</li>
           <li><b>⭐ Lưu món</b> — món bạn hay ăn chưa có sẵn thì bấm ⭐ để lưu vào yêu thích, lần sau gõ là có.</li>
         </ul>
@@ -385,6 +360,6 @@
 </div>
 
 <script src="data/routine.js?v=41"></script>
-<script src="script.js?v=59"></script>
+<script src="script.js?v=60"></script>
 </body>
 </html>
