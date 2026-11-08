@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GYM TRACKER</title>
-<link rel="stylesheet" href="style.css?v=37">
+<link rel="stylesheet" href="style.css?v=38">
 </head>
 <body>
 <div class="app">
@@ -220,38 +220,6 @@
         <div style="font-size:12px;color:var(--muted);margin-top:8px">Gõ tên món → gợi ý hiện ra, bấm chọn → tự điền calo. Ức gà tính theo gram sống; cơm tính theo gram chín. ⭐ = món yêu thích.</div>
       </div>
       <div class="card">
-        <h3>🤖 Gợi ý thực đơn hôm nay (AI)</h3>
-        <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px">AI xếp thực đơn 3 bữa theo mục tiêu &amp; TDEE của bạn, ưu tiên món ⭐ yêu thích. Nhập giờ tập cụ thể (nếu hôm nay có tập) để AI thêm gợi ý <b>ăn gì trước tập &amp; ăn cách bao lâu</b>.</p>
-        <div class="form-row" style="margin-bottom:10px">
-          <div class="field" style="flex:2"><label>Nguyên liệu đang có</label><input type="text" id="aiIngredients" placeholder="VD: ức gà 300g, trứng 2 quả, rau cải 200g"></div>
-          <div class="field"><label>Nấu cho (người)</label><input type="number" id="aiServings" min="1" max="20" value="1"></div>
-          <div class="field"><label>Tập lúc mấy giờ?</label>
-            <div style="display:flex;gap:6px;align-items:center"><input type="time" id="aiPlanTime" style="width:130px"><button class="btn ghost sm" id="aiPlanNoTime" type="button" title="Bỏ chọn giờ tập">✕</button></div>
-          </div>
-          <button class="btn btn-blue" id="aiPlanBtn">🤖 Nấu gì?</button>
-        </div>
-        <div style="font-size:12px;color:var(--muted);margin-top:-4px;margin-bottom:8px">Nhập nguyên liệu và số lượng nếu biết. AI sẽ đọc món đã ăn, kcal còn lại, thời điểm hiện tại và giờ tập để gợi ý món phù hợp.</div>
-        <div id="aiPlanOut" style="font-size:13px;line-height:1.7;white-space:pre-line"></div>
-        <button class="btn sm" id="aiPlanSave" style="display:none;margin-top:8px">✅ Đã ăn món này — điền vào bữa ăn</button>
-        <div style="font-size:12px;color:var(--muted);margin-top:8px">💡 Muốn thêm món khác? Bấm ⭐ bên cạnh món bạn hay ăn ở dưới — AI sẽ ưu tiên món đó lần sau.</div>
-      </div>
-      <div class="card">
-        <h3>🤖 Phân tích bữa ăn bằng AI</h3>
-        <div class="form-row" style="margin-bottom:8px">
-          <input type="text" id="aiPrompt" placeholder="VD: 1 chén cơm, 300g ức gà, 2 quả trứng ốp la" style="flex:2;min-width:200px">
-          <label class="btn btn-blue" for="aiUploadImg" style="margin-left:auto;white-space:nowrap;cursor:pointer">📸 Ảnh</label>
-          <input type="file" id="aiUploadImg" accept="image/*" style="display:none">
-          <button class="btn btn-blue" id="aiParseBtn">🤖 Phân tích</button>
-        </div>
-        <div id="aiPhotoBox" style="display:none;align-items:center;gap:10px;margin-bottom:8px;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:10px">
-          <img id="aiPhotoThumb" alt="Ảnh món ăn" style="width:64px;height:64px;object-fit:cover;border-radius:8px">
-          <div style="flex:1;font-size:12px;color:var(--muted)"><div id="aiPhotoName" style="font-weight:600;color:var(--fg)"></div>Ảnh sẽ được gửi kèm cho AI phân tích</div>
-          <button class="btn danger" id="aiPhotoClear" title="Bỏ ảnh">✕</button>
-        </div>
-        <div id="aiResult" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5"></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">🔒 AI đã được cấu hình sẵn (key nhúng qua GitHub Secret) — không cần nhập gì.</div>
-      </div>
-      <div class="card">
         <h3>🍽️ Bữa ăn hôm nay</h3>
         <div id="mealList"></div>
       </div>
@@ -314,34 +282,10 @@
         <button class="tab active" data-tab="weekly">Tuần này</button>
         <button class="tab" data-tab="exercise">Theo bài tập</button>
         <button class="tab" data-tab="plan">Gợi ý kế hoạch</button>
-        <button class="tab" data-tab="ai">🤖 AI Coach</button>
       </div>
       <div id="prog-weekly"></div>
       <div id="prog-exercise" style="display:none"></div>
       <div id="prog-plan" style="display:none"></div>
-      <div id="prog-ai" style="display:none">
-        <div class="card">
-          <h3>🤖 AI nhận xét tuần này</h3>
-          <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">AI đọc toàn bộ dữ liệu 7 ngày qua của bạn (buổi tập, volume, calo nạp/đốt, cân nặng) và cho nhận xét + gợi ý cụ thể cho tuần tới.</p>
-          <button class="btn btn-blue" id="aiReviewBtn">🤖 Nhận xét tuần này</button>
-          <div id="aiReviewOut" style="font-size:13px;line-height:1.6;margin-top:10px;white-space:pre-line"></div>
-        </div>
-        <div class="card">
-          <h3>💬 Hỏi AI về tập luyện / ăn uống</h3>
-          <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px">AI biết giáo án bạn đang theo (PPL + Upper/Lower) và lịch tập gần đây — hỏi bất cứ điều gì.</p>
-          <div class="form-row" style="margin-bottom:8px">
-            <input type="text" id="aiAsk" placeholder="VD: Tuần này tôi nên tập mấy buổi? Có nên đổi giáo án không?" style="flex:2;min-width:200px">
-            <button class="btn btn-blue" id="aiAskBtn">💬 Hỏi</button>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
-            <button class="btn ghost sm qi-btn" data-q="Vừa ăn trưa xong 30 phút, tập được chưa?">🍽️ Vừa ăn xong tập được chưa?</button>
-            <button class="btn ghost sm qi-btn" data-q="Trước tập 30 phút nên ăn gì để no lâu?">🍌 Ăn nhẹ trước tập</button>
-            <button class="btn ghost sm qi-btn" data-q="Hôm nay tập Push, có nên bỏ Lateral Raise nếu vai đau không?">🤕 Đau vai có nên bỏ bài?</button>
-            <button class="btn ghost sm qi-btn" data-q="Ăn tối xong tập luôn có sao không?">🌙 Tập sau ăn tối</button>
-          </div>
-          <div id="aiAskOut" style="font-size:13px;line-height:1.6;margin-top:10px;white-space:pre-line"></div>
-        </div>
-      </div>
     </section>
 
     <!-- GUIDE -->
@@ -366,10 +310,10 @@
           <li><b>4. Sửa số sets / reps / kg</b> — theo mức tạ bạn dùng hôm đó.</li>
           <li><b>5. Điền "Thời lượng (phút)"</b> — <b>bắt buộc</b>, không nhập thì không lưu được.</li>
           <li><b>6. Chọn "Cường độ"</b> — 🟢 Nhẹ (thở đều, nói chuyện thoải mái, nghỉ 2-3 phút) / 🟡 Vừa (thở gấp nhẹ, nói ngắt quãng, nghỉ 1-2 phút) / 🔴 Nặng (thở gấp, nói từng từ, nghỉ dưới 1 phút). Mỗi mức có hướng dẫn hiện ngay dưới nút chọn. Tập càng nặng → calo càng cao.</li>
-          <li><b>7. Chọn "🏃 Cardio"</b> — chọn Đi bộ trên máy, Đi bộ ngoài trời, Chạy bộ, Cầu lông hoặc Bơi. Tên cardio khóa theo lựa chọn, không bị nhảy về Chạy bộ khi xoá/gõ.</li>
-          <li><b>8. Cardio</b> — nhập thời lượng; có thể thêm quãng đường (km) và độ cao tăng (m). Tốc độ/dốc là tuỳ chọn.</li>
-          <li><b>9. "Calo đốt"</b> — app <b>tự tính</b> theo MET × 3.5 × cân nặng × phút ÷ 200.</li>
-          <li><b>10. Bấm "Lưu buổi tập"</b> — lịch sử giữ lại loại cardio, km và độ cao.</li>
+          <li><b>7. "↩ Lần trước"</b> — dưới mỗi bài hiện mức tạ, sets × reps của lần gần nhất bạn tập bài đó. App tự điền sẵn kg lần trước; bấm <b>Dùng lại</b> để lấy luôn cả sets/reps. Muốn tăng tạ thì sửa số kg.</li>
+          <li><b>8. "Calo đốt"</b> — app <b>tự tính</b> theo MET × 3.5 × cân nặng × phút ÷ 200.</li>
+          <li><b>9. Bấm "Lưu buổi tập"</b> — sửa lại buổi cũ bằng nút ✏️ trong lịch sử, cường độ được giữ nguyên.</li>
+          <li><b>10. 🏃 Cardio</b> — ghi ở thẻ <b>Ghi cardio</b> riêng: chọn môn (đi bộ, chạy, cầu lông, bơi), nhập thời lượng và các thông số tuỳ chọn. Bấm ✏️ ở buổi cardio trong lịch sử để sửa.</li>
         </ul>
       </div>
       <div class="card">
@@ -378,7 +322,6 @@
           <li><b>Mục tiêu hàng ngày</b> — chọn mục tiêu ⚡ Siết / ⚖️ Giữ / 💪 Tăng cơ → app gợi ý calo dựa trên TDEE của bạn.</li>
           <li><b>Thêm bữa ăn</b> — gõ tên món, chọn từ dropdown (65+ món Việt có sẵn, không cần internet). Nhập khối lượng gram hoặc số suất → app tự nhân ra calo. VD: gõ "500g Ức gà" là ra ~825 kcal.</li>
           <li><b>⭐ Lưu món</b> — món bạn hay ăn chưa có sẵn thì bấm ⭐ để lưu vào yêu thích, lần sau gõ là có.</li>
-          <li><b>🤖 Phân tích AI</b> — gõ 1 câu như "1 chén cơm, 300g ức gà, 2 trứng ốp la" → bấm AI → app tự phân tích &amp; thêm hết vào bữa ăn. Bản deploy đã có sẵn key AI, chỉ việc dùng.</li>
         </ul>
       </div>
       <div class="card">
@@ -435,8 +378,7 @@
   </div>
 </div>
 
-<script src="config.js"></script>
 <script src="data/routine.js?v=39"></script>
-<script src="script.js?v=55"></script>
+<script src="script.js?v=56"></script>
 </body>
 </html>

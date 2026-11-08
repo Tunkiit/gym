@@ -57,6 +57,9 @@ h1.page-title{font-size:26px;font-weight:800;margin-bottom:4px}
 .stats{grid-template-columns:repeat(4,1fr)}
 /* ===== FORM ===== */
 .form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.ex-last{flex-basis:100%;font-size:12px;color:var(--muted);margin:-4px 0 6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ex-last b{color:var(--accent)}
+.ex-last .btn.sm{padding:2px 8px;font-size:11px}
 .field{display:flex;flex-direction:column;gap:5px}
 .field label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
 input,select{background:var(--card2);border:1px solid var(--border);color:var(--fg);border-radius:9px;padding:9px 12px;font-size:14px;outline:none;transition:.15s;font-family:inherit}
