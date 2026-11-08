@@ -1,232 +1,128 @@
 // ====== BỘ TẬP CỦA BẠN ======
-// Mỗi bài tập gồm: tên, icon, nhóm cơ, sets, reps, mẹo, folder ảnh, và kcal (calo ước mỗi set)
+// Giáo án 12 tuần — tăng cơ giảm mỡ (recomp), 5 buổi tạ/tuần:
+//   T2 Push · T3 Pull · T4 Legs · T5 nghỉ/cardio nhẹ · T6 Upper · T7 Lower · CN nghỉ
+// Tăng tạ theo luật kép: đủ số rep cao nhất ở MỌI set → buổi sau tăng tạ
+// (thân trên +1–2.5kg, chân +2.5–5kg). Mỗi set dừng khi còn sức làm thêm 1–2 rep.
+// Tuần 6 và 12: deload — giữ tạ, bớt ~1/3 số set.
+
+// Thông tin từng bài (định nghĩa 1 lần). img/alt = tên file ảnh trong img/ (…_0.jpg bắt đầu, …_1.jpg kết thúc)
+// LƯU Ý: giữ nguyên tên bài cũ để mục "↩ Lần trước" vẫn tìm được lịch sử.
+const EX = {
+  // --- Ngực / vai / tay sau ---
+  'Bench Press':            { icon:'🏋️', muscle:'Ngực giữa',          tip:'Tạ đòn, khuỷu tay ~45°, hạ chạm ngực có kiểm soát, đẩy mạnh lên',     img:'Barbell_Bench_Press_-_Medium_Grip', alt:'Machine_Bench_Press' },
+  'Incline Dumbbell Press': { icon:'🏋️', muscle:'Ngực trên',          tip:'Ghế dốc 30°, tạ đơn, hạ sâu ngang ngực, không đập tạ vào nhau',       img:'Incline_Dumbbell_Press', alt:'Leverage_Incline_Chest_Press' },
+  'Chest Press Machine':    { icon:'🏋️', muscle:'Ngực',               tip:'Ép tay ngang ngực, giữ vai ép xuống ghế, không khoá khuỷu',           img:'Machine_Bench_Press' },
+  'Chest Fly':              { icon:'🦅', muscle:'Ngực (ép trong)',     tip:'Máy fly, khuỷu hơi cong, ép ngực vào giữa, siết 1 giây',              img:'Butterfly' },
+  'Shoulder Press':         { icon:'⬆️', muscle:'Vai trước',          tip:'Ngồi tựa lưng, đẩy tạ qua đầu, không ưỡn lưng',                       img:'Seated_Dumbbell_Press', alt:'Machine_Shoulder_Military_Press' },
+  'Lateral Raise':          { icon:'🔺', muscle:'Vai giữa',           tip:'Tạ nhẹ, khuỷu hơi cong, nâng ngang vai, hạ chậm',                     img:'Side_Lateral_Raise' },
+  'Tricep Pushdown':        { icon:'💪', muscle:'Tay sau',            tip:'Cáp, khuỷu khép sát người, duỗi hết biên độ',                         img:'Triceps_Pushdown', alt:'Machine_Triceps_Extension' },
+  // --- Lưng / vai sau / tay trước ---
+  'Lat Pulldown':           { icon:'🔽', muscle:'Xô',                 tip:'Kéo thanh về ngực trên, ép bả vai xuống, không ngả người quá nhiều',  img:'Close-Grip_Front_Lat_Pulldown' },
+  'Seated Cable Row':       { icon:'➡️', muscle:'Lưng giữa',          tip:'Kéo cáp về bụng, ép hai bả vai lại, lưng thẳng',                      img:'Seated_Cable_Rows' },
+  'One-Arm Cable Lat Pulldown': { icon:'↘️', muscle:'Xô',             tip:'Từng tay, kéo khuỷu xuống sát hông, siết xô',                         img:'One_Arm_Lat_Pulldown' },
+  'Face Pull':              { icon:'🎯', muscle:'Vai sau, cầu vai',   tip:'Dây thừng ngang mặt, kéo về trán, khuỷu cao, xoay tay ra sau',        img:'Face_Pull' },
+  'Rear Delt Fly':          { icon:'🔻', muscle:'Vai sau',            tip:'Cáp hoặc máy fly ngược, tay gần thẳng, mở rộng sang hai bên',         img:'Cable_Rear_Delt_Fly' },
+  'Preacher Curl':          { icon:'💪', muscle:'Tay trước',          tip:'Ghế preacher, khuỷu cố định, hạ gần thẳng tay',                       img:'Preacher_Curl', alt:'Machine_Preacher_Curls' },
+  'Hammer Curl':            { icon:'🔨', muscle:'Tay trước, cẳng tay', tip:'Tạ đơn, lòng bàn tay hướng vào nhau, không vung người',             img:'Alternate_Hammer_Curl', alt:'Machine_Bicep_Curl' },
+  // --- Chân / mông / bụng ---
+  'Squat':                  { icon:'🦵', muscle:'Đùi trước, mông',    tip:'Tạ đòn sau vai, hạ hông ngang gối hoặc thấp hơn, lưng thẳng',         img:'Barbell_Full_Squat', alt:'Smith_Machine_Squat' },
+  'Hack Squat':             { icon:'🦵', muscle:'Đùi trước',          tip:'Tựa lưng vào máy, hạ sâu có kiểm soát, đẩy bằng cả bàn chân',         img:'Smith_Machine_Squat' },
+  'Leg Press':              { icon:'🦿', muscle:'Đùi trước, mông',    tip:'Hạ đến khi gối gần ngực, không nhấc mông khỏi ghế, không khoá gối',   img:'Leg_Press' },
+  'Bulgarian Split Squat':  { icon:'🦵', muscle:'Đùi trước, mông',    tip:'Chân sau gác ghế, hạ thẳng xuống, tạ đơn hai tay. Số rep tính MỖI chân', img:'Split_Squat_with_Dumbbells', alt:'Smith_Single-Leg_Split_Squat' },
+  'Romanian Deadlift':      { icon:'🏋️', muscle:'Đùi sau, mông',      tip:'Gối hơi chùng, đẩy hông ra sau, tạ trượt dọc đùi, lưng luôn thẳng',   img:'Romanian_Deadlift' },
+  'Leg Extension':          { icon:'⬆️', muscle:'Đùi trước',          tip:'Duỗi thẳng chân, siết đùi 1 giây ở đỉnh, hạ chậm',                    img:'Leg_Extensions' },
+  'Leg Curl':               { icon:'⬇️', muscle:'Đùi sau',            tip:'Nằm sấp, cuộn gót về mông, hạ chậm',                                  img:'Lying_Leg_Curls' },
+  'Glute Drive':            { icon:'🍑', muscle:'Mông',               tip:'Máy hoặc hip thrust tạ đòn: đẩy hông lên, siết mông ở đỉnh, không ưỡn lưng', img:'Barbell_Hip_Thrust' },
+  'Abductor':               { icon:'🦵', muscle:'Mông bên',           tip:'Máy, đẩy hai chân ra ngoài, giữ 1 giây',                              img:'Thigh_Abductor' },
+  'Calf Raise':             { icon:'🦶', muscle:'Bắp chân',           tip:'Kiễng gót hết cỡ, giữ 1 giây, hạ sâu dưới mặt bậc',                   img:'Standing_Calf_Raises' },
+  'Abdominal Crunch Machine': { icon:'🎯', muscle:'Bụng',             tip:'Gập bụng, thở ra khi gập, không kéo bằng tay',                        img:'Ab_Crunch_Machine' },
+  'Leg Raise':              { icon:'⬆️', muscle:'Bụng dưới',          tip:'Nằm ngửa, nâng chân, giữ lưng dưới sát ghế',                          img:'Flat_Bench_Lying_Leg_Raise' },
+};
+
+// Ghép danh sách [tên, sets, reps] với thông tin bài
+const day = list => list.map(([name, sets, reps]) => ({ name, sets, reps, ...EX[name] }));
+const sumSets = exs => exs.reduce((a, e) => a + e.sets, 0);
+
 const ROUTINE = {
   Push: {
-    color: 'var(--push)',
-    emoji: '🔴',
-    name: 'PUSH — Ngực / Vai / Tay sau',
-    sets: 20,
-    exs: [
-      { name: 'Bench Press',              icon: '🏋️', muscle: 'Ngực giữa',        sets: 4, reps: '8–10',  kcal: 12, tip: 'Tạ đòn, khuỷu tay 45°, hít sâu xuống',                     img: 'Barbell_Bench_Press_-_Medium_Grip', alt: 'Machine_Bench_Press' },
-      { name: 'Incline Dumbbell Press',    icon: '🏋️', muscle: 'Ngực trên',        sets: 4, reps: '8–10',  kcal: 10, tip: 'Ghế dốc 30°, tạ đơn, hít sâu xuống',                     img: 'Incline_Dumbbell_Press', alt: 'Leverage_Incline_Chest_Press' },
-      { name: 'Chest Fly',                   icon: '🦅',  muscle: 'Ngực sâu',        sets: 3, reps: '12–15', kcal: 6,  tip: 'Máy fly, ép ngực vào trong, khuỷu hơi cong',                img: 'Butterfly' },
-      { name: 'Lateral Raise',             icon: '🔺',  muscle: 'Vai giữa',        sets: 3, reps: '12–15', kcal: 5,  tip: 'Tạ nhẹ, khuỷu hơi cong, lên đến vai',                     img: 'Side_Lateral_Raise' },
-      { name: 'Shoulder Press',            icon: '⬆️',  muscle: 'Vai trước',       sets: 3, reps: '8–10',  kcal: 9,  tip: 'Đẩy tạ đơn/đòn qua đầu, siết cơ vai',                      img: 'Seated_Dumbbell_Press', alt: 'Machine_Shoulder_Military_Press' },
-      { name: 'Tricep Pushdown',           icon: '💪',  muscle: 'Tay sau',         sets: 3, reps: '10–15', kcal: 5,  tip: 'Cáp, khuỷu cố định, xuống hết biên độ',                    img: 'Triceps_Pushdown', alt: 'Machine_Triceps_Extension' },
-    ]
+    color: 'var(--push)', emoji: '🔴', name: 'PUSH — Ngực / Vai / Tay sau',
+    exs: day([
+      ['Bench Press',            4, '6–8'],
+      ['Incline Dumbbell Press', 3, '8–10'],
+      ['Shoulder Press',         3, '8–10'],
+      ['Lateral Raise',          4, '12–15'],
+      ['Chest Fly',              2, '12–15'],
+      ['Tricep Pushdown',        3, '10–12'],
+    ])
   },
   Pull: {
-    color: 'var(--pull)',
-    emoji: '🔵',
-    name: 'PULL — Lưng / Tay trước',
-    sets: 20,
-    exs: [
-      { name: 'Lat Pulldown',              icon: '🔽',  muscle: 'Xô rộng',         sets: 4, reps: '8–10',  kcal: 8,  tip: 'Cầm rộng, kéo xuống ngực, siết xô',                       img: 'Close-Grip_Front_Lat_Pulldown' },
-      { name: 'Seated Cable Row',          icon: '➡️',  muscle: 'Lưng giữa',       sets: 4, reps: '8–10',  kcal: 8,  tip: 'Kéo cáp về bụng, hít vai về sau',                          img: 'Seated_Cable_Rows' },
-      { name: 'One-Arm Cable Lat Pulldown',icon: '↘️',  muscle: 'Xô sâu',          sets: 3, reps: '10–12', kcal: 6,  tip: 'Từng tay, kéo chéo xuống, siết lưng dưới',                 img: 'One_Arm_Lat_Pulldown' },
-      { name: 'Straight-Arm Pulldown',     icon: '⬇️',  muscle: 'Lưng dưới',       sets: 3, reps: '12–15', kcal: 5,  tip: 'Tay thẳng, cáp từ trên, đẩy xuống đùi',                    img: 'Straight-Arm_Pulldown' },
-      { name: 'Preacher Curl',             icon: '💪',  muscle: 'Tay trước (dài)',  sets: 3, reps: '10–12', kcal: 5,  tip: 'Ghế preacher, khuỷu cố định, cuộn lên',                    img: 'Preacher_Curl', alt: 'Machine_Preacher_Curls' },
-      { name: 'Hammer Curl',               icon: '🔨',  muscle: 'Tay trước (cánh)', sets: 3, reps: '10–12', kcal: 5,  tip: 'Tạ đơn, lòng bàn tay hướng vào, cuộn lên',                  img: 'Alternate_Hammer_Curl', alt: 'Machine_Bicep_Curl' },
-    ]
+    color: 'var(--pull)', emoji: '🔵', name: 'PULL — Lưng / Vai sau / Tay trước',
+    exs: day([
+      ['Lat Pulldown',               4, '8–10'],
+      ['Seated Cable Row',           4, '8–10'],
+      ['One-Arm Cable Lat Pulldown', 2, '10–12'],
+      ['Face Pull',                  3, '15–20'],
+      ['Preacher Curl',              3, '10–12'],
+      ['Hammer Curl',                2, '10–12'],
+    ])
   },
   Legs: {
-    color: 'var(--legs)',
-    emoji: '🟢',
-    name: 'LEGS + ABS — Chân / Bụng',
-    sets: 25,
-    exs: [
-      { name: 'Squat',                    icon: '🦵',  muscle: 'Đùi trước',        sets: 4, reps: '8–10',  kcal: 15, tip: 'Tạ đòn sau cổ, hông xuống gối, lưng thẳng',                img: 'Barbell_Full_Squat', alt: 'Smith_Machine_Squat' },
-      { name: 'Leg Press',                icon: '🦿',  muscle: 'Đùi trước',        sets: 3, reps: '10–12', kcal: 10, tip: 'Máy, đẩy bằng gót, không khoá gối',                        img: 'Leg_Press' },
-      { name: 'Bulgarian Split Squat',    icon: '🦵',  muscle: 'Đùi sau',          sets: 3, reps: '8–12',  kcal: 9,  tip: 'Một chân sau ghế, squats 1 chân, tạ tay',                   img: 'Split_Squat_with_Dumbbells', alt: 'Smith_Single-Leg_Split_Squat' },
-      { name: 'Leg Extension',            icon: '⬆️',  muscle: 'Đùi trước cô lập', sets: 3, reps: '12–15', kcal: 6,  tip: 'Máy, duỗi thẳng chân, siết đỉnh',                            img: 'Leg_Extensions' },
-      { name: 'Leg Curl',                 icon: '⬇️',  muscle: 'Đùi sau',          sets: 3, reps: '10–15', kcal: 6,  tip: 'Máy, nằm sấp trên ghế, cuộn chân về mông, siết đùi sau',  img: 'Lying_Leg_Curls' },
-      { name: 'Abductor',                 icon: '🦵',  muscle: 'Đùi ngoài',        sets: 3, reps: '12–15', kcal: 5,  tip: 'Máy, đẩy hai chân ra ngoài',                                 img: 'Thigh_Abductor' },
-      { name: 'Abdominal Crunch Machine',  icon: '🧠',  muscle: 'Bụng trên',        sets: 3, reps: '12–15', kcal: 4,  tip: 'Máy crunch, gập bụng, thở ra khi gập',                       img: 'Ab_Crunch_Machine' },
-      { name: 'Leg Raise',                icon: '⬆️',  muscle: 'Bụng dưới',        sets: 3, reps: '10–15', kcal: 4,  tip: 'Nằm ngửa, nâng chân thẳng, lưng dưới sát đất',              img: 'Flat_Bench_Lying_Leg_Raise' },
-    ]
+    color: 'var(--legs)', emoji: '🟢', name: 'LEGS — Thiên đùi trước',
+    exs: day([
+      ['Squat',                    4, '6–8'],
+      ['Leg Press',                3, '10–12'],
+      ['Bulgarian Split Squat',    3, '8–10'],
+      ['Leg Extension',            3, '12–15'],
+      ['Leg Curl',                 3, '10–12'],
+      ['Calf Raise',               3, '12–15'],
+      ['Abdominal Crunch Machine', 3, '12–15'],
+    ])
   }
 };
+Object.values(ROUTINE).forEach(r => { r.sets = sumSets(r.exs); });
 
-// ====== GIÁO ÁN THÊM ======
-// Lịch chốt: PPL → Rest → Upper → Lower → Rest
+// ====== GIÁO ÁN CHÍNH: PPL + UPPER / LOWER ======
+const UPPER = day([
+  ['Chest Press Machine',    3, '8–10'],
+  ['Lat Pulldown',           3, '10–12'],
+  ['Seated Cable Row',       3, '10–12'],
+  ['Incline Dumbbell Press', 2, '10–12'],
+  ['Lateral Raise',          4, '12–15'],
+  ['Rear Delt Fly',          2, '15–20'],
+  ['Preacher Curl',          2, '10–12'],
+  ['Tricep Pushdown',        2, '10–12'],
+]);
+const LOWER = day([
+  ['Romanian Deadlift', 3, '8–10'],
+  ['Hack Squat',        3, '8–10'],
+  ['Leg Curl',          3, '10–12'],
+  ['Glute Drive',       3, '8–12'],
+  ['Abductor',          2, '12–15'],
+  ['Calf Raise',        4, '12–15'],
+  ['Leg Raise',         3, '10–15'],
+]);
 const EXTRA_SPLITS = {
   PPLUpperLower: {
-    emoji: '🔴', name: 'PPL + UPPER / LOWER — 5 buổi/tuần',
+    emoji: '📅', name: 'PPL + UPPER / LOWER — 5 buổi/tuần',
     days: [
-      { name: 'Push', exs: ROUTINE.Push.exs },
-      { name: 'Pull', exs: ROUTINE.Pull.exs },
-      { name: 'Legs + Abs', exs: [
-        { name: 'Hack Squat', icon: '🦵', muscle: 'Đùi trước', sets: 4, reps: '8–10', kcal: 15, img: 'Smith_Machine_Squat', tip: 'Tựa lưng vào máy, hạ sâu có kiểm soát, đẩy bằng gót' },
-        { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
-        { name: 'Glute Drive', icon: '🍑', muscle: 'Mông', sets: 3, reps: '8–12', kcal: 10, tip: 'Đẩy hông lên, siết mông ở đỉnh, không ưỡn lưng' },
-        { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
-        { name: 'Abductor', sets: 3, reps: '12–15', kcal: 5 },
-        { name: 'Abdominal Crunch Machine', sets: 3, reps: '12–15', kcal: 4 },
-        { name: 'Leg Raise', sets: 3, reps: '10–15', kcal: 4 }
-      ]},
-      { name: 'Upper', exs: [
-        { name: 'Chest Press Machine', sets: 3, reps: '8–10', kcal: 10, img: 'Machine_Bench_Press', tip: 'Ép tay ngang, giữ vai ổn định, không khóa khuỷu' },
-        { name: 'Lat Pulldown', sets: 3, reps: '8–10', kcal: 8 },
-        { name: 'Seated Cable Row', sets: 3, reps: '8–10', kcal: 8 },
-        { name: 'Incline Dumbbell Press', sets: 3, reps: '8–10', kcal: 10 },
-        { name: 'Lateral Raise', sets: 3, reps: '12–15', kcal: 5 },
-        { name: 'Preacher Curl', sets: 2, reps: '10–12', kcal: 5 },
-        { name: 'Tricep Pushdown', sets: 2, reps: '10–15', kcal: 5 }
-      ]},
-      { name: 'Lower + Abs', exs: [
-        { name: 'Hack Squat', icon: '🦵', muscle: 'Đùi trước', sets: 3, reps: '8–10', kcal: 15, img: 'Smith_Machine_Squat', tip: 'Tựa lưng vào máy, hạ sâu có kiểm soát, đẩy bằng gót' },
-        { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
-        { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
-        { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Glute Drive', icon: '🍑', muscle: 'Mông', sets: 2, reps: '8–12', kcal: 10, tip: 'Đẩy hông lên, siết mông ở đỉnh, không ưỡn lưng' },
-        { name: 'Abductor', sets: 2, reps: '12–15', kcal: 5 },
-        { name: 'Abdominal Crunch Machine', sets: 3, reps: '12–15', kcal: 4 },
-        { name: 'Leg Raise', sets: 2, reps: '10–15', kcal: 4 }
-      ]}
-    ]
-  },
-  FullBody: {
-    emoji: '🟡', name: 'FULL BODY — 3 buổi/tuần (A/B/C)',
-    days: [
-      { name: 'Full Body A — Squat focus', exs: [
-        { name: 'Squat', sets: 4, reps: '8–10', kcal: 15 },
-        { name: 'Bench Press', sets: 4, reps: '8–10', kcal: 12 },
-        { name: 'Bent Over Barbell Row', icon: '🏋️', muscle: 'Lưng giữa', sets: 4, reps: '8–10', kcal: 10, tip: 'Cúi người 45°, kéo tạ về bụng, lưng thẳng', img: 'Bent_Over_Barbell_Row' },
-        { name: 'Lat Pulldown', sets: 3, reps: '10–12', kcal: 8 },
-        { name: 'Shoulder Press', sets: 3, reps: '8–10', kcal: 9 },
-        { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
-        { name: 'Tricep Pushdown', sets: 3, reps: '10–15', kcal: 5 },
-      ]},
-      { name: 'Full Body B — Incline + Legs', exs: [
-        { name: 'Romanian Deadlift', icon: '🏋️', muscle: 'Đùi sau, mông', sets: 3, reps: '8–10', kcal: 12, tip: 'Tạ đòn, hạ tạ dọc đùi, đẩy hông ra sau, lưng thẳng', img: 'Romanian_Deadlift' },
-        { name: 'Incline Dumbbell Press', sets: 4, reps: '8–10', kcal: 10 },
-        { name: 'Seated Cable Row', sets: 4, reps: '8–10', kcal: 8 },
-        { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
-        { name: 'Lateral Raise', sets: 3, reps: '12–15', kcal: 5 },
-        { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Abdominal Crunch Machine', sets: 3, reps: '12–15', kcal: 4 },
-      ]},
-      { name: 'Full Body C — Compound + Tay', exs: [
-        { name: 'Bulgarian Split Squat', sets: 3, reps: '8–12', kcal: 9 },
-        { name: 'Pull-ups', icon: '⬆️', muscle: 'Xô', sets: 4, reps: '8–10', kcal: 10, tip: 'Bám xà rộng hơn vai, kéo cằm qua xà', img: 'Pullups' },
-        { name: 'Chest Fly', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Straight-Arm Pulldown', sets: 3, reps: '12–15', kcal: 5 },
-        { name: 'Tricep Pushdown', sets: 3, reps: '10–15', kcal: 5 },
-        { name: 'Hammer Curl', sets: 3, reps: '10–12', kcal: 5 },
-        { name: 'Leg Raise', sets: 3, reps: '10–15', kcal: 4 },
-      ]}
-    ]
-  },
-  UpperLower: {
-    emoji: '🔵', name: 'UPPER / LOWER — 4 buổi/tuần',
-    days: [
-      { name: 'Upper A — Nặng ngang', exs: [
-        { name: 'Bench Press', sets: 4, reps: '8–10', kcal: 12 },
-        { name: 'Seated Cable Row', sets: 4, reps: '8–10', kcal: 8 },
-        { name: 'Shoulder Press', sets: 3, reps: '8–10', kcal: 9 },
-        { name: 'Lat Pulldown', sets: 3, reps: '10–12', kcal: 8 },
-        { name: 'Lateral Raise', sets: 3, reps: '12–15', kcal: 5 },
-        { name: 'Tricep Pushdown', sets: 3, reps: '10–15', kcal: 5 },
-        { name: 'Preacher Curl', sets: 3, reps: '10–12', kcal: 5 },
-      ]},
-      { name: 'Lower A — Nặng squat', exs: [
-        { name: 'Squat', sets: 4, reps: '8–10', kcal: 15 },
-        { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
-        { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
-        { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Bulgarian Split Squat', sets: 3, reps: '8–12', kcal: 9 },
-        { name: 'Abductor', sets: 3, reps: '12–15', kcal: 5 },
-        { name: 'Leg Raise', sets: 3, reps: '10–15', kcal: 4 },
-      ]},
-      { name: 'Upper B — Nặng dọc', exs: [
-        { name: 'Incline Dumbbell Press', sets: 4, reps: '8–10', kcal: 10 },
-        { name: 'Lat Pulldown', sets: 4, reps: '8–10', kcal: 8 },
-        { name: 'One-Arm Cable Lat Pulldown', sets: 3, reps: '10–12', kcal: 6 },
-        { name: 'Lateral Raise', sets: 3, reps: '12–15', kcal: 5 },
-        { name: 'Chest Fly', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Tricep Pushdown', sets: 3, reps: '10–15', kcal: 5 },
-        { name: 'Hammer Curl', sets: 3, reps: '10–12', kcal: 5 },
-      ]},
-      { name: 'Lower B — Thiên đùi sau', exs: [
-        { name: 'Romanian Deadlift', sets: 3, reps: '8–10', kcal: 12 },
-        { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
-        { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
-        { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Abdominal Crunch Machine', sets: 3, reps: '12–15', kcal: 4 },
-        { name: 'Leg Raise', sets: 3, reps: '10–15', kcal: 4 },
-        { name: 'Abductor', sets: 3, reps: '12–15', kcal: 5 },
-      ]}
-    ]
-  },
-  BroSplit: {
-    emoji: '🔴', name: 'BRO SPLIT — 5 buổi/tuần (1 nhóm cơ/ngày)',
-    days: [
-      { name: 'Ngực', exs: [
-        { name: 'Bench Press', sets: 4, reps: '8–10', kcal: 12 },
-        { name: 'Incline Dumbbell Press', sets: 4, reps: '8–10', kcal: 10 },
-        { name: 'Chest Fly', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Pushups', icon: '🙌', muscle: 'Ngực', sets: 3, reps: '12–15', kcal: 6, tip: 'Hít đất, lưng thẳng, ngực chạm đất', img: 'Pushups' },
-      ]},
-      { name: 'Lưng', exs: [
-        { name: 'Lat Pulldown', sets: 4, reps: '8–10', kcal: 8 },
-        { name: 'Seated Cable Row', sets: 4, reps: '8–10', kcal: 8 },
-        { name: 'Straight-Arm Pulldown', sets: 3, reps: '12–15', kcal: 5 },
-        { name: 'One-Arm Cable Lat Pulldown', sets: 3, reps: '10–12', kcal: 6 },
-        { name: 'Bent Over Barbell Row', sets: 3, reps: '10–12', kcal: 10 },
-      ]},
-      { name: 'Chân', exs: [
-        { name: 'Squat', sets: 4, reps: '8–10', kcal: 15 },
-        { name: 'Leg Press', sets: 3, reps: '10–12', kcal: 10 },
-        { name: 'Bulgarian Split Squat', sets: 3, reps: '8–12', kcal: 9 },
-        { name: 'Leg Extension', sets: 3, reps: '12–15', kcal: 6 },
-        { name: 'Leg Curl', sets: 3, reps: '10–15', kcal: 6 },
-        { name: 'Abductor', sets: 3, reps: '12–15', kcal: 5 },
-        { name: 'Leg Raise', sets: 3, reps: '10–15', kcal: 4 },
-      ]},
-      { name: 'Vai', exs: [
-        { name: 'Shoulder Press', sets: 4, reps: '8–10', kcal: 9 },
-        { name: 'Lateral Raise', sets: 4, reps: '12–15', kcal: 5 },
-        { name: 'Cable Rear Delt Fly', icon: '🔻', muscle: 'Vai sau', sets: 3, reps: '12–15', kcal: 5, tip: 'Cáp, kéo dây về hai bên, siết vai sau', img: 'Cable_Rear_Delt_Fly' },
-        { name: 'Face Pull', icon: '🎯', muscle: 'Vai sau, bẫy', sets: 3, reps: '15–20', kcal: 5, tip: 'Dây cáp, kéo về mặt, khuỷu cao', img: 'Face_Pull' },
-        { name: 'Dumbbell Shrug', icon: '⛰️', muscle: 'Bẫy (trap)', sets: 3, reps: '12–15', kcal: 5, tip: 'Nhún vai với tạ đơn, siết đỉnh 1s', img: 'Dumbbell_Shrug' },
-      ]},
-      { name: 'Tay', exs: [
-        { name: 'Tricep Pushdown', sets: 4, reps: '10–15', kcal: 5 },
-        { name: 'Preacher Curl', sets: 4, reps: '10–12', kcal: 5 },
-        { name: 'Hammer Curl', sets: 3, reps: '10–12', kcal: 5 },
-        { name: 'Cable Rope Overhead Triceps Extension', icon: '💪', muscle: 'Tay sau (dài)', sets: 3, reps: '10–12', kcal: 5, tip: 'Cáp qua đầu, khuỷu cố định, duỗi thẳng', img: 'Cable_Rope_Overhead_Triceps_Extension' },
-        { name: 'Standing Biceps Cable Curl', icon: '💪', muscle: 'Tay trước', sets: 3, reps: '10–12', kcal: 5, tip: 'Cáp, cuộn tay, không đánh lừa vai', img: 'Standing_Biceps_Cable_Curl' },
-        { name: 'Dips - Triceps Version', icon: '🤸', muscle: 'Tay sau, ngực', sets: 3, reps: '8–12', kcal: 8, tip: 'Chống khuỷu trên xà kép, hạ người xuống', img: 'Dips_-_Triceps_Version' },
-      ]},
-      { name: 'Bụng + Bắp chân (tuỳ chọn)', exs: [
-        { name: 'Abdominal Crunch Machine', sets: 3, reps: '12–15', kcal: 4 },
-        { name: 'Leg Raise', sets: 3, reps: '10–15', kcal: 4 },
-        { name: 'Standing Calf Raises', icon: '🦶', muscle: 'Bắp chân', sets: 4, reps: '12–15', kcal: 4, tip: 'Máy/mặt bậc, kiễng gót hết biên độ', img: 'Standing_Calf_Raises' },
-        { name: 'Seated Calf Raise', icon: '🦶', muscle: 'Bắp chân (gối gập)', sets: 3, reps: '12–15', kcal: 4, tip: 'Máy ngồi, kiễng gót, siết đỉnh', img: 'Seated_Calf_Raise' },
-      ]}
+      { name: 'Push — T2: Ngực / Vai / Tay sau',     exs: ROUTINE.Push.exs },
+      { name: 'Pull — T3: Lưng / Vai sau / Tay trước', exs: ROUTINE.Pull.exs },
+      { name: 'Legs — T4: Thiên đùi trước',          exs: ROUTINE.Legs.exs },
+      { name: 'Upper — T6: Thân trên',               exs: UPPER },
+      { name: 'Lower — T7: Đùi sau / Mông',          exs: LOWER },
     ]
   }
 };
 
-// Tên các giáo án (cho dropdown chọn)
-const SPLIT_NAMES = ['Push/Pull/Legs (PPL)', 'Full Body', 'Upper/Lower', 'Bro Split'];
-
-// Nhóm (Push/Pull/Legs) cho bài không nằm trong ROUTINE — để lọc gợi ý khi gõ tên bài
+// Nhóm Push/Pull/Legs cho bài chỉ có trong Upper/Lower — dùng để lọc gợi ý khi gõ tên bài
 const _G = {
-  'Bent Over Barbell Row':'Pull',
+  'Chest Press Machine':'Push',
+  'Rear Delt Fly':'Pull',
   'Romanian Deadlift':'Legs',
-  'Pull-ups':'Pull',
-  'Pushups':'Push',
-  'Cable Rear Delt Fly':'Push',
-  'Face Pull':'Push',
-  'Dumbbell Shrug':'Push',
-  'Cable Rope Overhead Triceps Extension':'Push',
-  'Standing Biceps Cable Curl':'Pull',
-  'Dips - Triceps Version':'Push',
-  'Dips - Chest Version':'Push',
-  'Standing Calf Raises':'Legs',
-  'Seated Calf Raise':'Legs'
+  'Hack Squat':'Legs',
+  'Glute Drive':'Legs',
+  'Abductor':'Legs',
+  'Leg Raise':'Legs',
 };
 
 // Helper: lấy danh sách ảnh cho 1 bài (0 = bắt đầu, 1 = kết thúc)
@@ -235,14 +131,12 @@ function getExImgs(ex) {
   const base = (folder, idx) => `img/${folder}_${idx}.jpg`;
   const one = f => f ? [base(f,0), base(f,1)] : [];
   const main = one(ex.img);
-  // guess label from folder name
   function guessLabel(f) {
     const l = f.toLowerCase();
     if (l.includes('dumbbell')) return 'Tạ đơn';
     if (l.includes('barbell') || l.includes('_bar')) return 'Tạ đòn';
     if (l.includes('cable') || l.includes('triceps')) return 'Cáp';
     if (l.includes('machine') || l.includes('smith') || l.includes('leverage')) return 'Máy';
-    if (l.includes('side') || l.includes('seated') || l.includes('split')) return 'Tạ đơn';
     return 'Tạ đơn';
   }
   if (ex.alt) {
@@ -254,15 +148,7 @@ function getExImgs(ex) {
   return [{ label: null, imgs: main }];
 }
 
-// Helper: tìm bài gốc theo tên (PPL trước, rồi bài định nghĩa đầy đủ trong EXTRA_SPLITS)
-const _pplByName = {};
-Object.values(ROUTINE).forEach(g=>g.exs.forEach(e=>{ _pplByName[e.name]=e; }));
-Object.values(EXTRA_SPLITS).forEach(s=>s.days.forEach(d=>d.exs.forEach(e=>{
-  if(e.img) _pplByName[e.name]=e; // bài định nghĩa đầy đủ (có ảnh) ghi đè
-})));
-
-// Helper: lấy bài tập đầy đủ (có ảnh) cho 1 buổi của giáo án thêm
+// Helper: bài tập của 1 buổi trong giáo án (bản sao để không sửa nhầm dữ liệu gốc)
 function getSplitDay(splitKey, dayIdx){
-  const day = EXTRA_SPLITS[splitKey].days[dayIdx];
-  return day.exs.map(e => Object.assign({}, _pplByName[e.name] || {}, e));
+  return EXTRA_SPLITS[splitKey].days[dayIdx].exs.map(e => ({ ...e }));
 }

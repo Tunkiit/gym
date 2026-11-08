@@ -185,7 +185,8 @@ function renderRoutine(){
   const grid=document.getElementById('routineGrid');
   const dayKey = daySelect.value;
   const m = getDayMeta(curSplit, dayKey);
-  const color = curSplit==='PPL' ? (dayKey==='Push'?'var(--push)':dayKey==='Pull'?'var(--pull)':'var(--legs)') : 'var(--accent)';
+  const nm = m.name.toLowerCase();
+  const color = nm.startsWith('push')?'var(--push)':nm.startsWith('pull')?'var(--pull)':nm.startsWith('legs')?'var(--legs)':'var(--accent)';
   grid.innerHTML = `<div class="routine-card" style="border-top:3px solid ${color}">
     <div class="routine-header">
       <h2>${m.label}</h2>
@@ -234,8 +235,9 @@ function fillWorkoutFromRoutine(exs, dayName, emoji){
   document.getElementById('wDate').value = today();
   // đồng bộ nút loại buổi: PPL → Push/Pull/Legs; giáo án khác → tên giáo án
   const wbtns=[...document.querySelectorAll('#wTypeBtns .type-btn')];
-  const hit = wbtns.find(b=>b.dataset.type===dayName);
-  const target = hit ? dayName : (curSplit==='PPL' ? (dayName.includes('PUSH')?'Push':dayName.includes('PULL')?'Pull':'Legs') : dayName.startsWith('Legs')?'Legs':dayName.startsWith('Upper')?'Upper':'Lower');
+  // tên buổi bắt đầu bằng loại buổi: "Push — T2…", "PUSH — Ngực…", "Lower — T7…"
+  const hit = wbtns.find(b=>dayName.toLowerCase().startsWith(b.dataset.type.toLowerCase()));
+  const target = hit ? hit.dataset.type : 'Push';
   wbtns.forEach(b=>b.classList.toggle('active', b.dataset.type===target));
   wType = target;
   document.getElementById('intensityField').style.display = '';
@@ -1030,13 +1032,21 @@ function renderPlan(){
   const [ws,we]=weekRange();
   const wk=workouts.filter(w=>w.date>=ws&&w.date<=we);
   const split={}; wk.forEach(w=>split[w.type]=(split[w.type]||0)+1);
-  const order=['Push','Pull','Legs','Upper','Lower','Cardio'];
   const avgCal=dayTotals(today()).cal;
   const deficit=goals.cal-avgCal;
   const wTarget = deficit>250 ? '🥗 Calo hôm nay thấp hơn mục tiêu ' + fmt(deficit)+' kcal → hôm sau ăn thêm hoặc giảm tập' : deficit<-250 ? '🔥 Ăn vượt '+fmt(-deficit)+' kcal → tăng thêm cardio hoặc siết lại phần ăn vặt' : '✅ Calo đang cân bằng tốt, giữ nhịp!';
-  const nextType = order.find(t=>!split[t]) || order[(order.findIndex(t=>split[t])+1)%order.length];
+  // Lịch cố định: T2 Push · T3 Pull · T4 Legs · T5 nghỉ/cardio · T6 Upper · T7 Lower · CN nghỉ
+  const WEEK_PLAN = {1:'Push',2:'Pull',3:'Legs',4:null,5:'Upper',6:'Lower',0:null};
+  const todayPlan = WEEK_PLAN[new Date().getDay()];
+  const missed = ['Push','Pull','Legs','Upper','Lower'].filter(t=>!split[t]);
+  const todayMsg = todayPlan
+    ? (split[todayPlan] ? `Buổi hôm nay (<b>${todayPlan}</b>) đã xong ✅` : `Hôm nay theo lịch: <b>${todayPlan}</b>`)
+    : 'Hôm nay là ngày nghỉ — đi bộ nhẹ 30–45 phút hoặc nghỉ hẳn';
   let plan='';
-  plan += `<div class="card"><h3>💪 Gợi ý lịch tập tuần này</h3><div class="list-item"><div class="grow"><div class="name">Nếu hôm nay chưa tập, hãy thử: <b>${nextType}</b></div><div class="meta">Duy trì 3-4 buổi/tuần (Push → Pull → Legs → nghỉ → lặp lại)</div></div></div>`;
+  plan += `<div class="card"><h3>💪 Lịch tập tuần này</h3>
+    <div class="list-item"><div class="grow"><div class="name">${todayMsg}</div><div class="meta">T2 Push · T3 Pull · T4 Legs · T5 nghỉ/cardio · T6 Upper · T7 Lower · CN nghỉ</div></div></div>
+    <div class="list-item"><div class="grow"><div class="name">${missed.length?`Còn thiếu tuần này: <b>${missed.join(', ')}</b>`:'🎉 Đã đủ 5 buổi tuần này!'}</div><div class="meta">Lỡ 1 buổi thì tập bù vào ngày nghỉ T5, không dồn 2 buổi vào 1 ngày</div></div></div>
+    <div class="list-item"><div class="grow"><div class="name">Tăng tạ: đủ số rep cao nhất ở mọi set → buổi sau tăng tạ</div><div class="meta">Thân trên +1–2.5kg, chân +2.5–5kg · Tuần 6 &amp; 12 deload: giữ tạ, bớt ~1/3 số set</div></div></div></div>`;
   plan += `<div class="card"><h3>🍎 Gợi ý meal plan hôm nay</h3><div class="list-item"><div class="grow"><div class="name">${wTarget}</div></div></div><div class="list-item"><div class="grow"><div class="name">Mục tiêu protein: <b>${goals.pro}g</b></div></div></div><div class="list-item"><div class="grow"><div class="name">Nước: uống 2-3L/ngày</div></div></div></div>`;
   plan += `<div class="card"><h3>📊 Nhận xét tiến độ</h3>`;
   const wLast=weights.filter(w=>w.date<=today()).sort((a,b)=>b.date.localeCompare(a.date));
