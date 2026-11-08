@@ -143,38 +143,36 @@ function showExerciseModalEx(ex, dayName, emoji){
 document.getElementById('modalClose').addEventListener('click',()=>document.getElementById('exModal').classList.remove('open'));
 document.getElementById('exModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) e.target.classList.remove('open'); });
 
-// ====== SPLIT SELECTOR (Giáo án + buổi) ======
-let curSplit = ['PPLUpperLower','PPL'].includes(localStorage.getItem('gym_split')) ? localStorage.getItem('gym_split') : 'PPLUpperLower';
-// Cấu trúc danh sách buổi theo giáo án: PPL dùng ROUTINE, còn lại dùng EXTRA_SPLITS
-function getSplitDays(key){
-  if(key==='PPL') return ['Push','Pull','Legs'];
-  return (EXTRA_SPLITS[key]||EXTRA_SPLITS.PPLUpperLower).days.map((d,i)=>key+'_'+i);
+// ====== CHỌN BUỔI (1 giáo án: PPL + Upper/Lower) ======
+const curSplit = 'PPLUpperLower';
+localStorage.removeItem('gym_split'); // dọn lựa chọn giáo án cũ
+// Lịch tuần: getDay() → vị trí buổi trong giáo án (T2 Push=0 … T7 Lower=4), null = ngày nghỉ
+const WEEK_PLAN = {1:'Push',2:'Pull',3:'Legs',4:null,5:'Upper',6:'Lower',0:null};
+const DAY_EMOJI = {push:'🔴', pull:'🔵', legs:'🟢', upper:'🟣', lower:'🟡'};
+function getDayMeta(dayIdx){
+  const day=EXTRA_SPLITS[curSplit].days[+dayIdx];
+  const emoji=DAY_EMOJI[day.name.split(' ')[0].toLowerCase()]||'🏋️';
+  return {label:emoji+' '+day.name, exs:getSplitDay(curSplit,+dayIdx), emoji, name:day.name, sets:day.exs.reduce((a,e)=>a+e.sets,0)};
 }
-function getDayMeta(key, dayKey){
-  if(key==='PPL'){ const rt=ROUTINE[dayKey]; return {label:rt.emoji+' '+rt.name, exs:rt.exs, emoji:rt.emoji, name:rt.name, sets:rt.sets}; }
-  const [sk,di]=dayKey.split('_'); const day=EXTRA_SPLITS[sk].days[+di];
-  return {label:EXTRA_SPLITS[sk].emoji+' '+day.name, exs:getSplitDay(sk,+di), emoji:EXTRA_SPLITS[sk].emoji, name:day.name, sets:day.exs.reduce((a,e)=>a+e.sets,0)};
+// Buổi của hôm nay; ngày nghỉ → buổi kế tiếp trong tuần
+function todayDayIdx(){
+  const days=EXTRA_SPLITS[curSplit].days;
+  for(let k=0;k<7;k++){
+    const t=WEEK_PLAN[(new Date().getDay()+k)%7];
+    const i=t?days.findIndex(d=>d.name.startsWith(t)):-1;
+    if(i>=0) return i;
+  }
+  return 0;
 }
 
-const splitSelect = document.getElementById('splitSelect');
 const daySelect = document.getElementById('daySelect');
-function fillDayOptions(){
-  splitSelect.value = curSplit;
-  const days = getSplitDays(curSplit);
-  daySelect.innerHTML = days.map(d=>{ const m=getDayMeta(curSplit,d); return `<option value="${d}">${m.label}</option>`; }).join('');
-}
-splitSelect.addEventListener('change',()=>{
-  curSplit = splitSelect.value;
-  localStorage.setItem('gym_split', curSplit);
-  fillDayOptions();
-  renderRoutine();
-});
+daySelect.innerHTML = EXTRA_SPLITS[curSplit].days.map((d,i)=>`<option value="${i}">${getDayMeta(i).label}</option>`).join('');
+daySelect.value = String(todayDayIdx());
 daySelect.addEventListener('change',()=>renderRoutine());
-fillDayOptions();
 
 document.getElementById('fillDay').addEventListener('click',()=>{
   const dayKey = daySelect.value;
-  const m = getDayMeta(curSplit, dayKey);
+  const m = getDayMeta(dayKey);
   fillWorkoutFromRoutine(m.exs, m.name, m.emoji);
   updateCalPreview();
   document.getElementById('exerciseRows').scrollIntoView({behavior:'smooth', block:'start'});
@@ -184,7 +182,7 @@ document.getElementById('fillDay').addEventListener('click',()=>{
 function renderRoutine(){
   const grid=document.getElementById('routineGrid');
   const dayKey = daySelect.value;
-  const m = getDayMeta(curSplit, dayKey);
+  const m = getDayMeta(dayKey);
   const nm = m.name.toLowerCase();
   const color = nm.startsWith('push')?'var(--push)':nm.startsWith('pull')?'var(--pull)':nm.startsWith('legs')?'var(--legs)':'var(--accent)';
   grid.innerHTML = `<div class="routine-card" style="border-top:3px solid ${color}">
@@ -194,7 +192,7 @@ function renderRoutine(){
     </div>
     <div class="routine-body">
       ${m.exs.map((ex,i)=>`
-        <div class="routine-ex" data-key="${curSplit}" data-idx="${i}">
+        <div class="routine-ex" data-idx="${i}">
           <span class="ex-icon">${ex.icon||'🏋️'}</span>
           <div class="ex-info">
             <div class="ex-name">${ex.name}</div>
@@ -210,8 +208,8 @@ function renderRoutine(){
     el.addEventListener('click',()=>{
       const idx=parseInt(el.dataset.idx);
       const dayKey2=daySelect.value;
-      const m2=getDayMeta(curSplit, dayKey2);
-      showExerciseModalEx(m2.exs[idx], m2.name, m2.emoji, curSplit);
+      const m2=getDayMeta(dayKey2);
+      showExerciseModalEx(m2.exs[idx], m2.name, m2.emoji);
     });
   });
 }
@@ -1035,8 +1033,6 @@ function renderPlan(){
   const avgCal=dayTotals(today()).cal;
   const deficit=goals.cal-avgCal;
   const wTarget = deficit>250 ? '🥗 Calo hôm nay thấp hơn mục tiêu ' + fmt(deficit)+' kcal → hôm sau ăn thêm hoặc giảm tập' : deficit<-250 ? '🔥 Ăn vượt '+fmt(-deficit)+' kcal → tăng thêm cardio hoặc siết lại phần ăn vặt' : '✅ Calo đang cân bằng tốt, giữ nhịp!';
-  // Lịch cố định: T2 Push · T3 Pull · T4 Legs · T5 nghỉ/cardio · T6 Upper · T7 Lower · CN nghỉ
-  const WEEK_PLAN = {1:'Push',2:'Pull',3:'Legs',4:null,5:'Upper',6:'Lower',0:null};
   const todayPlan = WEEK_PLAN[new Date().getDay()];
   const missed = ['Push','Pull','Legs','Upper','Lower'].filter(t=>!split[t]);
   const todayMsg = todayPlan
@@ -1117,7 +1113,7 @@ document.getElementById('resetAllBtn').addEventListener('click',()=>{
   localStorage.removeItem(LS.workouts); localStorage.removeItem(LS.meals);
   localStorage.removeItem(LS.weights); localStorage.removeItem(LS.goals);
   localStorage.removeItem(LS.name); localStorage.removeItem('gym_fav_foods');
-  localStorage.removeItem('gym_body'); localStorage.removeItem('gym_split');
+  localStorage.removeItem('gym_body');
   alert('✅ Đã xoá sạch toàn bộ dữ liệu. Trang sẽ tải lại.');
   location.reload();
 });
