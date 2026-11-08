@@ -34,9 +34,6 @@ h1.page-title{font-size:26px;font-weight:800;margin-bottom:4px}
 /* ===== CARDS ===== */
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px}
 .card h3{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.guide-list{list-style:none;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.55;color:var(--fg)}
-.guide-list li{padding-left:18px;position:relative}
-.guide-list li::before{content:'▸';position:absolute;left:0;color:var(--accent)}
 .cal-preview{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:14px;font-weight:700;color:var(--muted);min-width:110px;text-align:center}
 .today-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .today-summary-grid>div{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;line-height:1.6}

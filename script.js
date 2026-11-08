@@ -63,7 +63,7 @@ function closeDrawer(){ sidebar.classList.remove('open'); scrim.classList.remove
 document.getElementById('mobMenu').addEventListener('click', openDrawer);
 scrim.addEventListener('click', closeDrawer);
 document.getElementById('mobHome').addEventListener('click', ()=>switchView('home'));
-const VIEW_NAMES={home:'Trang chủ',workout:'Buổi tập',diet:'Ăn uống',weight:'Cơ thể',progress:'Tiến độ',guide:'Hướng dẫn'};
+const VIEW_NAMES={home:'Trang chủ',workout:'Buổi tập',diet:'Ăn uống',weight:'Cơ thể',progress:'Tiến độ'};
 document.querySelectorAll('.nav-item').forEach(b=>{
   b.addEventListener('click',()=>{
     switchView(b.dataset.view);

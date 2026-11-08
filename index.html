@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GYM TRACKER</title>
-<link rel="stylesheet" href="style.css?v=40">
+<link rel="stylesheet" href="style.css?v=41">
 </head>
 <body>
 <div class="app">
@@ -21,7 +21,6 @@
       <button class="nav-item" data-view="diet"><span class="ic">🍗</span><span class="lbl">Ăn uống</span></button>
       <button class="nav-item" data-view="weight"><span class="ic">📏</span><span class="lbl">Cơ thể</span></button>
       <button class="nav-item" data-view="progress"><span class="ic">📊</span><span class="lbl">Tiến độ</span></button>
-      <button class="nav-item" data-view="guide"><span class="ic">📖</span><span class="lbl">Hướng dẫn</span></button>
     </nav>
     <div class="data-row">
       <button class="data-btn" id="exportBtn" title="Xuất dữ liệu backup"><span class="ic">📤</span><span class="lbl">Xuất</span></button>
@@ -268,77 +267,6 @@
       <div id="prog-plan" style="display:none"></div>
     </section>
 
-    <!-- GUIDE -->
-    <section class="view" id="view-guide">
-      <h1 class="page-title">📖 Hướng dẫn</h1>
-      <p class="subtitle">Cách dùng từng phần của app</p>
-      <div class="card">
-        <h3>🏠 Trang chủ</h3>
-        <ul class="guide-list">
-          <li><b>Buổi tạ tuần này</b> — số buổi tạ đã tập / 5 buổi theo lịch (thứ 2 → Chủ nhật, không tính cardio).</li>
-          <li><b>Protein hôm nay</b> — tổng protein đã ăn hôm nay. Mục tiêu ~2g × cân nặng.</li>
-          <li><b>Calo đã đốt (7 ngày)</b> — tổng calo app tự tính từ các buổi tập (công thức ACSM).</li>
-          <li><b>Calo nạp hôm nay</b> — tổng calo bữa ăn hôm nay.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>💪 Buổi tập</h3>
-        <ul class="guide-list">
-          <li><b>1. Lịch tuần</b> — T2 Push · T3 Pull · T4 Legs · T5 nghỉ/cardio nhẹ · T6 Upper · T7 Lower · CN nghỉ.</li>
-          <li><b>2. Chọn buổi</b> — app tự chọn buổi của hôm nay theo thứ (ngày nghỉ thì chọn buổi kế tiếp). Tập bù thì chọn buổi khác trong danh sách.</li>
-          <li><b>3. Bấm "📋 Điền bài tập"</b> — app tự điền danh sách bài + sets/reps gợi ý. Bấm vào 1 bài để xem ảnh minh hoạ &amp; mẹo tập.</li>
-          <li><b>4. Sửa số sets / reps / kg</b> — theo mức tạ bạn dùng hôm đó.</li>
-          <li><b>5. Điền "Thời lượng (phút)"</b> — <b>bắt buộc</b>, không nhập thì không lưu được.</li>
-          <li><b>6. Chọn "Cường độ"</b> — 🟢 Nhẹ (thở đều, nói chuyện thoải mái, nghỉ 2-3 phút) / 🟡 Vừa (thở gấp nhẹ, nói ngắt quãng, nghỉ 1-2 phút) / 🔴 Nặng (thở gấp, nói từng từ, nghỉ dưới 1 phút). Mỗi mức có hướng dẫn hiện ngay dưới nút chọn. Tập càng nặng → calo càng cao.</li>
-          <li><b>7. "↩ Lần trước"</b> — dưới mỗi bài hiện mức tạ, sets × reps của lần gần nhất bạn tập bài đó. App tự điền sẵn kg lần trước; bấm <b>Dùng lại</b> để lấy luôn cả sets/reps. Muốn tăng tạ thì sửa số kg.</li>
-          <li><b>8. "Calo đốt"</b> — app <b>tự tính</b> theo MET × 3.5 × cân nặng × phút ÷ 200.</li>
-          <li><b>9. Bấm "Lưu buổi tập"</b> — sửa lại buổi cũ bằng nút ✏️ trong lịch sử, cường độ được giữ nguyên.</li>
-          <li><b>10. 🏃 Cardio</b> — ghi ở thẻ <b>Ghi cardio</b> riêng: chọn môn (đi bộ, chạy, cầu lông, bơi), nhập thời lượng và các thông số tuỳ chọn. Bấm ✏️ ở buổi cardio trong lịch sử để sửa.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>🥗 Ăn uống</h3>
-        <ul class="guide-list">
-          <li><b>Mục tiêu hàng ngày</b> — chọn ⚡ Siết (TDEE − 400 kcal, hợp với tăng cơ giảm mỡ) / ⚖️ Giữ / 💪 Tăng cơ → app gợi ý calo và protein (~2g × cân nặng). Chỉ cần theo dõi <b>calo + protein</b>.</li>
-          <li><b>Thêm bữa ăn</b> — gõ tên món, chọn từ dropdown (65+ món Việt có sẵn, không cần internet). Nhập khối lượng gram hoặc số suất → app tự nhân ra calo. VD: gõ "500g Ức gà" là ra ~825 kcal.</li>
-          <li><b>⭐ Lưu món</b> — món bạn hay ăn chưa có sẵn thì bấm ⭐ để lưu vào yêu thích, lần sau gõ là có.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>📏 Cơ thể</h3>
-        <ul class="guide-list">
-          <li><b>Thông số cơ bản</b> — chiều cao, tuổi, giới tính, mức vận động. Nhập 1 lần, để trống cũng được (app dùng ước lượng).</li>
-          <li><b>🔥 TDEE</b> — calo tiêu hao hôm nay = BMR × mức vận động + kcal tập luyện. So với calo nạp → biết đang thâm hụt (giảm mỡ) hay dư (tăng cân).</li>
-          <li>Ghi cân nặng mỗi sáng (sau khi đi vệ sinh, trước ăn — cho đều).</li>
-          <li>App vẽ biểu đồ để xem xu hướng dài hạn. Cân dao động ±1kg trong ngày là bình thường — nhìn xu hướng tuần/tháng, đừng nhìn từng ngày.</li>
-          <li>Không cần ghi mỗi ngày — 3-4 lần/tuần là đủ.</li>
-          <li><b>📐 Vòng bụng</b> — đo ngang rốn mỗi tuần 1 lần, sáng trước khi ăn. Đây là chỉ số rõ nhất để biết đang giảm mỡ bụng.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>📊 Tiến độ</h3>
-        <ul class="guide-list">
-          <li><b>Tuần này</b> — tổng buổi tập, tổng thời lượng, số lần tập từng bài.</li>
-          <li><b>Theo bài tập</b> — xem từng bài bạn nâng nặng dần lên không (progressive overload).</li>
-          <li><b>Gợi ý kế hoạch</b> — app đề xuất lịch tập tiếp theo.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>💾 Dữ liệu ở đâu?</h3>
-        <ul class="guide-list">
-          <li>Toàn bộ dữ liệu lưu trên <b>chính thiết bị này</b> (localStorage) — không lên server. Xoá cache trình duyệt / dùng máy khác thì không thấy dữ liệu cũ.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>💾 Sao lưu &amp; khôi phục</h3>
-        <ul class="guide-list">
-          <li>Nút <b>📤 Xuất / 📥 Nhập / 🗑️ Xoá</b> nằm <b>góc dưới sidebar</b> (trên nút Dark/Light) — dùng được ở mọi tab.</li>
-          <li><b>📤 Xuất</b> — tải về 1 file JSON chứa toàn bộ dữ liệu. Lưu file ở nơi an toàn (Google Drive, USB...).</li>
-          <li><b>📥 Nhập</b> — chọn file backup → khôi phục toàn bộ. Dùng khi xoá cache, đổi máy.</li>
-          <li><b>🗑️ Xoá</b> — xoá sạch toàn bộ (hỏi lại 2 lần, khuyên backup trước).</li>
-        </ul>
-      </div>
-    </section>
   </main>
 </div>
 
@@ -360,6 +288,6 @@
 </div>
 
 <script src="data/routine.js?v=41"></script>
-<script src="script.js?v=60"></script>
+<script src="script.js?v=61"></script>
 </body>
 </html>
